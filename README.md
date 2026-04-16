@@ -1,16 +1,71 @@
-# React + Vite
+# Licit Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Bu proje, `Licit` uygulamasinin kullanici arayuzunu gelistirmek icin olusturulmus React tabanli frontend projesidir. Proje `Vite` ile baslatilmistir ve hizli gelistirme ortami, modern React yapisi ve uretim build sureci sunar.
 
-Currently, two official plugins are available:
+## Proje Amaci
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Bu repository, `Licit` platformunun web arayuzunu gelistirmek icin kullanilir. Tasarimlar, sayfa yapilari ve bilesenler bu proje icinde React bilesenlerine donusturulerek gelistirilecektir.
 
-## React Compiler
+Mevcut durumda proje:
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- React + Vite altyapisi ile hazirdir
+- Gelistirme ve production build komutlarina sahiptir
+- Sonraki tasarim ve sayfa gelistirmeleri icin uygun bir baslangic sunar
 
-## Expanding the ESLint configuration
+## Teknolojiler
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- React
+- Vite
+- JavaScript
+- ESLint
+
+## Kurulum
+
+Projeyi lokal ortamda calistirmak icin:
+
+```bash
+npm install
+```
+
+## Gelistirme Ortami
+
+Asagidaki komut ile gelistirme sunucusunu baslatabilirsin:
+
+```bash
+npm run dev
+```
+
+Ardindan terminalde verilen lokal adres uzerinden projeyi tarayicida acabilirsin.
+
+## Build Alma
+
+Production build almak icin:
+
+```bash
+npm run build
+```
+
+Olusan cikti `dist/` klasorune yazilir.
+
+## Onizleme
+
+Build alinmis surumu lokal olarak test etmek icin:
+
+```bash
+npm run preview
+```
+
+## Proje Yapisi
+
+```text
+licit-frontend/
+  public/
+  src/
+  index.html
+  package.json
+  vite.config.js
+```
+
+## Not
+
+Bu README, projenin ilk kurulum asamasina gore hazirlanmistir. Yeni sayfalar, bilesenler ve tasarimlar eklendikce dokumantasyon da guncellenecektir.

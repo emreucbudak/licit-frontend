@@ -287,9 +287,13 @@ function LiveAuctionsPage({ navigate }) {
                     <span>+24</span>
                   </div>
 
-                  <button className="auction-feature__button" type="button">
+                  <a
+                    className="auction-feature__button"
+                    href="/auctions/lot-4429"
+                    onClick={navigate('/auctions/lot-4429')}
+                  >
                     Place Bid
-                  </button>
+                  </a>
                 </div>
               </div>
             </article>

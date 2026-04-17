@@ -498,6 +498,9 @@
 }
 
 .auction-feature__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-height: 50px;
   padding: 14px 28px;
   border: 0;

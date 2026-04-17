@@ -1,0 +1,849 @@
+.lot-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top right, rgba(73, 75, 214, 0.14), transparent 28%),
+    var(--color-background);
+  color: var(--color-on-background);
+}
+
+.lot-topbar,
+.lot-topbar__brand-row,
+.lot-topbar__nav,
+.lot-topbar__actions,
+.lot-search,
+.lot-bid-card__header,
+.lot-activity-card__header,
+.lot-activity-item__meta,
+.lot-comment-box,
+.lot-ticker__content,
+.lot-ticker__watchers,
+.lot-ticker__actions {
+  display: flex;
+  align-items: center;
+}
+
+.lot-topbar {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 60;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 16px 24px;
+  background: rgba(11, 19, 38, 0.92);
+  border-bottom: 1px solid rgba(70, 69, 84, 0.22);
+  backdrop-filter: blur(18px);
+}
+
+.lot-topbar__brand-row {
+  gap: 40px;
+}
+
+.lot-brand {
+  color: #fff;
+  font-size: 1.72rem;
+  font-weight: 900;
+  letter-spacing: -0.08em;
+  text-transform: uppercase;
+}
+
+.lot-topbar__nav {
+  gap: 26px;
+}
+
+.lot-topbar__link {
+  padding-bottom: 6px;
+  color: var(--color-slate-400);
+  font-size: 0.96rem;
+  font-weight: 500;
+  border-bottom: 2px solid transparent;
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.lot-topbar__link:hover {
+  color: #fff;
+}
+
+.lot-topbar__link--active {
+  color: #fff;
+  border-color: #6366f1;
+}
+
+.lot-topbar__actions {
+  gap: 12px;
+}
+
+.lot-search {
+  position: relative;
+  display: none;
+}
+
+.lot-search .material-symbols-outlined {
+  position: absolute;
+  left: 14px;
+  color: var(--color-slate-400);
+  font-size: 1rem;
+}
+
+.lot-search input {
+  width: 256px;
+  padding: 12px 16px 12px 42px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--color-surface-container-low);
+  color: #fff;
+  outline: none;
+  box-shadow: inset 0 0 0 1px transparent;
+  transition: box-shadow 0.2s ease;
+}
+
+.lot-search input:focus {
+  box-shadow: inset 0 0 0 2px var(--color-primary-container);
+}
+
+.lot-search input::placeholder {
+  color: #64748b;
+}
+
+.lot-icon-button {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-slate-400);
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.lot-icon-button:hover {
+  color: #fff;
+  background: rgba(30, 41, 59, 0.62);
+  transform: translateY(-1px);
+}
+
+.lot-toast {
+  position: fixed;
+  top: 84px;
+  left: 50%;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 24px;
+  border: 1px solid rgba(78, 222, 163, 0.18);
+  border-radius: 999px;
+  background: var(--color-secondary-container);
+  color: var(--color-on-secondary-container);
+  font-weight: 600;
+  transform: translateX(-50%);
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.35);
+}
+
+.lot-toast__icon {
+  font-variation-settings: 'FILL' 1;
+}
+
+.lot-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 32px;
+  width: min(1280px, calc(100% - 48px));
+  padding: 96px 0 48px;
+  margin: 0 auto;
+}
+
+.lot-gallery,
+.lot-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.lot-hero-media {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 1;
+  border: 1px solid rgba(70, 69, 84, 0.16);
+  border-radius: 22px;
+  background: var(--color-surface-container-low);
+}
+
+.lot-hero-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.7s ease;
+}
+
+.lot-hero-media:hover img {
+  transform: scale(1.05);
+}
+
+.lot-hero-media__badge {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--color-secondary-container);
+  color: var(--color-on-secondary-container);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.lot-hero-media__pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-secondary);
+  animation: bidPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.lot-thumb-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.lot-thumb {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 1;
+  padding: 0;
+  border: 1px solid rgba(70, 69, 84, 0.18);
+  border-radius: 16px;
+  background: var(--color-surface-container-low);
+  opacity: 0.62;
+  cursor: pointer;
+  transition:
+    opacity 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.lot-thumb:hover {
+  opacity: 1;
+  transform: translateY(-2px);
+}
+
+.lot-thumb--active {
+  opacity: 1;
+  border: 2px solid var(--color-primary-container);
+}
+
+.lot-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.lot-thumb__overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.42);
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.lot-meta-card,
+.lot-bid-card,
+.lot-activity-card,
+.lot-info-card {
+  border: 1px solid rgba(70, 69, 84, 0.12);
+  border-radius: 22px;
+}
+
+.lot-meta-card {
+  padding: 32px;
+  background: var(--color-surface-container-low);
+}
+
+.lot-meta-card h1 {
+  margin: 0 0 10px;
+  color: #fff;
+  font-size: clamp(2rem, 4vw, 2.7rem);
+  font-weight: 900;
+  letter-spacing: -0.05em;
+}
+
+.lot-meta-card p {
+  margin: 0 0 24px;
+  color: var(--color-on-surface-variant);
+  line-height: 1.8;
+}
+
+.lot-meta-card__facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.lot-chip {
+  padding: 12px 16px;
+  border: 1px solid rgba(70, 69, 84, 0.12);
+  border-radius: 16px;
+  background: var(--color-surface-container);
+}
+
+.lot-chip__label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--color-on-surface-variant);
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.lot-chip__value {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #fff;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.lot-chip__value--verified {
+  color: var(--color-secondary);
+}
+
+.lot-bid-card {
+  position: relative;
+  overflow: hidden;
+  padding: 32px;
+  background: var(--color-surface-container-high);
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.26);
+}
+
+.lot-bid-card__glow {
+  position: absolute;
+  top: -64px;
+  right: -64px;
+  width: 144px;
+  height: 144px;
+  border-radius: 50%;
+  background: rgba(192, 193, 255, 0.08);
+  filter: blur(34px);
+}
+
+.lot-bid-card__header {
+  position: relative;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+
+.lot-bid-card__eyebrow,
+.lot-bid-card__countdown span {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.lot-bid-card__eyebrow {
+  color: var(--color-on-surface-variant);
+}
+
+.lot-bid-card__header strong {
+  color: #fff;
+  font-size: clamp(2.8rem, 5vw, 4rem);
+  font-weight: 900;
+  letter-spacing: -0.08em;
+}
+
+.lot-bid-card__countdown {
+  text-align: right;
+}
+
+.lot-bid-card__countdown span,
+.lot-bid-card__countdown strong {
+  color: var(--color-tertiary);
+}
+
+.lot-bid-card__countdown strong {
+  font-size: 2rem;
+}
+
+.lot-bid-card__controls {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.lot-bid-input {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.lot-bid-input span {
+  position: absolute;
+  left: 16px;
+  color: var(--color-on-surface-variant);
+  font-weight: 800;
+}
+
+.lot-bid-input input {
+  width: 100%;
+  padding: 18px 16px 18px 34px;
+  border: 1px solid rgba(70, 69, 84, 0.18);
+  border-radius: 16px;
+  background: var(--color-surface-container-lowest);
+  color: #fff;
+  font-size: 1.3rem;
+  font-weight: 800;
+  outline: none;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.lot-bid-input input:focus {
+  border-color: transparent;
+  box-shadow: 0 0 0 2px var(--color-primary);
+}
+
+.lot-bid-button {
+  min-height: 62px;
+  border: 0;
+  border-radius: 16px;
+  background: linear-gradient(90deg, var(--color-secondary-container), var(--color-secondary));
+  color: var(--color-on-secondary-container);
+  font-size: 1rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    filter 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.lot-bid-button:hover {
+  filter: brightness(1.08);
+  transform: translateY(-2px);
+  box-shadow: 0 20px 40px rgba(0, 165, 114, 0.16);
+}
+
+.lot-bid-card__controls p {
+  margin: 0;
+  color: var(--color-on-surface-variant);
+  font-size: 0.72rem;
+  text-align: center;
+}
+
+.lot-activity-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 400px;
+  background: var(--color-surface-container-low);
+}
+
+.lot-activity-card__header {
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 24px;
+  border-bottom: 1px solid rgba(70, 69, 84, 0.14);
+}
+
+.lot-activity-card__header h2 {
+  margin: 0;
+  color: var(--color-on-surface-variant);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.lot-activity-card__online {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-secondary);
+  font-size: 0.75rem;
+}
+
+.lot-activity-card__online span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-secondary);
+}
+
+.lot-activity-feed {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+}
+
+.lot-activity-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.lot-activity-item--current {
+  padding: 12px;
+  border-left: 4px solid var(--color-primary);
+  border-radius: 14px;
+  background: rgba(192, 193, 255, 0.08);
+}
+
+.lot-activity-item--muted {
+  opacity: 0.5;
+}
+
+.lot-activity-item__avatar {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--color-surface-variant);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.lot-activity-item__avatar--primary {
+  color: var(--color-primary);
+}
+
+.lot-activity-item__avatar--tertiary {
+  color: var(--color-tertiary);
+}
+
+.lot-activity-item__avatar--current {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.lot-activity-item__body {
+  flex: 1;
+}
+
+.lot-activity-item__meta {
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.lot-activity-item__user {
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.lot-activity-item__user--current {
+  color: var(--color-primary);
+}
+
+.lot-activity-item__time {
+  color: var(--color-on-surface-variant);
+  font-size: 0.64rem;
+}
+
+.lot-activity-item p {
+  margin: 0;
+  color: var(--color-on-surface-variant);
+  font-size: 0.9rem;
+}
+
+.lot-activity-item p strong {
+  color: #fff;
+  font-weight: 800;
+}
+
+.lot-activity-item--current p {
+  color: rgba(192, 193, 255, 0.8);
+}
+
+.lot-activity-item--current p strong {
+  color: var(--color-primary);
+}
+
+.lot-activity-item__check {
+  color: var(--color-primary);
+  font-variation-settings: 'FILL' 1;
+}
+
+.lot-comment-box {
+  gap: 12px;
+  padding: 16px;
+  border-top: 1px solid rgba(70, 69, 84, 0.14);
+}
+
+.lot-comment-box input {
+  flex: 1;
+  padding: 12px 14px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--color-surface-container);
+  color: #fff;
+  outline: none;
+}
+
+.lot-comment-box button {
+  border: 0;
+  background: transparent;
+  color: var(--color-primary);
+  cursor: pointer;
+}
+
+.lot-comment-box button:hover {
+  color: var(--color-primary-container);
+}
+
+.lot-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.lot-info-card {
+  padding: 20px;
+  background: var(--color-surface-container-low);
+}
+
+.lot-info-card .material-symbols-outlined {
+  margin-bottom: 10px;
+  color: var(--color-primary-container);
+}
+
+.lot-info-card h3 {
+  margin: 0 0 6px;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.lot-info-card p {
+  margin: 0;
+  color: var(--color-on-surface-variant);
+  font-size: 0.72rem;
+  line-height: 1.6;
+}
+
+.lot-ticker {
+  position: fixed;
+  right: 0;
+  bottom: 24px;
+  left: 0;
+  z-index: 40;
+  display: none;
+  padding: 0 16px;
+}
+
+.lot-ticker__content {
+  justify-content: space-between;
+  gap: 24px;
+  width: min(100%, 896px);
+  padding: 16px 24px;
+  margin: 0 auto;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  background: rgba(45, 52, 73, 0.4);
+  backdrop-filter: blur(18px);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.26);
+}
+
+.lot-ticker__watchers {
+  gap: 16px;
+}
+
+.lot-ticker__watchers span:last-child {
+  color: var(--color-on-surface-variant);
+  font-size: 0.85rem;
+}
+
+.lot-ticker__avatars {
+  display: flex;
+  align-items: center;
+}
+
+.lot-ticker__avatars span {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  margin-left: -8px;
+  border: 2px solid var(--color-background);
+  border-radius: 50%;
+  color: #fff;
+  font-size: 0.62rem;
+  font-weight: 800;
+}
+
+.lot-ticker__avatars span:first-child {
+  margin-left: 0;
+  background: #94a3b8;
+}
+
+.lot-ticker__avatars span:nth-child(2) {
+  background: #818cf8;
+}
+
+.lot-ticker__avatars span:last-child {
+  background: #34d399;
+}
+
+.lot-ticker__actions {
+  gap: 18px;
+}
+
+.lot-ticker__divider {
+  width: 1px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.lot-ticker__label {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--color-on-surface-variant);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.lot-ticker strong {
+  color: var(--color-secondary);
+  font-size: 0.95rem;
+}
+
+.lot-ticker button {
+  min-height: 42px;
+  padding: 10px 16px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-size: 0.75rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.lot-ticker button:hover {
+  transform: translateY(-2px);
+}
+
+@keyframes bidPulse {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.95);
+    opacity: 0.5;
+  }
+}
+
+@media (min-width: 1024px) {
+  .lot-layout {
+    grid-template-columns: minmax(0, 1.25fr) minmax(360px, 0.9fr);
+    align-items: start;
+  }
+
+  .lot-ticker {
+    display: block;
+  }
+}
+
+@media (min-width: 1280px) {
+  .lot-search {
+    display: flex;
+  }
+}
+
+@media (max-width: 1023px) {
+  .lot-topbar__nav {
+    display: none;
+  }
+
+  .lot-toast {
+    width: calc(100% - 32px);
+    justify-content: center;
+  }
+}
+
+@media (max-width: 767px) {
+  .lot-topbar {
+    padding-inline: 16px;
+  }
+
+  .lot-brand {
+    font-size: 1.5rem;
+  }
+
+  .lot-layout {
+    width: min(100% - 32px, 1280px);
+    gap: 24px;
+    padding-top: 92px;
+  }
+
+  .lot-thumb-grid,
+  .lot-info-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .lot-meta-card,
+  .lot-bid-card,
+  .lot-activity-card,
+  .lot-info-card {
+    padding: 20px;
+  }
+
+  .lot-bid-card__header {
+    flex-direction: column;
+  }
+
+  .lot-bid-card__countdown {
+    text-align: left;
+  }
+
+  .lot-activity-card {
+    min-height: 0;
+    padding: 0;
+  }
+
+  .lot-activity-card__header,
+  .lot-activity-feed,
+  .lot-comment-box {
+    padding-inline: 20px;
+  }
+
+  .lot-ticker {
+    display: none !important;
+  }
+}

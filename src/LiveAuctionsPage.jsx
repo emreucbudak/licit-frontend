@@ -2,13 +2,19 @@ import './LiveAuctionsPage.css'
 
 const topNavLinks = [
   { label: 'Explore', href: '/', route: true, active: true },
-  { label: 'Activity', href: '#', active: false },
+  { label: 'Dashboard', href: '/dashboard', route: true, active: false },
   { label: 'How it works', href: '#', active: false },
 ]
 
 const sideNavLinks = [
   { label: 'Live Auctions', icon: 'gavel', active: true },
-  { label: 'Dashboard', icon: 'dashboard', active: false },
+  {
+    label: 'Dashboard',
+    icon: 'dashboard',
+    active: false,
+    href: '/dashboard',
+    route: true,
+  },
   { label: 'Collections', icon: 'category', active: false },
   { label: 'Wallet', icon: 'account_balance_wallet', active: false },
   { label: 'Settings', icon: 'settings', active: false },
@@ -188,7 +194,8 @@ function LiveAuctionsPage({ navigate }) {
                 className={`auctions-sidebar__link${
                   link.active ? ' auctions-sidebar__link--active' : ''
                 }`}
-                href="#"
+                href={link.href || '#'}
+                onClick={link.route ? navigate(link.href) : undefined}
               >
                 <span className="material-symbols-outlined">{link.icon}</span>
                 <span>{link.label}</span>

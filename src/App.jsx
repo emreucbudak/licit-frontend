@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import LandingPage from './LandingPage'
 import LiveAuctionsPage from './LiveAuctionsPage'
 import LotDetailPage from './LotDetailPage'
+import DashboardPage from './DashboardPage'
 
 function normalizePath(pathname) {
   const trimmedPath = pathname.replace(/\/+$/, '') || '/'
@@ -12,6 +13,10 @@ function normalizePath(pathname) {
 
   if (trimmedPath === '/auctions/lot-4429') {
     return '/auctions/lot-4429'
+  }
+
+  if (trimmedPath === '/dashboard') {
+    return '/dashboard'
   }
 
   return '/'
@@ -38,6 +43,8 @@ function App() {
         ? 'Licit | Premium Auction Exchange'
         : path === '/auctions/lot-4429'
           ? 'Licit | Auction Lot Detail'
+          : path === '/dashboard'
+            ? 'Licit Dashboard - Collector'
           : 'Licit - Real-time Bidding Platform'
   }, [path])
 
@@ -71,6 +78,10 @@ function App() {
 
   if (path === '/auctions/lot-4429') {
     return <LotDetailPage navigate={navigate} />
+  }
+
+  if (path === '/dashboard') {
+    return <DashboardPage navigate={navigate} />
   }
 
   return <LandingPage navigate={navigate} />

@@ -93,7 +93,11 @@ function LotDetailPage({ navigate }) {
             >
               Live Auctions
             </a>
-            <a className="lot-topbar__link" href="#">
+            <a
+              className="lot-topbar__link"
+              href="/dashboard"
+              onClick={navigate('/dashboard')}
+            >
               Dashboard
             </a>
             <a className="lot-topbar__link" href="#">

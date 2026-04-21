@@ -96,11 +96,6 @@ function LandingPage({ navigate }) {
         <section className="hero-section" id="live-auctions">
           <div className="section-shell hero-grid">
             <div className="hero-copy-block">
-              <div className="live-pill">
-                <span className="live-pill__indicator" aria-hidden="true"></span>
-                <span className="live-pill__text">Live Bidding Active</span>
-              </div>
-
               <h1 className="hero-title">
                 Real-time <br />
                 <span className="hero-title__accent">bidding</span> <br />
@@ -314,14 +309,7 @@ function LandingPage({ navigate }) {
         </div>
 
         <div className="section-shell footer-bottom">
-          <p>&copy; 2024 Licit Platform Inc. All rights reserved.</p>
-          <div className="footer-status">
-            <span className="footer-status__live">
-              <span className="footer-status__indicator" aria-hidden="true"></span>
-              Systems Operational
-            </span>
-            <span>Status Page</span>
-          </div>
+          <p>&copy; 2026 Licit Platform Inc. All rights reserved.</p>
         </div>
       </footer>
     </div>

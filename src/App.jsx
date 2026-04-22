@@ -56,9 +56,9 @@ function App() {
           : path === '/dashboard'
             ? 'Licit Panel - Koleksiyoner'
             : path === '/login'
-              ? 'Login - Licit'
+              ? 'Giriş Yap - Licit'
               : path === '/register'
-                ? 'Licit - Create Account'
+                ? 'Kaydol - Licit'
                 : 'Licit - Real-time Bidding Platform'
   }, [path])
 

@@ -54,7 +54,7 @@ function App() {
         : path === '/auctions/lot-4429'
           ? 'Licit | Auction Lot Detail'
           : path === '/dashboard'
-            ? 'Licit Dashboard - Collector'
+            ? 'Licit Panel - Koleksiyoner'
             : path === '/login'
               ? 'Login - Licit'
               : path === '/register'

@@ -52,7 +52,7 @@ function App() {
       path === '/auctions'
         ? 'Licit | Premium Auction Exchange'
         : path === '/auctions/lot-4429'
-          ? 'Licit | Auction Lot Detail'
+          ? 'Licit | Lot Detayı'
           : path === '/dashboard'
             ? 'Licit Panel - Koleksiyoner'
             : path === '/login'

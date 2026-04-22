@@ -3,6 +3,7 @@ import LandingPage from './LandingPage'
 import LiveAuctionsPage from './LiveAuctionsPage'
 import LotDetailPage from './LotDetailPage'
 import DashboardPage from './DashboardPage'
+import LoginPage from './LoginPage'
 
 function normalizePath(pathname) {
   const trimmedPath = pathname.replace(/\/+$/, '') || '/'
@@ -17,6 +18,10 @@ function normalizePath(pathname) {
 
   if (trimmedPath === '/dashboard') {
     return '/dashboard'
+  }
+
+  if (trimmedPath === '/login') {
+    return '/login'
   }
 
   return '/'
@@ -45,7 +50,9 @@ function App() {
           ? 'Licit | Auction Lot Detail'
           : path === '/dashboard'
             ? 'Licit Dashboard - Collector'
-          : 'Licit - Real-time Bidding Platform'
+            : path === '/login'
+              ? 'Login - Licit'
+              : 'Licit - Real-time Bidding Platform'
   }, [path])
 
   const navigate = (nextPath) => (event) => {
@@ -82,6 +89,10 @@ function App() {
 
   if (path === '/dashboard') {
     return <DashboardPage navigate={navigate} />
+  }
+
+  if (path === '/login') {
+    return <LoginPage navigate={navigate} />
   }
 
   return <LandingPage navigate={navigate} />

@@ -85,9 +85,9 @@ function LandingPage({ navigate }) {
             <button className="icon-button" type="button" aria-label="Bildirimler">
               <span className="material-symbols-outlined">notifications</span>
             </button>
-            <button className="icon-button" type="button" aria-label="Hesap">
+            <a className="icon-button" href="/login" onClick={navigate('/login')} aria-label="Hesap">
               <span className="material-symbols-outlined">account_circle</span>
-            </button>
+            </a>
           </div>
         </div>
       </nav>

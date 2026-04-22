@@ -206,10 +206,10 @@
 .hero-title {
   margin: 0 0 28px;
   color: #fff;
-  font-size: clamp(3.6rem, 9vw, 7rem);
+  font-size: 4.6rem;
   font-weight: 900;
-  line-height: 0.92;
-  letter-spacing: -0.08em;
+  line-height: 0.98;
+  letter-spacing: 0;
   text-transform: uppercase;
 }
 
@@ -222,7 +222,7 @@
   max-width: 640px;
   margin: 0 0 36px;
   color: var(--color-on-surface-variant);
-  font-size: clamp(1.1rem, 2vw, 1.55rem);
+  font-size: 1.15rem;
   font-weight: 300;
   line-height: 1.7;
 }
@@ -1008,10 +1008,12 @@
 
   .hero-title {
     margin-bottom: 22px;
+    font-size: 2.75rem;
   }
 
   .hero-copy {
     margin-bottom: 28px;
+    font-size: 1rem;
   }
 
   .button {

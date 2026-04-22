@@ -1,79 +1,79 @@
 import './LiveAuctionsPage.css'
 
 const topNavLinks = [
-  { label: 'Explore', href: '/', route: true, active: true },
-  { label: 'Dashboard', href: '/dashboard', route: true, active: false },
-  { label: 'How it works', href: '#', active: false },
+  { label: 'Keşfet', href: '/', route: true, active: true },
+  { label: 'Panel', href: '/dashboard', route: true, active: false },
+  { label: 'Nasıl çalışır', href: '#', active: false },
 ]
 
 const sideNavLinks = [
-  { label: 'Live Auctions', icon: 'gavel', active: true },
+  { label: 'Canlı Müzayedeler', icon: 'gavel', active: true },
   {
-    label: 'Dashboard',
+    label: 'Panel',
     icon: 'dashboard',
     active: false,
     href: '/dashboard',
     route: true,
   },
-  { label: 'Collections', icon: 'category', active: false },
-  { label: 'Wallet', icon: 'account_balance_wallet', active: false },
-  { label: 'Settings', icon: 'settings', active: false },
+  { label: 'Koleksiyonlar', icon: 'category', active: false },
+  { label: 'Cüzdan', icon: 'account_balance_wallet', active: false },
+  { label: 'Ayarlar', icon: 'settings', active: false },
 ]
 
 const footerNavLinks = [
-  { label: 'Help Center', icon: 'help' },
-  { label: 'Sign Out', icon: 'logout' },
+  { label: 'Yardım Merkezi', icon: 'help' },
+  { label: 'Çıkış Yap', icon: 'logout' },
 ]
 
-const categoryFilters = ['All', 'Tech', 'Art', 'Home']
-const statusFilters = ['Live', 'Ending Soon']
+const categoryFilters = ['Tümü', 'Teknoloji', 'Sanat', 'Ev']
+const statusFilters = ['Canlı', 'Yakında Bitiyor']
 
 const auctionCards = [
   {
     title: 'Custom GMMK Pro',
-    subtitle: 'Ice White, Lubed Holy Panda Switches',
+    subtitle: 'Buz beyazı, yağlanmış Holy Panda switchler',
     price: '$120.00',
-    endsIn: '45m 12s',
-    bids: '14 bids',
+    endsIn: '45dk 12sn',
+    bids: '14 teklif',
     emphasis: true,
     image:
       'https://lh3.googleusercontent.com/aida-public/AB6AXuAsHzSaWZ0OXBlXmW_7Ha-tVCmjujcrqkhRso8ovrJ2zB7CMMoNsseTyFdjNuHKQx6hMV732c-qQwEUS08vb-DsVSDoKPTfjd1NdO9WFbi5K3tiRPFC9bayoBg1mA4nvb7Eb5zJPGyUudeJ-a5voz4E0T-UFJ1DAmdkh_4B8nowfpmsp4hK1jAOPkwXTh7iaFvFcifxGbcx11UUb1SCv2z8wLm1nB9cztiTnv421B3G3cbpiG9avq-DNWbcjk_isEJ07oac3JhyXnI',
     alt:
-      'Custom mechanical keyboard with frosted acrylic case, pastel keycaps, and vibrant RGB underglow, soft focus desk setup',
+      'Buzlu akrilik kasalı, pastel tuş kapaklı ve canlı RGB alt aydınlatmalı özel mekanik klavye',
   },
   {
     title: 'Audeze LCD-X Open-Back',
-    subtitle: 'Creator Edition - Carbon Fiber Headband',
+    subtitle: 'Creator Edition - karbon fiber kafa bandı',
     price: '$890.00',
-    endsIn: '05h 22m',
-    bids: '8 bids',
+    endsIn: '05s 22dk',
+    bids: '8 teklif',
     image:
       'https://lh3.googleusercontent.com/aida-public/AB6AXuBZQ0RpmYnG1Y3o1gNWD_szQmQWy2-FAs58JeRiZ2cWt7gnQA9xMx6ot5IgBUY7FVkAxAj32dCIJJbPrA71auYYDZKLs6aeIDZkj1fRuGXqZkc--h2IjTCvMVvs2FqZGOq4zVmwA29rPfZvD02SlVtAqvT1OPnRw6gde_KrTFboMibFCfsU-QmGLF33DAa0m06SdKgkDZUNQ2QiUOlzpWkMc0GKwloKmwR3ugaTipFTVBRcf3jis9LyJ7hfEhIj2h8zlIF7pr-mAuU',
     alt:
-      'Professional studio monitor headphones resting on a high-end audio interface, warm amber ambient lighting, detailed texture',
+      'Üst seviye ses arayüzü üzerinde duran profesyonel stüdyo kulaklığı',
   },
   {
     title: 'Grand Seiko Heritage',
-    subtitle: 'Snowflake Dial SBGA211 - Spring Drive',
+    subtitle: 'Snowflake kadran SBGA211 - Spring Drive',
     price: '$4,200.00',
-    endsIn: '08m 55s',
-    bids: '31 bids',
+    endsIn: '08dk 55sn',
+    bids: '31 teklif',
     urgency: true,
     image:
       'https://lh3.googleusercontent.com/aida-public/AB6AXuCDNXwBOc4ojx8HqKSdYr_5tIw_mlCGmkAzyvrgQK_KVWLSjGg2z2a5QJ0U-MqPMzYYsOKsMNYwkeWo--5h_shiDe3YYZHYCzegr9Py-CViSm3Sm3itisnpKIZLXFHsaDi74hvc7rfRuO59hOFNqGc73z7zluiNtXsUb-9Q6ALSC-SPckrmOuwFlX4ruhm3WGwzoeKekH_qQApUHcGMt-oEzGiCAdK4r6P8PjE9Xi84ISSyUdcOhwHI2VxaK-UvDHiKggnhs2JJUuY',
     alt:
-      'Macro shot of a luxury watch movement showing gears and escapement, technical and industrial aesthetic, cool blue tones',
+      'Dişli ve eşapman detaylarını gösteren lüks saat mekanizmasının makro çekimi',
   },
   {
     title: 'Make Noise Shared System',
-    subtitle: 'Black & Gold Edition Modular Rig',
+    subtitle: 'Black & Gold Edition modüler sistem',
     price: '$2,100.00',
-    endsIn: '12h 00m',
-    bids: '5 bids',
+    endsIn: '12s 00dk',
+    bids: '5 teklif',
     image:
       'https://lh3.googleusercontent.com/aida-public/AB6AXuA238dzWrTBBTGSS6pyGgVkyOq440JGLxTuHW_MnNhgMrF5t6iDdb1i76iiG7F-FnmBGDR1lp0o1gpN7LND-5oJHBLzhJfhe_EIZUY8h5JKKFryW6gi4nf17WeV7FPevgwVLu0i3qESr5W236Tuum4sBJZvZ6fURkGo72oUIp2xlebm_2YNVD9ogak2X3L0h-MeJLWtm9dB27g4nXLDrEnqWmAC9I-JsPwtiFilVZGnU3_gZ0Ai8x5Ku3NB7JFkQd7KRJnprP-W76s',
     alt:
-      'Minimalist modular synthesizer module with wooden side panels, silver knobs, and patch cables, bright studio lighting',
+      'Ahşap yan panelli, gümüş düğmeli ve patch kablolu minimalist modüler synthesizer',
   },
 ]
 
@@ -91,13 +91,13 @@ function AuctionCard({ card }) {
 
         <div className="auction-card__meta">
           <div>
-            <span>Current</span>
+            <span>Güncel</span>
             <strong>{card.price}</strong>
           </div>
 
           <div className="auction-card__meta-right">
             <span className={card.urgency ? 'auction-card__urgent' : ''}>
-              Ends in
+              Kalan süre
             </span>
             <strong>{card.endsIn}</strong>
           </div>
@@ -138,7 +138,7 @@ function LiveAuctionsPage({ navigate }) {
             Licit
           </a>
 
-          <nav className="auctions-topbar__nav" aria-label="Primary navigation">
+          <nav className="auctions-topbar__nav" aria-label="Ana navigasyon">
             {topNavLinks.map((link) => (
               <a
                 key={link.label}
@@ -155,21 +155,21 @@ function LiveAuctionsPage({ navigate }) {
         </div>
 
         <div className="auctions-topbar__actions">
-          <label className="auctions-search" aria-label="Search auctions">
+          <label className="auctions-search" aria-label="Müzayede ara">
             <span className="material-symbols-outlined">search</span>
-            <input placeholder="Search auctions..." type="search" />
+            <input placeholder="Müzayede ara..." type="search" />
           </label>
 
           <button
             className="auctions-icon-button auctions-icon-button--live"
             type="button"
-            aria-label="Notifications"
+            aria-label="Bildirimler"
           >
             <span className="material-symbols-outlined">notifications</span>
             <span className="auctions-icon-button__dot" aria-hidden="true"></span>
           </button>
 
-          <button className="auctions-icon-button" type="button" aria-label="Account">
+          <button className="auctions-icon-button" type="button" aria-label="Hesap">
             <span className="material-symbols-outlined">account_circle</span>
           </button>
         </div>
@@ -182,8 +182,8 @@ function LiveAuctionsPage({ navigate }) {
               <span className="material-symbols-outlined">gavel</span>
             </div>
             <div>
-              <div className="auctions-sidebar__name">Collector</div>
-              <div className="auctions-sidebar__role">Verified Member</div>
+              <div className="auctions-sidebar__name">Koleksiyoner</div>
+              <div className="auctions-sidebar__role">Doğrulanmış Üye</div>
             </div>
           </div>
 
@@ -204,7 +204,7 @@ function LiveAuctionsPage({ navigate }) {
           </div>
 
           <button className="auctions-sidebar__cta" type="button">
-            Create Auction
+            Müzayede Oluştur
           </button>
 
           <div className="auctions-sidebar__footer">
@@ -220,9 +220,9 @@ function LiveAuctionsPage({ navigate }) {
         <main className="auctions-main">
           <div className="auctions-main__header">
             <div>
-              <h1>Live Auctions</h1>
+              <h1>Canlı Müzayedeler</h1>
               <p>
-                Curated digital and physical assets for elite collectors.
+                Seçkin koleksiyonerler için küratörlü dijital ve fiziksel varlıklar.
               </p>
             </div>
 
@@ -255,21 +255,21 @@ function LiveAuctionsPage({ navigate }) {
             </div>
           </div>
 
-          <section className="auction-grid" aria-label="Auction listing">
+          <section className="auction-grid" aria-label="Müzayede listesi">
             <article className="auction-feature">
               <div className="auction-feature__media">
                 <img
-                  alt="Close-up of a premium vintage film camera with metallic chrome body and black leather grip, dramatic studio lighting against a dark slate background"
+                  alt="Metal krom gövdeli ve siyah deri tutuşlu premium vintage film kamerasının dramatik stüdyo ışığında yakın çekimi"
                   src="https://lh3.googleusercontent.com/aida-public/AB6AXuBj8KFbP6P_e_F-eKJJN0yxsB3gtrT06H9IX1BosthXFCHeq0dFdgaZrUTKZydbDXPF24Qsir99du0nYRfdpGFTxQEqLgh5NX2v6A-B5lJPDA6x0O1ppBw3pYJ1E17i99GdPzdCtlh0r6i3q_TgccUql40i84-bPRz0GdGgKf0sYECjPcDVHlbcI0rW9FUWw8Ms0EQd2wvwxmajQEX7UEVi3Tf2ZwMQECpDqErL0Fr7f5cyUm9tP6A1OCTSnaQEHMGf3ZA1pLL7ma4"
                 />
 
                 <div className="auction-feature__badges">
                   <span className="auction-badge auction-badge--live">
                     <span className="auction-badge__pulse" aria-hidden="true"></span>
-                    Live
+                    Canlı
                   </span>
                   <span className="auction-badge auction-badge--timer">
-                    Ending in 02h 45m
+                    02s 45dk kaldı
                   </span>
                 </div>
               </div>
@@ -278,11 +278,11 @@ function LiveAuctionsPage({ navigate }) {
                 <div className="auction-feature__header">
                   <div>
                     <h2>Leica M6 Classic Vintage</h2>
-                    <p>Serial No. 24891 - Mint Condition</p>
+                    <p>Seri No. 24891 - koleksiyonluk kondisyonda</p>
                   </div>
 
                   <div className="auction-feature__price">
-                    <span>Current Bid</span>
+                    <span>Güncel Teklif</span>
                     <strong>$3,450.00</strong>
                   </div>
                 </div>
@@ -299,7 +299,7 @@ function LiveAuctionsPage({ navigate }) {
                     href="/auctions/lot-4429"
                     onClick={navigate('/auctions/lot-4429')}
                   >
-                    Place Bid
+                    Teklif Ver
                   </a>
                 </div>
               </div>
@@ -315,22 +315,22 @@ function LiveAuctionsPage({ navigate }) {
         </main>
       </div>
 
-      <nav className="auctions-mobile-dock" aria-label="Mobile navigation">
+      <nav className="auctions-mobile-dock" aria-label="Mobil navigasyon">
         <button className="auctions-mobile-dock__item auctions-mobile-dock__item--active" type="button">
           <span className="material-symbols-outlined">gavel</span>
-          <span>Live</span>
+          <span>Canlı</span>
         </button>
         <button className="auctions-mobile-dock__item" type="button">
           <span className="material-symbols-outlined">dashboard</span>
-          <span>Dash</span>
+          <span>Panel</span>
         </button>
         <button className="auctions-mobile-dock__item" type="button">
           <span className="material-symbols-outlined">category</span>
-          <span>Items</span>
+          <span>Ürünler</span>
         </button>
         <button className="auctions-mobile-dock__item" type="button">
           <span className="material-symbols-outlined">account_balance_wallet</span>
-          <span>Wallet</span>
+          <span>Cüzdan</span>
         </button>
       </nav>
     </div>

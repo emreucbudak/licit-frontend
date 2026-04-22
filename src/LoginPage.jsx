@@ -94,7 +94,7 @@ function LoginPage({ navigate }) {
                   className="login-input login-input--password"
                   id="password"
                   name="password"
-                  placeholder="••••••••"
+                  placeholder="********"
                   type={showPassword ? 'text' : 'password'}
                 />
                 <button
@@ -137,7 +137,9 @@ function LoginPage({ navigate }) {
 
           <p className="login-request">
             Don't have an account?{' '}
-            <a href="#request-access">Request Access</a>
+            <a href="/register" onClick={navigate('/register')}>
+              Request Access
+            </a>
           </p>
         </section>
       </main>

@@ -1,4 +1,12 @@
 import { useEffect, useState } from 'react'
+import {
+  BrowserRouter,
+  Navigate,
+  Route,
+  Routes,
+  useLocation,
+  useNavigate,
+} from 'react-router-dom'
 import LandingPage from './LandingPage'
 import LiveAuctionsPage from './LiveAuctionsPage'
 import LotDetailPage from './LotDetailPage'
@@ -12,18 +20,6 @@ import VerifyIdentityPage from './VerifyIdentityPage'
 import ForgotPasswordPage from './ForgotPasswordPage'
 
 const AUTH_STORAGE_KEY = 'licit.authenticated'
-
-const protectedPaths = new Set([
-  '/auctions',
-  '/auctions/lot-4429',
-  '/auctions/create',
-  '/dashboard',
-  '/settings',
-])
-
-function isProtectedPath(pathname) {
-  return protectedPaths.has(pathname)
-}
 
 function isStoredAuthenticated() {
   try {
@@ -49,55 +45,6 @@ function clearAuthentication() {
   }
 }
 
-function normalizePath(pathname) {
-  const trimmedPath = pathname.replace(/\/+$/, '') || '/'
-
-  if (trimmedPath === '/auctions') {
-    return '/auctions'
-  }
-
-  if (trimmedPath === '/auctions/lot-4429') {
-    return '/auctions/lot-4429'
-  }
-
-  if (trimmedPath === '/auctions/create') {
-    return '/auctions/create'
-  }
-
-  if (trimmedPath === '/dashboard') {
-    return '/dashboard'
-  }
-
-  if (trimmedPath === '/settings') {
-    return '/settings'
-  }
-
-  if (trimmedPath === '/login') {
-    return '/login'
-  }
-
-  if (trimmedPath === '/forgot-password' || trimmedPath === '/forgot') {
-    return '/forgot-password'
-  }
-
-  if (trimmedPath === '/verify-identity' || trimmedPath === '/verify-code') {
-    return '/verify-identity'
-  }
-
-  if (
-    trimmedPath === '/reset-password' ||
-    trimmedPath === '/create-new-password'
-  ) {
-    return '/reset-password'
-  }
-
-  if (trimmedPath === '/register') {
-    return '/register'
-  }
-
-  return '/'
-}
-
 function titleForPath(pathname) {
   return (
     {
@@ -115,77 +62,50 @@ function titleForPath(pathname) {
   )
 }
 
-function resolveRenderedPath(pathname, isAuthenticated, passwordResetFlow) {
-  if (!isAuthenticated && isProtectedPath(pathname)) {
-    return '/login'
+function ProtectedRoute({ isAuthenticated, children }) {
+  const location = useLocation()
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace state={{ from: location }} />
   }
 
-  if (pathname === '/verify-identity' && !passwordResetFlow.email) {
-    return '/forgot-password'
-  }
-
-  if (pathname === '/reset-password') {
-    if (!passwordResetFlow.email) {
-      return '/forgot-password'
-    }
-
-    if (!passwordResetFlow.codeVerified) {
-      return '/verify-identity'
-    }
-  }
-
-  return pathname
+  return children
 }
 
-function App() {
-  const [path, setPath] = useState(() => normalizePath(window.location.pathname))
+function PasswordResetCodeRoute({ passwordResetFlow, children }) {
+  if (!passwordResetFlow.email) {
+    return <Navigate to="/forgot-password" replace />
+  }
+
+  return children
+}
+
+function PasswordResetRoute({ passwordResetFlow, children }) {
+  if (!passwordResetFlow.email) {
+    return <Navigate to="/forgot-password" replace />
+  }
+
+  if (!passwordResetFlow.codeVerified) {
+    return <Navigate to="/verify-identity" replace />
+  }
+
+  return children
+}
+
+function AppRoutes() {
+  const routerNavigate = useNavigate()
+  const location = useLocation()
   const [isAuthenticated, setIsAuthenticated] = useState(isStoredAuthenticated)
   const [passwordResetFlow, setPasswordResetFlow] = useState({
     email: '',
     codeVerified: false,
   })
 
-  const renderedPath = resolveRenderedPath(
-    path,
-    isAuthenticated,
-    passwordResetFlow,
-  )
-
-  const setRoute = (nextPath, options = {}) => {
-    const normalizedPath = normalizePath(nextPath)
-
-    if (normalizedPath === path) {
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-      return
-    }
-
-    if (options.replace === true) {
-      window.history.replaceState({}, '', normalizedPath)
-    } else {
-      window.history.pushState({}, '', normalizedPath)
-    }
-
-    setPath(normalizedPath)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
-
   useEffect(() => {
-    const handlePopState = () => {
-      setPath(normalizePath(window.location.pathname))
-    }
+    document.title = titleForPath(location.pathname)
+  }, [location.pathname])
 
-    window.addEventListener('popstate', handlePopState)
-
-    return () => {
-      window.removeEventListener('popstate', handlePopState)
-    }
-  }, [])
-
-  useEffect(() => {
-    document.title = titleForPath(renderedPath)
-  }, [renderedPath])
-
-  const navigate = (nextPath) => (event) => {
+  const navigate = (nextPath, options = {}) => (event) => {
     if (
       event &&
       (event.button !== 0 ||
@@ -198,22 +118,28 @@ function App() {
     }
 
     event?.preventDefault()
-    setRoute(nextPath)
+
+    if (nextPath === location.pathname) {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
+
+    routerNavigate(nextPath, options)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   const handleLogin = () => {
     storeAuthentication()
     setIsAuthenticated(true)
 
-    if (!isProtectedPath(path)) {
-      setRoute('/dashboard', { replace: true })
-    }
+    const fromPath = location.state?.from?.pathname
+    routerNavigate(fromPath || '/dashboard', { replace: true })
   }
 
   const handleLogout = () => {
     clearAuthentication()
     setIsAuthenticated(false)
-    setRoute('/login', { replace: true })
+    routerNavigate('/login', { replace: true })
   }
 
   const handlePasswordResetRequested = (email) => {
@@ -221,7 +147,7 @@ function App() {
       email,
       codeVerified: false,
     })
-    setRoute('/verify-identity')
+    routerNavigate('/verify-identity')
   }
 
   const handlePasswordResetVerified = () => {
@@ -229,7 +155,7 @@ function App() {
       ...currentFlow,
       codeVerified: Boolean(currentFlow.email),
     }))
-    setRoute('/reset-password')
+    routerNavigate('/reset-password')
   }
 
   const handlePasswordResetCompleted = () => {
@@ -239,65 +165,111 @@ function App() {
     })
     clearAuthentication()
     setIsAuthenticated(false)
-    setRoute('/login', { replace: true })
+    routerNavigate('/login', { replace: true })
   }
 
-  if (renderedPath === '/auctions') {
-    return <LiveAuctionsPage navigate={navigate} onLogout={handleLogout} />
-  }
-
-  if (renderedPath === '/auctions/lot-4429') {
-    return <LotDetailPage navigate={navigate} />
-  }
-
-  if (renderedPath === '/auctions/create') {
-    return <CreateAuctionPage navigate={navigate} onLogout={handleLogout} />
-  }
-
-  if (renderedPath === '/dashboard') {
-    return <DashboardPage navigate={navigate} onLogout={handleLogout} />
-  }
-
-  if (renderedPath === '/settings') {
-    return <SettingsPage navigate={navigate} onLogout={handleLogout} />
-  }
-
-  if (renderedPath === '/login') {
-    return <LoginPage navigate={navigate} onLogin={handleLogin} />
-  }
-
-  if (renderedPath === '/forgot-password') {
-    return (
-      <ForgotPasswordPage
-        navigate={navigate}
-        onPasswordResetRequested={handlePasswordResetRequested}
+  return (
+    <Routes>
+      <Route path="/" element={<LandingPage navigate={navigate} />} />
+      <Route
+        path="/login"
+        element={<LoginPage navigate={navigate} onLogin={handleLogin} />}
       />
-    )
-  }
-
-  if (renderedPath === '/verify-identity') {
-    return (
-      <VerifyIdentityPage
-        navigate={navigate}
-        onPasswordResetVerified={handlePasswordResetVerified}
+      <Route
+        path="/register"
+        element={<RegisterPage navigate={navigate} onLogin={handleLogin} />}
       />
-    )
-  }
-
-  if (renderedPath === '/reset-password') {
-    return (
-      <CreateNewPasswordPage
-        navigate={navigate}
-        onPasswordResetCompleted={handlePasswordResetCompleted}
+      <Route
+        path="/forgot-password"
+        element={
+          <ForgotPasswordPage
+            navigate={navigate}
+            onPasswordResetRequested={handlePasswordResetRequested}
+          />
+        }
       />
-    )
-  }
+      <Route path="/forgot" element={<Navigate to="/forgot-password" replace />} />
+      <Route
+        path="/verify-identity"
+        element={
+          <PasswordResetCodeRoute passwordResetFlow={passwordResetFlow}>
+            <VerifyIdentityPage
+              navigate={navigate}
+              onPasswordResetVerified={handlePasswordResetVerified}
+            />
+          </PasswordResetCodeRoute>
+        }
+      />
+      <Route
+        path="/verify-code"
+        element={<Navigate to="/verify-identity" replace />}
+      />
+      <Route
+        path="/reset-password"
+        element={
+          <PasswordResetRoute passwordResetFlow={passwordResetFlow}>
+            <CreateNewPasswordPage
+              navigate={navigate}
+              onPasswordResetCompleted={handlePasswordResetCompleted}
+            />
+          </PasswordResetRoute>
+        }
+      />
+      <Route
+        path="/create-new-password"
+        element={<Navigate to="/reset-password" replace />}
+      />
+      <Route
+        path="/auctions"
+        element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <LiveAuctionsPage navigate={navigate} onLogout={handleLogout} />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/auctions/lot-4429"
+        element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <LotDetailPage navigate={navigate} />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/auctions/create"
+        element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <CreateAuctionPage navigate={navigate} onLogout={handleLogout} />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <DashboardPage navigate={navigate} onLogout={handleLogout} />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <SettingsPage navigate={navigate} onLogout={handleLogout} />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  )
+}
 
-  if (renderedPath === '/register') {
-    return <RegisterPage navigate={navigate} onLogin={handleLogin} />
-  }
-
-  return <LandingPage navigate={navigate} />
+function App() {
+  return (
+    <BrowserRouter>
+      <AppRoutes />
+    </BrowserRouter>
+  )
 }
 
 export default App

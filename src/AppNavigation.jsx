@@ -15,7 +15,6 @@ const sideNavLinks = [
     route: true,
     match: ['/dashboard'],
   },
-  { label: 'Koleksiyonlar', icon: 'category', href: '#' },
   { label: 'Cüzdan', icon: 'account_balance_wallet', href: '#' },
   {
     label: 'Ayarlar',

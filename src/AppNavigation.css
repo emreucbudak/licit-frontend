@@ -156,7 +156,7 @@
 .app-sidebar__footer {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .app-sidebar__nav {
@@ -196,13 +196,15 @@
 }
 
 .app-sidebar__cta {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 8px;
   min-height: 50px;
-  margin: 0 8px;
+  width: 100%;
+  padding: 14px 16px;
   border-radius: 14px;
+  box-sizing: border-box;
   background: linear-gradient(90deg, var(--color-primary), var(--color-primary-container));
   color: var(--color-on-primary);
   font-size: 0.9rem;

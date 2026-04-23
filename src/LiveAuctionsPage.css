@@ -53,11 +53,9 @@
   color: var(--color-slate-400);
   font-size: 0.95rem;
   font-weight: 500;
-  border-bottom: 2px solid transparent;
   transition:
     color 0.2s ease,
-    background-color 0.2s ease,
-    border-color 0.2s ease;
+    background-color 0.2s ease;
 }
 
 .auctions-topbar__link:hover {
@@ -66,7 +64,6 @@
 
 .auctions-topbar__link--active {
   color: #fff;
-  border-color: #6366f1;
 }
 
 .auctions-topbar__actions {
@@ -230,9 +227,8 @@
 }
 
 .auctions-sidebar__link--active {
-  color: #818cf8;
-  background: rgba(99, 102, 241, 0.1);
-  border-right: 4px solid #6366f1;
+  color: #fff;
+  background: rgba(30, 41, 59, 0.72);
 }
 
 .auctions-sidebar__cta {

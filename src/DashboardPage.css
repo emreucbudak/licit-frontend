@@ -45,11 +45,11 @@
 }
 
 .dashboard-topbar__nav {
-  gap: 16px;
+  gap: 20px;
 }
 
 .dashboard-topbar__link {
-  padding: 8px 12px;
+  padding: 8px 4px;
   border-radius: 10px;
   color: var(--color-slate-400);
   font-size: 0.9rem;
@@ -200,9 +200,8 @@
 }
 
 .dashboard-sidebar__link--active {
-  color: #818cf8;
-  background: rgba(99, 102, 241, 0.1);
-  border-right: 4px solid #6366f1;
+  color: #fff;
+  background: rgba(30, 41, 59, 0.6);
 }
 
 .dashboard-sidebar__cta {

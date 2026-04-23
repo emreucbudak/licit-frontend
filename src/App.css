@@ -60,8 +60,7 @@
   font-weight: 500;
   transition:
     background-color 0.2s ease,
-    color 0.2s ease,
-    border-color 0.2s ease;
+    color 0.2s ease;
 }
 
 .nav-link:hover {
@@ -71,8 +70,6 @@
 
 .nav-link--active {
   color: #fff;
-  border-bottom: 2px solid #6366f1;
-  border-radius: 0;
 }
 
 .top-nav__actions {

@@ -1,16 +1,5 @@
 import './AppNavigation.css'
 
-const topNavLinks = [
-  { label: 'Keşfet', href: '/', route: true, match: ['/'] },
-  {
-    label: 'Canlı Müzayedeler',
-    href: '/auctions',
-    route: true,
-    match: ['/auctions', '/auctions/lot-4429'],
-  },
-  { label: 'Panel', href: '/dashboard', route: true, match: ['/dashboard'] },
-]
-
 const sideNavLinks = [
   {
     label: 'Canlı Müzayedeler',
@@ -51,21 +40,6 @@ export function AppTopNavbar({ currentPath, navigate, searchPlaceholder = 'Müza
         <a className="app-brand" href="/" onClick={navigate('/')}>
           Licit
         </a>
-
-        <nav className="app-topbar__nav" aria-label="Ana navigasyon">
-          {topNavLinks.map((link) => (
-            <a
-              key={link.label}
-              className={`app-topbar__link${
-                isActive(currentPath, link) ? ' app-topbar__link--active' : ''
-              }`}
-              href={link.href}
-              onClick={routeHandler(navigate, link)}
-            >
-              {link.label}
-            </a>
-          ))}
-        </nav>
       </div>
 
       <div className="app-topbar__actions">

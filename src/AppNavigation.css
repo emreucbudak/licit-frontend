@@ -1,6 +1,5 @@
 .app-topbar,
 .app-topbar__brand-row,
-.app-topbar__nav,
 .app-topbar__actions,
 .app-search {
   display: flex;
@@ -32,23 +31,6 @@
   font-weight: 900;
   letter-spacing: -0.08em;
   text-transform: uppercase;
-}
-
-.app-topbar__nav {
-  gap: 20px;
-}
-
-.app-topbar__link {
-  padding: 8px 4px;
-  color: var(--color-slate-400);
-  font-size: 0.95rem;
-  font-weight: 600;
-  transition: color 0.2s ease;
-}
-
-.app-topbar__link:hover,
-.app-topbar__link--active {
-  color: #fff;
 }
 
 .app-topbar__actions {
@@ -242,12 +224,6 @@
   .app-search,
   .app-sidebar {
     display: flex;
-  }
-}
-
-@media (max-width: 1023px) {
-  .app-topbar__nav {
-    display: none;
   }
 }
 

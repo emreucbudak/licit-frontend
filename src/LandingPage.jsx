@@ -25,12 +25,6 @@ const featureCards = [
   },
 ]
 
-const bidLadder = [
-  { bidder: 'Collector_X99', amount: '24.80 ETH', status: 'leading' },
-  { bidder: 'Arty_Master', amount: '24.75 ETH', status: 'standard' },
-  { bidder: 'Whale_Alpha', amount: '24.50 ETH', status: 'faded' },
-]
-
 const footerColumns = [
   {
     title: 'Platform',
@@ -76,6 +70,7 @@ function LandingPage({ navigate }) {
   const totalTransactions = useCountUp(24800, 1600)
   const representedCountries = useCountUp(120)
   const satisfactionRate = useCountUp(98)
+  const completedSalesRate = useCountUp(97)
 
   return (
     <div className="landing-page">
@@ -232,26 +227,13 @@ function LandingPage({ navigate }) {
                 </div>
               </article>
 
-              <article className="bento-card bento-card--ladder">
-                <div className="ladder-header">
-                  <h4>Canlı Teklif Sıralaması</h4>
-                  <div className="ladder-avatars" aria-hidden="true">
-                    <span className="ladder-avatars__item ladder-avatars__item--one"></span>
-                    <span className="ladder-avatars__item ladder-avatars__item--two"></span>
-                    <span className="ladder-avatars__item ladder-avatars__item--three"></span>
-                  </div>
-                </div>
-
-                <div className="ladder-list">
-                  {bidLadder.map((entry) => (
-                    <div
-                      key={entry.bidder}
-                      className={`ladder-row ladder-row--${entry.status}`}
-                    >
-                      <span>{entry.bidder}</span>
-                      <strong>{entry.amount}</strong>
-                    </div>
-                  ))}
+              <article className="bento-card bento-card--ladder bento-card--completion">
+                <div className="bento-card__completion">
+                  <h4>Tamamlanan Satış</h4>
+                  <strong className="bento-card__metric">{completedSalesRate}%</strong>
+                  <p className="bento-card__metric-copy">
+                    Yayına alınan uygun lotların başarıyla sonuçlanma oranı.
+                  </p>
                 </div>
               </article>
             </div>

@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import './App.css'
 
 const featureCards = [
@@ -45,7 +46,37 @@ const footerColumns = [
   },
 ]
 
+function useCountUp(target, duration = 1400) {
+  const [value, setValue] = useState(0)
+
+  useEffect(() => {
+    let frameId = 0
+    const startTime = performance.now()
+
+    const tick = (currentTime) => {
+      const progress = Math.min((currentTime - startTime) / duration, 1)
+      setValue(Math.round(progress * target))
+
+      if (progress < 1) {
+        frameId = window.requestAnimationFrame(tick)
+      }
+    }
+
+    frameId = window.requestAnimationFrame(tick)
+
+    return () => {
+      window.cancelAnimationFrame(frameId)
+    }
+  }, [duration, target])
+
+  return value
+}
+
 function LandingPage({ navigate }) {
+  const totalTransactions = useCountUp(24800, 1600)
+  const representedCountries = useCountUp(120)
+  const satisfactionRate = useCountUp(98)
+
   return (
     <div className="landing-page">
       <nav className="top-nav">
@@ -169,20 +200,14 @@ function LandingPage({ navigate }) {
         <section className="showcase-section" id="showcase">
           <div className="section-shell">
             <div className="bento-grid">
-              <article className="bento-card bento-card--featured">
-                <img
-                  alt="Karanlık arka planda karmaşık dişlilere ve rose gold kaplamaya sahip premium mekanik saat mekanizmasının detaylı yakın çekimi"
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuCQXHnPeiBvrgDiqYaTkpacMxj4Skx3uHVPPI-85HuamwV9HZ7Oqgo4k5o2AGL268ailBAwcQOutq7zjB3Ajb09VxsytFir5oM-KtDlI2N-SVEUFD-tgeO7v2j3vAZYKy3qz5RhJl18KH-WOELwYBwh00S3Ue5IzLkzNeENTCqyUZZT03aHyVE_Ls73rdYx2rGxrTcnMa7UN0Avyu5wUQHWX_Z2d5rr8MrXDDQHQL7WrVY3K5fHu8THOLIph8DWXIKTLzihikRbF5Q"
-                />
-                <div className="bento-card__overlay">
-                  <div className="premium-tag">
-                    <span className="material-symbols-outlined">stars</span>
-                    <span>Özel Kürasyon</span>
-                  </div>
-                  <h3>Chronos Genesis</h3>
-                  <p>
-                    Şimdiye kadar üretilmiş en nadir zaman parçasının dijital ikizi.
-                    Yalnızca Licit'te.
+              <article className="bento-card bento-card--featured bento-card--featured-metric">
+                <div className="bento-card__feature-metric">
+                  <p className="bento-card__feature-label">Toplam İşlem Sayısı</p>
+                  <strong className="bento-card__feature-value">
+                    {totalTransactions.toLocaleString('tr-TR')}+
+                  </strong>
+                  <p className="bento-card__feature-copy">
+                    Platform üzerinde tamamlanan teklif ve satış hareketlerinin toplamı.
                   </p>
                 </div>
               </article>
@@ -190,7 +215,7 @@ function LandingPage({ navigate }) {
               <article className="bento-card bento-card--stats">
                 <span className="material-symbols-outlined stats-icon">public</span>
                 <div>
-                  <p className="stats-value">120+</p>
+                  <p className="stats-value">{representedCountries}+</p>
                   <p className="stats-copy">
                     Küresel teklif ağımızda temsil edilen ülke.
                   </p>
@@ -199,8 +224,8 @@ function LandingPage({ navigate }) {
 
               <article className="bento-card bento-card--stability">
                 <div className="bento-card__content bento-card__content--overlay">
-                  <h4>Koleksiyoner Memnuniyeti</h4>
-                  <strong className="bento-card__metric">98%</strong>
+                  <h4>Kullanıcı Memnuniyeti</h4>
+                  <strong className="bento-card__metric">{satisfactionRate}%</strong>
                   <p className="bento-card__metric-copy">
                     Teklif deneyimini güçlü ve güvenilir bulan aktif kullanıcı oranı.
                   </p>

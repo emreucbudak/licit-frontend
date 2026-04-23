@@ -21,10 +21,10 @@ function CreateAuctionPage({ navigate }) {
                 Yeni Başvuru
               </span>
               <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-white">
-                Yeni Müzayede Lotu Oluştur
+                Yeni Müzayede Oluştur
               </h1>
               <p className="mt-2 max-w-lg text-on-surface-variant">
-                Değerli varlığını listele. Alıcı güvenini artırmak için detaylı
+                Ürününü listele. Alıcı güvenini artırmak için detaylı
                 özellikler ve net bilgiler ekle.
               </p>
             </div>

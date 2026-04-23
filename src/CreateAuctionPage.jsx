@@ -1,3 +1,5 @@
+import { AppSideNavbar, AppTopNavbar } from './AppNavigation'
+
 const previewImage =
   'https://lh3.googleusercontent.com/aida-public/AB6AXuCEmI0z_YuP3x3BkXaINgNm4oQ4DHezF5XTTEjwh-70YPkKbgx1IYxq0koBKWQccZpreJLFFpkezKTdgTNXPtUqrgOOZKYT8ckcuXNQDwdeEtxj-jt-Geql1-IRNTpvgp35ZDgHl74pVzf5DjITuyboTLPceLctGcnbD84hh9THRfLtGsLfE3L0mGr4gvuKiHkanvdupB8_Ky44VsZ-lMtOfaC17lsVJBXbRLe2U9nd78B8OBiMbRtCAyzVnakb_FXHaf6Rh93fPlY'
 
@@ -8,106 +10,8 @@ function CreateAuctionPage({ navigate }) {
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-surface text-on-surface">
-      <nav className="fixed inset-x-0 top-0 z-50 flex w-full items-center justify-between gap-4 border-b border-outline-variant/20 bg-[#0b1326]/95 px-4 py-3 backdrop-blur lg:px-6">
-        <div className="flex min-w-0 items-center gap-8">
-          <a
-            className="text-2xl font-black uppercase tracking-tighter text-white"
-            href="/"
-            onClick={navigate('/')}
-          >
-            Licit
-          </a>
-          <label className="hidden items-center rounded-lg bg-surface-container-low px-4 py-1.5 md:flex">
-            <span className="material-symbols-outlined mr-2 text-sm text-slate-400">
-              search
-            </span>
-            <input
-              className="w-64 border-none bg-transparent text-sm text-slate-200 placeholder:text-slate-500 focus:ring-0"
-              placeholder="Müzayede ara..."
-              type="text"
-            />
-          </label>
-        </div>
-
-        <div className="flex flex-shrink-0 items-center gap-2 sm:gap-4">
-          <button
-            className="rounded-full p-2 text-slate-400 transition-colors hover:bg-slate-800/50"
-            type="button"
-            aria-label="Bildirimler"
-          >
-            <span className="material-symbols-outlined">notifications</span>
-          </button>
-          <button
-            className="rounded-full p-2 text-slate-400 transition-colors hover:bg-slate-800/50"
-            type="button"
-            aria-label="Hesap"
-          >
-            <span className="material-symbols-outlined">account_circle</span>
-          </button>
-        </div>
-      </nav>
-
-      <aside className="fixed bottom-0 left-0 top-0 z-40 hidden w-64 flex-col gap-2 bg-surface-container-low p-4 pt-16 text-sm font-medium shadow-2xl shadow-black/20 lg:flex">
-        <div className="mb-6 mt-4 rounded-xl bg-surface-container-high/40 px-4 py-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-primary-container/20">
-              <span className="material-symbols-outlined text-primary">person</span>
-            </div>
-            <div>
-              <p className="m-0 font-bold leading-none text-white">Koleksiyoner</p>
-              <p className="mt-1 text-xs text-slate-400">Doğrulanmış Üye</p>
-            </div>
-          </div>
-        </div>
-
-        <nav className="flex flex-1 flex-col gap-1">
-          <a
-            className="flex items-center gap-3 rounded-lg px-4 py-3 text-slate-400 transition-colors hover:bg-slate-800/70 hover:text-white"
-            href="/auctions"
-            onClick={navigate('/auctions')}
-          >
-            <span className="material-symbols-outlined">gavel</span>
-            Canlı Müzayedeler
-          </a>
-          <a
-            className="flex items-center gap-3 rounded-lg px-4 py-3 text-slate-400 transition-colors hover:bg-slate-800/70 hover:text-white"
-            href="/dashboard"
-            onClick={navigate('/dashboard')}
-          >
-            <span className="material-symbols-outlined">dashboard</span>
-            Panel
-          </a>
-          <a className="flex items-center gap-3 rounded-lg px-4 py-3 text-slate-400 transition-colors hover:bg-slate-800/70 hover:text-white" href="#">
-            <span className="material-symbols-outlined">category</span>
-            Koleksiyonlar
-          </a>
-          <a className="flex items-center gap-3 rounded-lg px-4 py-3 text-slate-400 transition-colors hover:bg-slate-800/70 hover:text-white" href="#">
-            <span className="material-symbols-outlined">account_balance_wallet</span>
-            Cüzdan
-          </a>
-          <a
-            className="flex items-center gap-3 rounded-lg bg-slate-800/70 px-4 py-3 text-white transition-colors"
-            href="/auctions/create"
-            onClick={navigate('/auctions/create')}
-          >
-            <span
-              className="material-symbols-outlined"
-              style={{ fontVariationSettings: "'FILL' 1" }}
-            >
-              add_circle
-            </span>
-            Müzayede Oluştur
-          </a>
-          <a className="mt-auto flex items-center gap-3 rounded-lg px-4 py-3 text-slate-400 transition-colors hover:bg-slate-800/70 hover:text-white" href="#">
-            <span className="material-symbols-outlined">help</span>
-            Yardım Merkezi
-          </a>
-          <a className="flex items-center gap-3 rounded-lg px-4 py-3 text-slate-400 transition-colors hover:bg-slate-800/70 hover:text-white" href="#">
-            <span className="material-symbols-outlined">logout</span>
-            Çıkış Yap
-          </a>
-        </nav>
-      </aside>
+      <AppTopNavbar currentPath="/auctions/create" navigate={navigate} />
+      <AppSideNavbar currentPath="/auctions/create" navigate={navigate} />
 
       <main className="min-h-screen px-4 pb-28 pt-24 sm:px-6 lg:ml-64 lg:px-8 lg:pb-12">
         <div className="mx-auto max-w-5xl">

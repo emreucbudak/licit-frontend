@@ -1,29 +1,5 @@
 import './LiveAuctionsPage.css'
-
-const topNavLinks = [
-  { label: 'Keşfet', href: '/', route: true, active: true },
-  { label: 'Panel', href: '/dashboard', route: true, active: false },
-  { label: 'Nasıl çalışır', href: '#', active: false },
-]
-
-const sideNavLinks = [
-  { label: 'Canlı Müzayedeler', icon: 'gavel', active: true },
-  {
-    label: 'Panel',
-    icon: 'dashboard',
-    active: false,
-    href: '/dashboard',
-    route: true,
-  },
-  { label: 'Koleksiyonlar', icon: 'category', active: false },
-  { label: 'Cüzdan', icon: 'account_balance_wallet', active: false },
-  { label: 'Ayarlar', icon: 'settings', active: false },
-]
-
-const footerNavLinks = [
-  { label: 'Yardım Merkezi', icon: 'help' },
-  { label: 'Çıkış Yap', icon: 'logout' },
-]
+import { AppSideNavbar, AppTopNavbar } from './AppNavigation'
 
 const categoryFilters = ['Tümü', 'Teknoloji', 'Sanat', 'Ev']
 const statusFilters = ['Canlı', 'Yakında Bitiyor']
@@ -132,94 +108,10 @@ function SkeletonCard() {
 function LiveAuctionsPage({ navigate }) {
   return (
     <div className="auctions-page">
-      <header className="auctions-topbar">
-        <div className="auctions-topbar__brand-row">
-          <a className="auctions-brand" href="/" onClick={navigate('/')}>
-            Licit
-          </a>
-
-          <nav className="auctions-topbar__nav" aria-label="Ana navigasyon">
-            {topNavLinks.map((link) => (
-              <a
-                key={link.label}
-                className={`auctions-topbar__link${
-                  link.active ? ' auctions-topbar__link--active' : ''
-                }`}
-                href={link.href}
-                onClick={link.route ? navigate(link.href) : undefined}
-              >
-                {link.label}
-              </a>
-            ))}
-          </nav>
-        </div>
-
-        <div className="auctions-topbar__actions">
-          <label className="auctions-search" aria-label="Müzayede ara">
-            <span className="material-symbols-outlined">search</span>
-            <input placeholder="Müzayede ara..." type="search" />
-          </label>
-
-          <button
-            className="auctions-icon-button auctions-icon-button--live"
-            type="button"
-            aria-label="Bildirimler"
-          >
-            <span className="material-symbols-outlined">notifications</span>
-            <span className="auctions-icon-button__dot" aria-hidden="true"></span>
-          </button>
-
-          <button className="auctions-icon-button" type="button" aria-label="Hesap">
-            <span className="material-symbols-outlined">account_circle</span>
-          </button>
-        </div>
-      </header>
+      <AppTopNavbar currentPath="/auctions" navigate={navigate} />
 
       <div className="auctions-shell">
-        <aside className="auctions-sidebar">
-          <div className="auctions-sidebar__profile">
-            <div className="auctions-sidebar__avatar">
-              <span className="material-symbols-outlined">gavel</span>
-            </div>
-            <div>
-              <div className="auctions-sidebar__name">Koleksiyoner</div>
-              <div className="auctions-sidebar__role">Doğrulanmış Üye</div>
-            </div>
-          </div>
-
-          <div className="auctions-sidebar__nav">
-            {sideNavLinks.map((link) => (
-              <a
-                key={link.label}
-                className={`auctions-sidebar__link${
-                  link.active ? ' auctions-sidebar__link--active' : ''
-                }`}
-                href={link.href || '#'}
-                onClick={link.route ? navigate(link.href) : undefined}
-              >
-                <span className="material-symbols-outlined">{link.icon}</span>
-                <span>{link.label}</span>
-              </a>
-            ))}
-          </div>
-
-          <a
-            className="auctions-sidebar__cta"
-            href="/auctions/create"
-            onClick={navigate('/auctions/create')}
-          >
-            Müzayede Oluştur
-          </a>
-
-          <div className="auctions-sidebar__footer">
-            {footerNavLinks.map((link) => (
-              <a key={link.label} className="auctions-sidebar__link" href="#">
-                <span className="material-symbols-outlined">{link.icon}</span>
-                <span>{link.label}</span>
-              </a>
-            ))}
-          </div>
-        </aside>
+        <AppSideNavbar currentPath="/auctions" navigate={navigate} />
 
         <main className="auctions-main">
           <div className="auctions-main__header">

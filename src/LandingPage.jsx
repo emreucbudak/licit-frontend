@@ -1,11 +1,5 @@
 import './App.css'
 
-const navLinks = [
-  { label: 'Canlı Müzayedeler', href: '/auctions', route: true, active: true },
-  { label: 'Koleksiyonlar', href: '#showcase' },
-  { label: 'Pazar Yeri', href: '#footer' },
-]
-
 const featureCards = [
   {
     accent: 'primary',
@@ -60,31 +54,9 @@ function LandingPage({ navigate }) {
             <a className="brand" href="/" onClick={navigate('/')}>
               Licit
             </a>
-            <div className="nav-links" aria-label="Primary navigation">
-              {navLinks.map((link) => (
-                <a
-                  key={link.label}
-                  className={`nav-link${link.active ? ' nav-link--active' : ''}`}
-                  href={link.href}
-                  onClick={link.route ? navigate(link.href) : undefined}
-                >
-                  {link.label}
-                </a>
-              ))}
-            </div>
           </div>
 
           <div className="top-nav__actions">
-            <label className="search-shell" aria-label="Lot ara">
-              <span className="material-symbols-outlined search-shell__icon">
-                search
-              </span>
-              <input placeholder="Lot ara..." type="search" />
-            </label>
-
-            <button className="icon-button" type="button" aria-label="Bildirimler">
-              <span className="material-symbols-outlined">notifications</span>
-            </button>
             <a className="icon-button" href="/login" onClick={navigate('/login')} aria-label="Hesap">
               <span className="material-symbols-outlined">account_circle</span>
             </a>

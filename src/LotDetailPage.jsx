@@ -1,4 +1,5 @@
 import './LotDetailPage.css'
+import { AppTopNavbar } from './AppNavigation'
 
 const galleryImages = [
   {
@@ -79,48 +80,11 @@ function LotDetailPage({ navigate }) {
         <span>Teklif başarıyla verildi!</span>
       </div>
 
-      <header className="lot-topbar">
-        <div className="lot-topbar__brand-row">
-          <a className="lot-brand" href="/" onClick={navigate('/')}>
-            Licit
-          </a>
-
-          <nav className="lot-topbar__nav" aria-label="Ana navigasyon">
-            <a
-              className="lot-topbar__link lot-topbar__link--active"
-              href="/auctions"
-              onClick={navigate('/auctions')}
-            >
-              Canlı Müzayedeler
-            </a>
-            <a
-              className="lot-topbar__link"
-              href="/dashboard"
-              onClick={navigate('/dashboard')}
-            >
-              Panel
-            </a>
-            <a className="lot-topbar__link" href="#">
-              Koleksiyonlar
-            </a>
-          </nav>
-        </div>
-
-        <div className="lot-topbar__actions">
-          <label className="lot-search" aria-label="Lot ara">
-            <span className="material-symbols-outlined">search</span>
-            <input placeholder="Lot ara..." type="search" />
-          </label>
-
-          <button className="lot-icon-button" type="button" aria-label="Bildirimler">
-            <span className="material-symbols-outlined">notifications</span>
-          </button>
-
-          <button className="lot-icon-button" type="button" aria-label="Hesap">
-            <span className="material-symbols-outlined">account_circle</span>
-          </button>
-        </div>
-      </header>
+      <AppTopNavbar
+        currentPath="/auctions/lot-4429"
+        navigate={navigate}
+        searchPlaceholder="Lot ara..."
+      />
 
       <main className="lot-layout">
         <section className="lot-gallery">

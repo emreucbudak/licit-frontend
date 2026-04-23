@@ -1,4 +1,5 @@
 import './DashboardPage.css'
+import { AppSideNavbar, AppTopNavbar } from './AppNavigation'
 
 const statsCards = [
   {
@@ -105,103 +106,8 @@ const liveFeed = [
 function DashboardPage({ navigate }) {
   return (
     <div className="dashboard-page">
-      <nav className="dashboard-topbar">
-        <div className="dashboard-topbar__brand-row">
-          <a className="dashboard-brand" href="/" onClick={navigate('/')}>
-            Licit
-          </a>
-          <div className="dashboard-topbar__nav">
-            <a
-              className="dashboard-topbar__link dashboard-topbar__link--active"
-              href="/dashboard"
-              onClick={navigate('/dashboard')}
-            >
-              Panel
-            </a>
-            <a className="dashboard-topbar__link" href="#">
-              Pazar Yeri
-            </a>
-            <a className="dashboard-topbar__link" href="/auctions" onClick={navigate('/auctions')}>
-              Canlı Müzayedeler
-            </a>
-          </div>
-        </div>
-
-        <div className="dashboard-topbar__actions">
-          <label className="dashboard-search" aria-label="Müzayede ara">
-            <span className="material-symbols-outlined">search</span>
-            <input placeholder="Müzayede ara..." type="search" />
-          </label>
-          <button className="dashboard-icon-button" type="button" aria-label="Bildirimler">
-            <span className="material-symbols-outlined">notifications</span>
-          </button>
-          <button className="dashboard-icon-button" type="button" aria-label="Hesap">
-            <span className="material-symbols-outlined">account_circle</span>
-          </button>
-        </div>
-      </nav>
-
-      <aside className="dashboard-sidebar">
-        <div className="dashboard-sidebar__profile">
-          <div className="dashboard-sidebar__avatar">
-            <img
-              alt="Yumuşak stüdyo ışığında nötr ifadeli profesyonel portre yakın çekimi"
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuAc6SLQK9aqRbI6M4eyHYIBBBsdnafh9MMtSAdZa2QiETKkG7xWzBxgV88T-Y76LHZAjjUuRXcbjkAJChiaJ8i9N-nOy90uIPRwG2Hpc9EWEe3lG1ZNTaXVclYaH7mjGT3G4jeNg06kXWKY5FKOtC9xxTHAYZcHJSBNh_hF--UyTjTloChBP2Aa222dW8fYhmwFSaZrddZ4l3mvzuLRcuHLOs28L3R7bbToPcyqIR-p543hHKXNyNAcSWaMc78YGKxtiTGDPxwLeFk"
-            />
-          </div>
-          <div>
-            <p>Koleksiyoner</p>
-            <span>Doğrulanmış Üye</span>
-          </div>
-        </div>
-
-        <div className="dashboard-sidebar__links">
-          <a className="dashboard-sidebar__link" href="/auctions" onClick={navigate('/auctions')}>
-            <span className="material-symbols-outlined">gavel</span>
-            Canlı Müzayedeler
-          </a>
-          <a
-            className="dashboard-sidebar__link dashboard-sidebar__link--active"
-            href="/dashboard"
-            onClick={navigate('/dashboard')}
-          >
-            <span className="material-symbols-outlined">dashboard</span>
-            Panel
-          </a>
-          <a className="dashboard-sidebar__link" href="#">
-            <span className="material-symbols-outlined">category</span>
-            Koleksiyonlar
-          </a>
-          <a className="dashboard-sidebar__link" href="#">
-            <span className="material-symbols-outlined">account_balance_wallet</span>
-            Cüzdan
-          </a>
-          <a className="dashboard-sidebar__link" href="#">
-            <span className="material-symbols-outlined">settings</span>
-            Ayarlar
-          </a>
-        </div>
-
-        <a
-          className="dashboard-sidebar__cta"
-          href="/auctions/create"
-          onClick={navigate('/auctions/create')}
-        >
-          <span className="material-symbols-outlined">add</span>
-          Müzayede Oluştur
-        </a>
-
-        <div className="dashboard-sidebar__footer">
-          <a className="dashboard-sidebar__footer-link" href="#">
-            <span className="material-symbols-outlined">help</span>
-            Yardım Merkezi
-          </a>
-          <a className="dashboard-sidebar__footer-link" href="#">
-            <span className="material-symbols-outlined">logout</span>
-            Çıkış Yap
-          </a>
-        </div>
-      </aside>
+      <AppTopNavbar currentPath="/dashboard" navigate={navigate} />
+      <AppSideNavbar currentPath="/dashboard" navigate={navigate} />
 
       <main className="dashboard-main">
         <div className="dashboard-shell">

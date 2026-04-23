@@ -615,7 +615,17 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(11, 19, 38, 0.18), rgba(11, 19, 38, 0.78));
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(11, 19, 38, 0.12)),
+    radial-gradient(circle at top left, rgba(192, 193, 255, 0.22), transparent 52%);
+}
+
+.bento-card--stability {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px;
+  background: linear-gradient(145deg, #5760f1, #35408f);
 }
 
 .bento-card__content {
@@ -632,6 +642,17 @@
   justify-content: space-between;
 }
 
+.bento-card--stability .bento-card__content--overlay {
+  position: relative;
+  inset: auto;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 0;
+  text-align: center;
+}
+
 .bento-card__content h4,
 .ladder-header h4 {
   margin: 0;
@@ -642,20 +663,21 @@
   text-transform: uppercase;
 }
 
-.progress-track {
-  width: 100%;
-  height: 6px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: rgba(78, 222, 163, 0.18);
+.bento-card__metric {
+  color: #fff;
+  font-size: clamp(3rem, 8vw, 4.5rem);
+  font-weight: 900;
+  letter-spacing: -0.06em;
+  line-height: 0.95;
 }
 
-.progress-track__fill {
-  display: block;
-  width: 100%;
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, var(--color-secondary), var(--color-secondary-fixed));
+.bento-card__content .bento-card__metric-copy {
+  max-width: 240px;
+  margin: 0;
+  color: rgba(218, 226, 253, 0.82);
+  font-size: 0.88rem;
+  line-height: 1.6;
+  font-family: inherit;
 }
 
 .bento-card__content p {

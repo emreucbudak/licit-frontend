@@ -198,16 +198,12 @@ function LandingPage({ navigate }) {
               </article>
 
               <article className="bento-card bento-card--stability">
-                <img
-                  alt="Dijital veri akışını ve hızı temsil eden siyah zeminde renkli soyut ışık çizgileri"
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuBzsSo7GqTnqWv-QUq8eU_9NITiTiv_rdqi3HoQMaHNA158kiwjgV7h99sUaYyFy_tGBRoztH3gKzpjZol2yIpYQAOvZ05WrEWkma2Fz6cFJres2gfXcqdcLn3ibv43o60BrmNJondMO3w-rMoIbZLIOJVLvKoDAf-KQaQR0nH5EcNQc47tNeYkzX5NGfgd4oVnYsk5cmqeYUbD0uqJMTf1kq5nyV9lBP14pzDKaYKrLB00ZOtR6FTu_PUVBxcsmrjXQj3FghG7Pko"
-                />
                 <div className="bento-card__content bento-card__content--overlay">
-                  <h4>Ağ Kararlılığı</h4>
-                  <div className="progress-track" aria-hidden="true">
-                    <span className="progress-track__fill"></span>
-                  </div>
-                  <p>%99.99 erişilebilirlik SLA'sı</p>
+                  <h4>Koleksiyoner Memnuniyeti</h4>
+                  <strong className="bento-card__metric">98%</strong>
+                  <p className="bento-card__metric-copy">
+                    Teklif deneyimini güçlü ve güvenilir bulan aktif kullanıcı oranı.
+                  </p>
                 </div>
               </article>
 

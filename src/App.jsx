@@ -6,6 +6,7 @@ import DashboardPage from './DashboardPage'
 import LoginPage from './LoginPage'
 import RegisterPage from './RegisterPage'
 import CreateAuctionPage from './CreateAuctionPage'
+import SettingsPage from './SettingsPage'
 
 function normalizePath(pathname) {
   const trimmedPath = pathname.replace(/\/+$/, '') || '/'
@@ -24,6 +25,10 @@ function normalizePath(pathname) {
 
   if (trimmedPath === '/dashboard') {
     return '/dashboard'
+  }
+
+  if (trimmedPath === '/settings') {
+    return '/settings'
   }
 
   if (trimmedPath === '/login') {
@@ -62,11 +67,13 @@ function App() {
             ? 'Müzayede Oluştur | Licit'
             : path === '/dashboard'
               ? 'Licit Panel - Koleksiyoner'
-              : path === '/login'
-                ? 'Giriş Yap - Licit'
-                : path === '/register'
-                  ? 'Kaydol - Licit'
-                  : 'Licit - Real-time Bidding Platform'
+              : path === '/settings'
+                ? 'Hesap Ayarları | Licit'
+                : path === '/login'
+                  ? 'Giriş Yap - Licit'
+                  : path === '/register'
+                    ? 'Kaydol - Licit'
+                    : 'Licit - Real-time Bidding Platform'
   }, [path])
 
   const navigate = (nextPath) => (event) => {
@@ -107,6 +114,10 @@ function App() {
 
   if (path === '/dashboard') {
     return <DashboardPage navigate={navigate} />
+  }
+
+  if (path === '/settings') {
+    return <SettingsPage navigate={navigate} />
   }
 
   if (path === '/login') {

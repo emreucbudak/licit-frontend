@@ -17,7 +17,13 @@ const sideNavLinks = [
   },
   { label: 'Koleksiyonlar', icon: 'category', href: '#' },
   { label: 'Cüzdan', icon: 'account_balance_wallet', href: '#' },
-  { label: 'Ayarlar', icon: 'settings', href: '#' },
+  {
+    label: 'Ayarlar',
+    icon: 'settings',
+    href: '/settings',
+    route: true,
+    match: ['/settings'],
+  },
 ]
 
 const footerNavLinks = [

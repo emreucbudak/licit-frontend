@@ -115,38 +115,17 @@ function VerifyIdentityPage({ navigate }) {
   return (
     <div className="flex min-h-screen flex-col bg-background text-on-background antialiased">
       <header className="fixed left-0 top-0 z-50 flex h-16 w-full items-center justify-between bg-gradient-to-b from-slate-900/50 to-transparent px-6 backdrop-blur-xl">
-        <div className="flex items-center">
-          <button
-            className="flex items-center justify-center rounded-full p-2 text-indigo-500 transition-transform duration-200 transition-colors hover:bg-white/5 active:scale-95"
-            type="button"
-            aria-label="Şifre sıfırlama adımına dön"
-            onClick={navigate('/forgot-password')}
-          >
-            <span className="material-symbols-outlined">arrow_back</span>
-          </button>
-        </div>
-
         <a
-          className="text-xl font-black tracking-tight text-indigo-400"
+          className="mx-auto text-xl font-black tracking-tight text-indigo-400"
           href="/"
           onClick={navigate('/')}
         >
           LICIT
         </a>
-
-        <div className="flex items-center space-x-2">
-          <a
-            className="flex items-center justify-center rounded-full p-2 text-indigo-500 transition-transform duration-200 transition-colors hover:bg-white/5 active:scale-95"
-            href="mailto:support@licit.app"
-            aria-label="Destek ile iletişime geç"
-          >
-            <span className="material-symbols-outlined">help_outline</span>
-          </a>
-        </div>
       </header>
 
       <main className="flex flex-1 items-center justify-center px-4 pb-12 pt-20 sm:px-6 lg:px-8">
-        <div className="relative w-full max-w-md overflow-hidden rounded-xl bg-surface-container-high p-8 shadow-[0_20px_60px_rgba(45,52,73,0.12)] sm:p-10">
+        <div className="relative w-full max-w-lg overflow-hidden rounded-xl bg-surface-container-high p-6 shadow-[0_20px_60px_rgba(45,52,73,0.12)] sm:p-10">
           <div className="absolute left-0 top-0 h-1 w-full bg-gradient-to-r from-primary to-primary-container" />
 
           <div className="mb-8 text-center">
@@ -166,21 +145,18 @@ function VerifyIdentityPage({ navigate }) {
           </div>
 
           <form className="space-y-8" onSubmit={handleSubmit}>
-            <div className="flex items-center justify-between gap-2 sm:gap-3">
+            <div className="mx-auto flex w-full max-w-[28rem] items-center justify-center gap-2 sm:gap-3">
               {code.map((digit, index) => (
-                <div
-                  key={`otp-slot-${index + 1}`}
-                  className="contents"
-                >
+                <div key={`otp-slot-${index + 1}`} className="contents">
                   {index === 3 ? (
-                    <div className="mx-1 h-0.5 w-2 rounded-full bg-outline-variant/30" />
+                    <div className="mx-1 h-0.5 w-3 shrink-0 rounded-full bg-outline-variant/30" />
                   ) : null}
                   <input
                     ref={(element) => {
                       inputRefs.current[index] = element
                     }}
                     aria-label={`Kod hanesi ${index + 1}`}
-                    className="h-14 w-12 rounded border border-outline-variant/20 bg-surface-container-lowest text-center font-display text-xl font-bold text-on-surface transition-colors placeholder:text-on-surface-variant focus:border-primary/40 focus:bg-surface-container-highest focus:outline-none sm:h-16 sm:w-14 sm:text-2xl"
+                    className="h-14 min-w-0 flex-1 rounded border border-outline-variant/20 bg-surface-container-lowest text-center font-display text-xl font-bold text-on-surface transition-colors placeholder:text-on-surface-variant focus:border-primary/40 focus:bg-surface-container-highest focus:outline-none sm:h-16 sm:text-2xl"
                     inputMode="numeric"
                     maxLength={1}
                     placeholder="•"

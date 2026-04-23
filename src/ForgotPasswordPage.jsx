@@ -37,7 +37,7 @@ function ForgotPasswordPage({ navigate }) {
               Şifreni Sıfırla
             </h1>
             <p className="font-body text-sm leading-relaxed text-on-surface-variant">
-              E-posta adresini gir, sana 6 haneli kurtarma kodunu gönderelim.
+              Şifreni sıfırlamak için e-posta adresini gir.
             </p>
           </div>
 
@@ -61,7 +61,7 @@ function ForgotPasswordPage({ navigate }) {
                   className="block w-full rounded border border-outline-variant/20 bg-surface-container-lowest py-3.5 pl-11 pr-4 font-body text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:border-primary/50 focus:bg-surface-container-highest focus:outline-none"
                   id="forgot-email"
                   name="email"
-                  placeholder="developer@licit.com"
+                  placeholder="ornek@licit.com"
                   required
                   type="email"
                   value={email}
@@ -77,25 +77,6 @@ function ForgotPasswordPage({ navigate }) {
               Kodu Gönder
             </button>
           </form>
-
-          <div className="mt-8 text-center">
-            <a
-              className="inline-flex items-center text-sm text-on-surface-variant transition-colors hover:text-primary"
-              href="/login"
-              onClick={navigate('/login')}
-            >
-              <span className="material-symbols-outlined mr-1.5 text-lg">
-                arrow_back
-              </span>
-              Girişe Dön
-            </a>
-          </div>
-        </div>
-
-        <div className="mt-8 text-center">
-          <p className="font-label text-xs text-on-surface-variant/60">
-            Güvenli terminal bağlantısı aktif.
-          </p>
         </div>
       </div>
     </div>

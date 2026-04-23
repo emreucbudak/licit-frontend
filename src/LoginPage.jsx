@@ -45,7 +45,11 @@ function LoginPage({ navigate }) {
                 <label className="login-label" htmlFor="password">
                   Şifre
                 </label>
-                <a className="login-text-link" href="#forgot-password">
+                <a
+                  className="login-text-link"
+                  href="/forgot-password"
+                  onClick={navigate('/forgot-password')}
+                >
                   Şifreni mi unuttun?
                 </a>
               </div>

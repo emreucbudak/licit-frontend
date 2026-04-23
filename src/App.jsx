@@ -7,6 +7,9 @@ import LoginPage from './LoginPage'
 import RegisterPage from './RegisterPage'
 import CreateAuctionPage from './CreateAuctionPage'
 import SettingsPage from './SettingsPage'
+import CreateNewPasswordPage from './CreateNewPasswordPage'
+import VerifyIdentityPage from './VerifyIdentityPage'
+import ForgotPasswordPage from './ForgotPasswordPage'
 
 function normalizePath(pathname) {
   const trimmedPath = pathname.replace(/\/+$/, '') || '/'
@@ -33,6 +36,27 @@ function normalizePath(pathname) {
 
   if (trimmedPath === '/login') {
     return '/login'
+  }
+
+  if (
+    trimmedPath === '/forgot-password' ||
+    trimmedPath === '/forgot'
+  ) {
+    return '/forgot-password'
+  }
+
+  if (
+    trimmedPath === '/verify-identity' ||
+    trimmedPath === '/verify-code'
+  ) {
+    return '/verify-identity'
+  }
+
+  if (
+    trimmedPath === '/reset-password' ||
+    trimmedPath === '/create-new-password'
+  ) {
+    return '/reset-password'
   }
 
   if (trimmedPath === '/register') {
@@ -71,6 +95,12 @@ function App() {
                 ? 'Hesap Ayarları | Licit'
                 : path === '/login'
                   ? 'Giriş Yap - Licit'
+                  : path === '/forgot-password'
+                    ? 'Şifremi Unuttum | Licit'
+                  : path === '/verify-identity'
+                    ? 'Kimliğini Doğrula | Licit'
+                  : path === '/reset-password'
+                    ? 'Yeni Şifre Oluştur | Licit'
                   : path === '/register'
                     ? 'Kaydol - Licit'
                     : 'Licit - Real-time Bidding Platform'
@@ -122,6 +152,18 @@ function App() {
 
   if (path === '/login') {
     return <LoginPage navigate={navigate} />
+  }
+
+  if (path === '/forgot-password') {
+    return <ForgotPasswordPage navigate={navigate} />
+  }
+
+  if (path === '/verify-identity') {
+    return <VerifyIdentityPage navigate={navigate} />
+  }
+
+  if (path === '/reset-password') {
+    return <CreateNewPasswordPage navigate={navigate} />
   }
 
   if (path === '/register') {

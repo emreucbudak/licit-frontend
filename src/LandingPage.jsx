@@ -100,7 +100,7 @@ function LandingPage({ navigate }) {
               </p>
 
               <div className="hero-actions">
-                <a className="button button--primary" href="/auctions" onClick={navigate('/auctions')}>
+                <a className="button button--primary" href="/login" onClick={navigate('/login')}>
                   Müzayedeye Başla
                   <span className="material-symbols-outlined button__icon">
                     arrow_forward

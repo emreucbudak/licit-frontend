@@ -11,6 +11,44 @@ import CreateNewPasswordPage from './CreateNewPasswordPage'
 import VerifyIdentityPage from './VerifyIdentityPage'
 import ForgotPasswordPage from './ForgotPasswordPage'
 
+const AUTH_STORAGE_KEY = 'licit.authenticated'
+
+const protectedPaths = new Set([
+  '/auctions',
+  '/auctions/lot-4429',
+  '/auctions/create',
+  '/dashboard',
+  '/settings',
+])
+
+function isProtectedPath(pathname) {
+  return protectedPaths.has(pathname)
+}
+
+function isStoredAuthenticated() {
+  try {
+    return window.localStorage.getItem(AUTH_STORAGE_KEY) === 'true'
+  } catch {
+    return false
+  }
+}
+
+function storeAuthentication() {
+  try {
+    window.localStorage.setItem(AUTH_STORAGE_KEY, 'true')
+  } catch {
+    // Backend auth will replace this temporary local flag.
+  }
+}
+
+function clearAuthentication() {
+  try {
+    window.localStorage.removeItem(AUTH_STORAGE_KEY)
+  } catch {
+    // Backend auth will replace this temporary local flag.
+  }
+}
+
 function normalizePath(pathname) {
   const trimmedPath = pathname.replace(/\/+$/, '') || '/'
 
@@ -38,17 +76,11 @@ function normalizePath(pathname) {
     return '/login'
   }
 
-  if (
-    trimmedPath === '/forgot-password' ||
-    trimmedPath === '/forgot'
-  ) {
+  if (trimmedPath === '/forgot-password' || trimmedPath === '/forgot') {
     return '/forgot-password'
   }
 
-  if (
-    trimmedPath === '/verify-identity' ||
-    trimmedPath === '/verify-code'
-  ) {
+  if (trimmedPath === '/verify-identity' || trimmedPath === '/verify-code') {
     return '/verify-identity'
   }
 
@@ -66,8 +98,76 @@ function normalizePath(pathname) {
   return '/'
 }
 
+function titleForPath(pathname) {
+  return (
+    {
+      '/auctions': 'Licit | Premium Auction Exchange',
+      '/auctions/lot-4429': 'Licit | Lot Detayi',
+      '/auctions/create': 'Muzayede Olustur | Licit',
+      '/dashboard': 'Licit Panel - Koleksiyoner',
+      '/settings': 'Hesap Ayarlari | Licit',
+      '/login': 'Giris Yap - Licit',
+      '/forgot-password': 'Sifremi Unuttum | Licit',
+      '/verify-identity': 'Kimligini Dogrula | Licit',
+      '/reset-password': 'Yeni Sifre Olustur | Licit',
+      '/register': 'Kaydol - Licit',
+    }[pathname] || 'Licit - Real-time Bidding Platform'
+  )
+}
+
+function resolveRenderedPath(pathname, isAuthenticated, passwordResetFlow) {
+  if (!isAuthenticated && isProtectedPath(pathname)) {
+    return '/login'
+  }
+
+  if (pathname === '/verify-identity' && !passwordResetFlow.email) {
+    return '/forgot-password'
+  }
+
+  if (pathname === '/reset-password') {
+    if (!passwordResetFlow.email) {
+      return '/forgot-password'
+    }
+
+    if (!passwordResetFlow.codeVerified) {
+      return '/verify-identity'
+    }
+  }
+
+  return pathname
+}
+
 function App() {
   const [path, setPath] = useState(() => normalizePath(window.location.pathname))
+  const [isAuthenticated, setIsAuthenticated] = useState(isStoredAuthenticated)
+  const [passwordResetFlow, setPasswordResetFlow] = useState({
+    email: '',
+    codeVerified: false,
+  })
+
+  const renderedPath = resolveRenderedPath(
+    path,
+    isAuthenticated,
+    passwordResetFlow,
+  )
+
+  const setRoute = (nextPath, options = {}) => {
+    const normalizedPath = normalizePath(nextPath)
+
+    if (normalizedPath === path) {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
+
+    if (options.replace === true) {
+      window.history.replaceState({}, '', normalizedPath)
+    } else {
+      window.history.pushState({}, '', normalizedPath)
+    }
+
+    setPath(normalizedPath)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   useEffect(() => {
     const handlePopState = () => {
@@ -82,29 +182,8 @@ function App() {
   }, [])
 
   useEffect(() => {
-    document.title =
-      path === '/auctions'
-        ? 'Licit | Premium Auction Exchange'
-        : path === '/auctions/lot-4429'
-          ? 'Licit | Lot Detayı'
-          : path === '/auctions/create'
-            ? 'Müzayede Oluştur | Licit'
-            : path === '/dashboard'
-              ? 'Licit Panel - Koleksiyoner'
-              : path === '/settings'
-                ? 'Hesap Ayarları | Licit'
-                : path === '/login'
-                  ? 'Giriş Yap - Licit'
-                  : path === '/forgot-password'
-                    ? 'Şifremi Unuttum | Licit'
-                  : path === '/verify-identity'
-                    ? 'Kimliğini Doğrula | Licit'
-                  : path === '/reset-password'
-                    ? 'Yeni Şifre Oluştur | Licit'
-                  : path === '/register'
-                    ? 'Kaydol - Licit'
-                    : 'Licit - Real-time Bidding Platform'
-  }, [path])
+    document.title = titleForPath(renderedPath)
+  }, [renderedPath])
 
   const navigate = (nextPath) => (event) => {
     if (
@@ -119,55 +198,103 @@ function App() {
     }
 
     event?.preventDefault()
+    setRoute(nextPath)
+  }
 
-    if (normalizePath(nextPath) === path) {
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-      return
+  const handleLogin = () => {
+    storeAuthentication()
+    setIsAuthenticated(true)
+
+    if (!isProtectedPath(path)) {
+      setRoute('/dashboard', { replace: true })
     }
-
-    window.history.pushState({}, '', nextPath)
-    setPath(normalizePath(nextPath))
-    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  if (path === '/auctions') {
-    return <LiveAuctionsPage navigate={navigate} />
+  const handleLogout = () => {
+    clearAuthentication()
+    setIsAuthenticated(false)
+    setRoute('/login', { replace: true })
   }
 
-  if (path === '/auctions/lot-4429') {
+  const handlePasswordResetRequested = (email) => {
+    setPasswordResetFlow({
+      email,
+      codeVerified: false,
+    })
+    setRoute('/verify-identity')
+  }
+
+  const handlePasswordResetVerified = () => {
+    setPasswordResetFlow((currentFlow) => ({
+      ...currentFlow,
+      codeVerified: Boolean(currentFlow.email),
+    }))
+    setRoute('/reset-password')
+  }
+
+  const handlePasswordResetCompleted = () => {
+    setPasswordResetFlow({
+      email: '',
+      codeVerified: false,
+    })
+    clearAuthentication()
+    setIsAuthenticated(false)
+    setRoute('/login', { replace: true })
+  }
+
+  if (renderedPath === '/auctions') {
+    return <LiveAuctionsPage navigate={navigate} onLogout={handleLogout} />
+  }
+
+  if (renderedPath === '/auctions/lot-4429') {
     return <LotDetailPage navigate={navigate} />
   }
 
-  if (path === '/auctions/create') {
-    return <CreateAuctionPage navigate={navigate} />
+  if (renderedPath === '/auctions/create') {
+    return <CreateAuctionPage navigate={navigate} onLogout={handleLogout} />
   }
 
-  if (path === '/dashboard') {
-    return <DashboardPage navigate={navigate} />
+  if (renderedPath === '/dashboard') {
+    return <DashboardPage navigate={navigate} onLogout={handleLogout} />
   }
 
-  if (path === '/settings') {
-    return <SettingsPage navigate={navigate} />
+  if (renderedPath === '/settings') {
+    return <SettingsPage navigate={navigate} onLogout={handleLogout} />
   }
 
-  if (path === '/login') {
-    return <LoginPage navigate={navigate} />
+  if (renderedPath === '/login') {
+    return <LoginPage navigate={navigate} onLogin={handleLogin} />
   }
 
-  if (path === '/forgot-password') {
-    return <ForgotPasswordPage navigate={navigate} />
+  if (renderedPath === '/forgot-password') {
+    return (
+      <ForgotPasswordPage
+        navigate={navigate}
+        onPasswordResetRequested={handlePasswordResetRequested}
+      />
+    )
   }
 
-  if (path === '/verify-identity') {
-    return <VerifyIdentityPage navigate={navigate} />
+  if (renderedPath === '/verify-identity') {
+    return (
+      <VerifyIdentityPage
+        navigate={navigate}
+        onPasswordResetVerified={handlePasswordResetVerified}
+      />
+    )
   }
 
-  if (path === '/reset-password') {
-    return <CreateNewPasswordPage navigate={navigate} />
+  if (renderedPath === '/reset-password') {
+    return (
+      <CreateNewPasswordPage
+        navigate={navigate}
+        onPasswordResetCompleted={handlePasswordResetCompleted}
+      />
+    )
   }
 
-  if (path === '/register') {
-    return <RegisterPage navigate={navigate} />
+  if (renderedPath === '/register') {
+    return <RegisterPage navigate={navigate} onLogin={handleLogin} />
   }
 
   return <LandingPage navigate={navigate} />

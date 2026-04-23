@@ -57,7 +57,7 @@ function Toggle({ checked = false, tone = 'secondary' }) {
   )
 }
 
-function SettingsPage({ navigate }) {
+function SettingsPage({ navigate, onLogout }) {
   return (
     <div className="min-h-screen overflow-x-hidden bg-surface text-on-surface">
       <AppTopNavbar
@@ -65,7 +65,11 @@ function SettingsPage({ navigate }) {
         navigate={navigate}
         searchPlaceholder="Hesap ayarlarında ara..."
       />
-      <AppSideNavbar currentPath="/settings" navigate={navigate} />
+      <AppSideNavbar
+        currentPath="/settings"
+        navigate={navigate}
+        onLogout={onLogout}
+      />
 
       <main className="min-h-screen px-4 pb-16 pt-24 sm:px-6 lg:ml-64 lg:px-8">
         <div className="mx-auto max-w-6xl space-y-8">

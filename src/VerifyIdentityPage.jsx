@@ -13,7 +13,7 @@ function formatTime(totalSeconds) {
   return `${minutes}:${seconds}`
 }
 
-function VerifyIdentityPage({ navigate }) {
+function VerifyIdentityPage({ navigate, onPasswordResetVerified }) {
   const [code, setCode] = useState(createEmptyCode)
   const [secondsLeft, setSecondsLeft] = useState(RESEND_TIMEOUT)
   const inputRefs = useRef([])
@@ -103,7 +103,7 @@ function VerifyIdentityPage({ navigate }) {
       return
     }
 
-    navigate('/reset-password')()
+    onPasswordResetVerified?.()
   }
 
   const handleResend = () => {

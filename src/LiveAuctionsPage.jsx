@@ -105,13 +105,17 @@ function SkeletonCard() {
   )
 }
 
-function LiveAuctionsPage({ navigate }) {
+function LiveAuctionsPage({ navigate, onLogout }) {
   return (
     <div className="auctions-page">
       <AppTopNavbar currentPath="/auctions" navigate={navigate} />
 
       <div className="auctions-shell">
-        <AppSideNavbar currentPath="/auctions" navigate={navigate} />
+        <AppSideNavbar
+          currentPath="/auctions"
+          navigate={navigate}
+          onLogout={onLogout}
+        />
 
         <main className="auctions-main">
           <div className="auctions-main__header">

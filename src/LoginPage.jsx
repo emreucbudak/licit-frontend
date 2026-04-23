@@ -1,11 +1,21 @@
 import { useState } from 'react'
 import './LoginPage.css'
 
-function LoginPage({ navigate }) {
+function LoginPage({ navigate, onLogin }) {
   const [showPassword, setShowPassword] = useState(false)
 
   const handleSubmit = (event) => {
     event.preventDefault()
+
+    const formData = new FormData(event.currentTarget)
+    const identifier = String(formData.get('email') || '').trim()
+    const password = String(formData.get('password') || '').trim()
+
+    if (!identifier || !password) {
+      return
+    }
+
+    onLogin?.()
   }
 
   return (
@@ -35,6 +45,7 @@ function LoginPage({ navigate }) {
                   id="email"
                   name="email"
                   placeholder="Bilgilerini gir"
+                  required
                   type="text"
                 />
               </div>
@@ -63,6 +74,7 @@ function LoginPage({ navigate }) {
                   id="password"
                   name="password"
                   placeholder="********"
+                  required
                   type={showPassword ? 'text' : 'password'}
                 />
                 <button

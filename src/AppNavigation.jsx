@@ -2,7 +2,7 @@ import './AppNavigation.css'
 
 const sideNavLinks = [
   {
-    label: 'Canlı Müzayedeler',
+    label: 'Canl\u0131 M\u00fczayedeler',
     icon: 'gavel',
     href: '/auctions',
     route: true,
@@ -15,7 +15,7 @@ const sideNavLinks = [
     route: true,
     match: ['/dashboard'],
   },
-  { label: 'Cüzdan', icon: 'account_balance_wallet', href: '#' },
+  { label: 'C\u00fczdan', icon: 'account_balance_wallet', href: '#' },
   {
     label: 'Ayarlar',
     icon: 'settings',
@@ -26,8 +26,13 @@ const sideNavLinks = [
 ]
 
 const footerNavLinks = [
-  { label: 'Yardım Merkezi', icon: 'help', href: '#' },
-  { label: 'Çıkış Yap', icon: 'logout', href: '#' },
+  { label: 'Yard\u0131m Merkezi', icon: 'help', href: '#' },
+  {
+    label: '\u00c7\u0131k\u0131\u015f Yap',
+    icon: 'logout',
+    href: '/login',
+    action: 'logout',
+  },
 ]
 
 function isActive(currentPath, link) {
@@ -38,7 +43,11 @@ function routeHandler(navigate, link) {
   return link.route ? navigate(link.href) : undefined
 }
 
-export function AppTopNavbar({ currentPath, navigate, searchPlaceholder = 'Müzayede ara...' }) {
+export function AppTopNavbar({
+  currentPath,
+  navigate,
+  searchPlaceholder = 'M\u00fczayede ara...',
+}) {
   return (
     <header className="app-topbar">
       <div className="app-topbar__brand-row">
@@ -48,7 +57,7 @@ export function AppTopNavbar({ currentPath, navigate, searchPlaceholder = 'Müza
       </div>
 
       <div className="app-topbar__actions">
-        <label className="app-search" aria-label="Müzayede ara">
+        <label className="app-search" aria-label={'M\u00fczayede ara'}>
           <span className="material-symbols-outlined">search</span>
           <input placeholder={searchPlaceholder} type="search" />
         </label>
@@ -74,7 +83,7 @@ export function AppTopNavbar({ currentPath, navigate, searchPlaceholder = 'Müza
   )
 }
 
-export function AppSideNavbar({ currentPath, navigate }) {
+export function AppSideNavbar({ currentPath, navigate, onLogout }) {
   const createAuctionActive = currentPath === '/auctions/create'
 
   return (
@@ -85,7 +94,7 @@ export function AppSideNavbar({ currentPath, navigate }) {
         </div>
         <div>
           <p>Koleksiyoner</p>
-          <span>Doğrulanmış Üye</span>
+          <span>{'Do\u011frulanm\u0131\u015f \u00dcye'}</span>
         </div>
       </div>
 
@@ -113,12 +122,24 @@ export function AppSideNavbar({ currentPath, navigate }) {
         onClick={navigate('/auctions/create')}
       >
         <span className="material-symbols-outlined">add_circle</span>
-        Müzayede Oluştur
+        {'M\u00fczayede Olu\u015ftur'}
       </a>
 
       <nav className="app-sidebar__footer" aria-label="Hesap navigasyonu">
         {footerNavLinks.map((link) => (
-          <a key={link.label} className="app-sidebar__link" href={link.href}>
+          <a
+            key={link.label}
+            className="app-sidebar__link"
+            href={link.href}
+            onClick={
+              link.action === 'logout'
+                ? (event) => {
+                    event.preventDefault()
+                    onLogout?.()
+                  }
+                : undefined
+            }
+          >
             <span className="material-symbols-outlined">{link.icon}</span>
             <span>{link.label}</span>
           </a>

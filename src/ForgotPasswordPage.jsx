@@ -1,16 +1,18 @@
 import { useState } from 'react'
 
-function ForgotPasswordPage({ navigate }) {
+function ForgotPasswordPage({ navigate, onPasswordResetRequested }) {
   const [email, setEmail] = useState('')
 
   const handleSubmit = (event) => {
     event.preventDefault()
 
-    if (!email.trim()) {
+    const trimmedEmail = email.trim()
+
+    if (!trimmedEmail) {
       return
     }
 
-    navigate('/verify-identity')()
+    onPasswordResetRequested?.(trimmedEmail)
   }
 
   return (

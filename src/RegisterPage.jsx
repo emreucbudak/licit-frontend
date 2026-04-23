@@ -3,11 +3,12 @@ import { useState } from 'react'
 const heroImage =
   'https://lh3.googleusercontent.com/aida-public/AB6AXuD7BWO74reHWJKrfOvYYUPRVmmnkf0G9AynNsGy5ZnijneBp8AayHwwzxdTIJnsUsuyvVlNw3xQcrKukuy3SscyFybTpZ8J4JYq_f4FjxVvGVOzE256ddasMgetjqXWCGu9PtsED_7SuaeUL3zKJWl9awLQVsWNpRNLrckfrsM1iCIzPEp0l-1WHJOL82wOzPA63C-I7T3oKnldx52vGHFrWE0Ruyxfj2AEMAWCbzbVSdC-enjegyh0nCCwVjilMcBKxRNJo42uEyM'
 
-function RegisterPage({ navigate }) {
+function RegisterPage({ navigate, onLogin }) {
   const [showPassword, setShowPassword] = useState(false)
 
   const handleSubmit = (event) => {
     event.preventDefault()
+    onLogin?.()
   }
 
   return (

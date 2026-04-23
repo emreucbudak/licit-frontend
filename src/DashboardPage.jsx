@@ -103,11 +103,15 @@ const liveFeed = [
   ['Elmas Aura NFT', 'Teklif +1.2 ETH', 'secondary'],
 ]
 
-function DashboardPage({ navigate }) {
+function DashboardPage({ navigate, onLogout }) {
   return (
     <div className="dashboard-page">
       <AppTopNavbar currentPath="/dashboard" navigate={navigate} />
-      <AppSideNavbar currentPath="/dashboard" navigate={navigate} />
+      <AppSideNavbar
+        currentPath="/dashboard"
+        navigate={navigate}
+        onLogout={onLogout}
+      />
 
       <main className="dashboard-main">
         <div className="dashboard-shell">

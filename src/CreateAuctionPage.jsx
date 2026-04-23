@@ -3,7 +3,7 @@ import { AppSideNavbar, AppTopNavbar } from './AppNavigation'
 const previewImage =
   'https://lh3.googleusercontent.com/aida-public/AB6AXuCEmI0z_YuP3x3BkXaINgNm4oQ4DHezF5XTTEjwh-70YPkKbgx1IYxq0koBKWQccZpreJLFFpkezKTdgTNXPtUqrgOOZKYT8ckcuXNQDwdeEtxj-jt-Geql1-IRNTpvgp35ZDgHl74pVzf5DjITuyboTLPceLctGcnbD84hh9THRfLtGsLfE3L0mGr4gvuKiHkanvdupB8_Ky44VsZ-lMtOfaC17lsVJBXbRLe2U9nd78B8OBiMbRtCAyzVnakb_FXHaf6Rh93fPlY'
 
-function CreateAuctionPage({ navigate }) {
+function CreateAuctionPage({ navigate, onLogout }) {
   const handleSubmit = (event) => {
     event.preventDefault()
   }
@@ -11,7 +11,11 @@ function CreateAuctionPage({ navigate }) {
   return (
     <div className="min-h-screen overflow-x-hidden bg-surface text-on-surface">
       <AppTopNavbar currentPath="/auctions/create" navigate={navigate} />
-      <AppSideNavbar currentPath="/auctions/create" navigate={navigate} />
+      <AppSideNavbar
+        currentPath="/auctions/create"
+        navigate={navigate}
+        onLogout={onLogout}
+      />
 
       <main className="min-h-screen px-4 pb-28 pt-24 sm:px-6 lg:ml-64 lg:px-8 lg:pb-12">
         <div className="mx-auto max-w-5xl">

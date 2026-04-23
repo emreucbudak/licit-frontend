@@ -57,7 +57,7 @@ function getStrengthMeta(score) {
   }
 }
 
-function CreateNewPasswordPage({ navigate }) {
+function CreateNewPasswordPage({ navigate, onPasswordResetCompleted }) {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -79,6 +79,12 @@ function CreateNewPasswordPage({ navigate }) {
 
   const handleSubmit = (event) => {
     event.preventDefault()
+
+    if (!canSubmit) {
+      return
+    }
+
+    onPasswordResetCompleted?.()
   }
 
   return (

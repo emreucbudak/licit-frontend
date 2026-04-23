@@ -92,29 +92,12 @@ function CreateNewPasswordPage({ navigate }) {
       />
 
       <header className="fixed left-0 top-0 z-50 flex h-16 w-full items-center justify-between bg-gradient-to-b from-slate-900/50 to-transparent px-6 backdrop-blur-xl">
-        <button
-          className="flex items-center justify-center rounded-full p-2 text-indigo-500 transition-transform duration-200 transition-colors hover:bg-white/5 active:scale-95"
-          type="button"
-          aria-label="Doğrulama adımına dön"
-          onClick={navigate('/verify-identity')}
-        >
-          <span className="material-symbols-outlined">arrow_back</span>
-        </button>
-
         <a
-          className="text-xl font-black tracking-tighter text-indigo-400"
+          className="mx-auto text-xl font-black tracking-tighter text-indigo-400"
           href="/"
           onClick={navigate('/')}
         >
           LICIT
-        </a>
-
-        <a
-          className="flex items-center justify-center rounded-full p-2 text-slate-400 transition-transform duration-200 transition-colors hover:bg-white/5 active:scale-95"
-          href="mailto:support@licit.app"
-          aria-label="Destek ile iletişime geç"
-        >
-          <span className="material-symbols-outlined">help_outline</span>
         </a>
       </header>
 
@@ -122,15 +105,6 @@ function CreateNewPasswordPage({ navigate }) {
         <div className="w-full max-w-md">
           <div className="mt-4 rounded-xl border border-outline-variant/20 bg-surface-container-high/60 p-8 shadow-[0_40px_60px_-15px_rgba(45,52,73,0.12)] backdrop-blur-xl">
             <div className="mb-10 text-center">
-              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-surface-container-low">
-                <span
-                  className="material-symbols-outlined text-3xl text-primary"
-                  style={{ fontVariationSettings: "'FILL' 1" }}
-                >
-                  lock_reset
-                </span>
-              </div>
-
               <h1 className="mb-3 font-headline text-3xl font-bold tracking-tight text-on-surface">
                 Yeni Şifre Oluştur
               </h1>
@@ -286,23 +260,6 @@ function CreateNewPasswordPage({ navigate }) {
                 </button>
               </div>
             </form>
-          </div>
-
-          <div className="mt-8 flex justify-center gap-4 text-center">
-            <a
-              className="font-label text-sm text-on-surface-variant transition-colors hover:text-on-surface"
-              href="/login"
-              onClick={navigate('/login')}
-            >
-              Girişe Dön
-            </a>
-            <span className="text-surface-bright">•</span>
-            <a
-              className="font-label text-sm text-on-surface-variant transition-colors hover:text-on-surface"
-              href="mailto:support@licit.app"
-            >
-              Destek ile İletişime Geç
-            </a>
           </div>
         </div>
       </main>

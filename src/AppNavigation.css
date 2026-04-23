@@ -164,6 +164,7 @@
 }
 
 .app-sidebar__footer {
+  width: 100%;
   padding-top: 16px;
   margin-top: auto;
   border-top: 1px solid rgba(30, 41, 59, 0.6);
@@ -173,7 +174,9 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  width: 100%;
   padding: 14px 16px;
+  box-sizing: border-box;
   border-radius: 14px;
   color: var(--color-slate-400);
   font-size: 0.95rem;
@@ -199,7 +202,7 @@
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 8px;
+  gap: 12px;
   min-height: 50px;
   width: 100%;
   padding: 14px 16px;

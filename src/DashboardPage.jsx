@@ -256,10 +256,6 @@ function DashboardPage({ navigate }) {
             <section className="dashboard-history">
               <div className="dashboard-section-head">
                 <h3>Teklif Geçmişi</h3>
-                <div className="dashboard-history__actions">
-                  <button type="button">CSV Dışa Aktar</button>
-                  <button type="button"><span className="material-symbols-outlined">filter_list</span>Filtrele</button>
-                </div>
               </div>
               <div className="dashboard-table-shell">
                 <table className="dashboard-table">

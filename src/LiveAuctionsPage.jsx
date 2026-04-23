@@ -203,9 +203,13 @@ function LiveAuctionsPage({ navigate }) {
             ))}
           </div>
 
-          <button className="auctions-sidebar__cta" type="button">
+          <a
+            className="auctions-sidebar__cta"
+            href="/auctions/create"
+            onClick={navigate('/auctions/create')}
+          >
             Müzayede Oluştur
-          </button>
+          </a>
 
           <div className="auctions-sidebar__footer">
             {footerNavLinks.map((link) => (

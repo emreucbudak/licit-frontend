@@ -756,7 +756,8 @@
   backdrop-filter: blur(12px);
 }
 
-.dashboard-mobile-nav button {
+.dashboard-mobile-nav button,
+.dashboard-mobile-nav a {
   flex: 1 1 0;
   min-width: 0;
   display: flex;

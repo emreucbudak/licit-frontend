@@ -5,6 +5,7 @@ import LotDetailPage from './LotDetailPage'
 import DashboardPage from './DashboardPage'
 import LoginPage from './LoginPage'
 import RegisterPage from './RegisterPage'
+import CreateAuctionPage from './CreateAuctionPage'
 
 function normalizePath(pathname) {
   const trimmedPath = pathname.replace(/\/+$/, '') || '/'
@@ -15,6 +16,10 @@ function normalizePath(pathname) {
 
   if (trimmedPath === '/auctions/lot-4429') {
     return '/auctions/lot-4429'
+  }
+
+  if (trimmedPath === '/auctions/create') {
+    return '/auctions/create'
   }
 
   if (trimmedPath === '/dashboard') {
@@ -53,13 +58,15 @@ function App() {
         ? 'Licit | Premium Auction Exchange'
         : path === '/auctions/lot-4429'
           ? 'Licit | Lot Detayı'
-          : path === '/dashboard'
-            ? 'Licit Panel - Koleksiyoner'
-            : path === '/login'
-              ? 'Giriş Yap - Licit'
-              : path === '/register'
-                ? 'Kaydol - Licit'
-                : 'Licit - Real-time Bidding Platform'
+          : path === '/auctions/create'
+            ? 'Müzayede Oluştur | Licit'
+            : path === '/dashboard'
+              ? 'Licit Panel - Koleksiyoner'
+              : path === '/login'
+                ? 'Giriş Yap - Licit'
+                : path === '/register'
+                  ? 'Kaydol - Licit'
+                  : 'Licit - Real-time Bidding Platform'
   }, [path])
 
   const navigate = (nextPath) => (event) => {
@@ -92,6 +99,10 @@ function App() {
 
   if (path === '/auctions/lot-4429') {
     return <LotDetailPage navigate={navigate} />
+  }
+
+  if (path === '/auctions/create') {
+    return <CreateAuctionPage navigate={navigate} />
   }
 
   if (path === '/dashboard') {

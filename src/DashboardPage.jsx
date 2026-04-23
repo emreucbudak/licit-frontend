@@ -182,10 +182,14 @@ function DashboardPage({ navigate }) {
           </a>
         </div>
 
-        <button className="dashboard-sidebar__cta" type="button">
+        <a
+          className="dashboard-sidebar__cta"
+          href="/auctions/create"
+          onClick={navigate('/auctions/create')}
+        >
           <span className="material-symbols-outlined">add</span>
           Müzayede Oluştur
-        </button>
+        </a>
 
         <div className="dashboard-sidebar__footer">
           <a className="dashboard-sidebar__footer-link" href="#">
@@ -311,7 +315,7 @@ function DashboardPage({ navigate }) {
       <nav className="dashboard-mobile-nav">
         <button type="button"><span className="material-symbols-outlined">gavel</span><span>Canlı</span></button>
         <button className="dashboard-mobile-nav__active" type="button"><span className="material-symbols-outlined">dashboard</span><span>Panel</span></button>
-        <button type="button"><span className="material-symbols-outlined">add_circle</span><span>Sat</span></button>
+        <a href="/auctions/create" onClick={navigate('/auctions/create')}><span className="material-symbols-outlined">add_circle</span><span>Sat</span></a>
         <button type="button"><span className="material-symbols-outlined">account_balance_wallet</span><span>Cüzdan</span></button>
         <button type="button"><span className="material-symbols-outlined">person</span><span>Profil</span></button>
       </nav>

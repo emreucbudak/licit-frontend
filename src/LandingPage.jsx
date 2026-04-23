@@ -255,11 +255,33 @@ function LandingPage({ navigate }) {
               Doğrulanmış varlıklar, gerçek zamanlı teknoloji, benzersiz güvenlik.
             </p>
             <div className="footer-socials">
-              <a aria-label="E-posta" href="#footer">
-                <span className="material-symbols-outlined">alternate_email</span>
+              <a
+                aria-label="GitHub"
+                href="https://github.com/emreucbudak"
+                rel="noreferrer"
+                target="_blank"
+              >
+                <svg
+                  aria-hidden="true"
+                  className="h-[18px] w-[18px] fill-current"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M12 0C5.37 0 0 5.5 0 12.3c0 5.44 3.44 10.06 8.2 11.68.6.11.82-.27.82-.6 0-.3-.01-1.1-.02-2.16-3.34.75-4.04-1.66-4.04-1.66-.55-1.43-1.33-1.81-1.33-1.81-1.09-.76.08-.75.08-.75 1.2.09 1.83 1.28 1.83 1.28 1.08 1.9 2.83 1.35 3.52 1.04.11-.8.42-1.35.76-1.66-2.66-.31-5.47-1.37-5.47-6.1 0-1.35.47-2.45 1.24-3.31-.13-.31-.54-1.57.12-3.27 0 0 1.01-.33 3.3 1.26A11.2 11.2 0 0 1 12 6.83c1.02 0 2.05.14 3.01.42 2.29-1.59 3.3-1.26 3.3-1.26.66 1.7.25 2.96.12 3.27.77.86 1.24 1.96 1.24 3.31 0 4.74-2.81 5.79-5.49 6.09.43.38.82 1.12.82 2.27 0 1.64-.01 2.96-.01 3.36 0 .33.21.72.82.6A12.31 12.31 0 0 0 24 12.3C24 5.5 18.63 0 12 0Z" />
+                </svg>
               </a>
-              <a aria-label="Paylaş" href="#footer">
-                <span className="material-symbols-outlined">share</span>
+              <a
+                aria-label="LinkedIn"
+                href="https://www.linkedin.com/in/emre-%C3%BC%C3%A7budak-1b5587304/"
+                rel="noreferrer"
+                target="_blank"
+              >
+                <svg
+                  aria-hidden="true"
+                  className="h-[18px] w-[18px] fill-current"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M4.98 3.5A2.48 2.48 0 1 1 0 3.5a2.48 2.48 0 0 1 4.98 0ZM.4 8.32h4.7V24H.4V8.32ZM8.05 8.32h4.5v2.14h.06c.63-1.2 2.16-2.46 4.44-2.46 4.75 0 5.63 3.18 5.63 7.31V24h-4.7v-7.65c0-1.83-.03-4.19-2.5-4.19-2.5 0-2.88 1.99-2.88 4.05V24h-4.7V8.32Z" />
+                </svg>
               </a>
             </div>
           </div>

@@ -55,12 +55,6 @@ function LandingPage({ navigate }) {
               Licit
             </a>
           </div>
-
-          <div className="top-nav__actions">
-            <a className="icon-button" href="/login" onClick={navigate('/login')} aria-label="Hesap">
-              <span className="material-symbols-outlined">account_circle</span>
-            </a>
-          </div>
         </div>
       </nav>
 

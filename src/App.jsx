@@ -11,8 +11,7 @@ import LandingPage from './LandingPage'
 import LiveAuctionsPage from './LiveAuctionsPage'
 import LotDetailPage from './LotDetailPage'
 import DashboardPage from './DashboardPage'
-import LoginPage from './LoginPage'
-import RegisterPage from './RegisterPage'
+import AuthPage from './AuthPage'
 import CreateAuctionPage from './CreateAuctionPage'
 import SettingsPage from './SettingsPage'
 import CreateNewPasswordPage from './CreateNewPasswordPage'
@@ -173,11 +172,15 @@ function AppRoutes() {
       <Route path="/" element={<LandingPage navigate={navigate} />} />
       <Route
         path="/login"
-        element={<LoginPage navigate={navigate} onLogin={handleLogin} />}
+        element={
+          <AuthPage mode="login" navigate={navigate} onLogin={handleLogin} />
+        }
       />
       <Route
         path="/register"
-        element={<RegisterPage navigate={navigate} onLogin={handleLogin} />}
+        element={
+          <AuthPage mode="register" navigate={navigate} onLogin={handleLogin} />
+        }
       />
       <Route
         path="/forgot-password"

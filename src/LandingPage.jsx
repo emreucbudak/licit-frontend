@@ -25,21 +25,6 @@ const featureCards = [
   },
 ]
 
-const footerColumns = [
-  {
-    title: 'Platform',
-    links: ['Müzayedeler', 'Koleksiyonlar', 'Cüzdan', 'API'],
-  },
-  {
-    title: 'Kaynaklar',
-    links: ['Yardım Merkezi', 'Güvenlik', 'Gizlilik Politikası'],
-  },
-  {
-    title: 'Koleksiyoner',
-    links: ['Doğrulanmış Rozet', 'Ödüller', 'Topluluk'],
-  },
-]
-
 function useCountUp(target, duration = 1400) {
   const [value, setValue] = useState(0)
 
@@ -285,21 +270,6 @@ function LandingPage({ navigate }) {
                 </svg>
               </a>
             </div>
-          </div>
-
-          <div className="footer-links">
-            {footerColumns.map((column) => (
-              <div key={column.title}>
-                <h5>{column.title}</h5>
-                <ul>
-                  {column.links.map((link) => (
-                    <li key={link}>
-                      <a href="#footer">{link}</a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
           </div>
         </div>
 

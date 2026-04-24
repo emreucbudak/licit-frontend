@@ -25,7 +25,6 @@ function LoginPage({ navigate, onLogin }) {
           <a className="login-brand" href="/" onClick={navigate('/')}>
             Licit
           </a>
-          <p>Yüksek Hızlı Müzayede Platformu</p>
         </div>
 
         <section className="login-panel" aria-labelledby="login-title">
@@ -89,11 +88,6 @@ function LoginPage({ navigate, onLogin }) {
                 </button>
               </div>
             </div>
-
-            <label className="login-remember" htmlFor="remember">
-              <input id="remember" type="checkbox" />
-              <span>Beni 30 gün hatırla</span>
-            </label>
 
             <button className="login-submit" type="submit">
               Giriş Yap

@@ -35,18 +35,10 @@
 
 .login-brand {
   display: inline-block;
-  margin-bottom: 8px;
   color: var(--color-on-background);
   font-size: 1.9rem;
   font-weight: 900;
   letter-spacing: -0.04em;
-}
-
-.login-brand-block p {
-  margin: 0;
-  color: var(--color-on-surface-variant);
-  font-size: 0.9rem;
-  letter-spacing: 0.04em;
 }
 
 .login-panel {
@@ -175,25 +167,6 @@
 
 .login-password-toggle span {
   font-size: 1.25rem;
-}
-
-.login-remember {
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-  margin-left: 4px;
-  color: var(--color-on-surface-variant);
-  font-size: 0.9rem;
-  cursor: pointer;
-}
-
-.login-remember input {
-  width: 16px;
-  height: 16px;
-  margin: 0;
-  border-radius: 4px;
-  accent-color: var(--color-primary);
-  cursor: pointer;
 }
 
 .login-submit {

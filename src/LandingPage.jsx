@@ -125,26 +125,22 @@ function LandingPage({ navigate }) {
                 <div className="featured-card__frame">
                   <div className="featured-card__media">
                     <img
-                      alt="Mor ve camgöbeği neon ışıklarla aydınlatılmış karanlık minimalist bir alanda süzülen fütüristik parlak 3D soyut heykel"
-                      src="https://lh3.googleusercontent.com/aida-public/AB6AXuCNxr2-O34BPqZN6TlujDCkBxIv6uk02DHTsecdsYyNka3MFzx2v5zbzoY6E9n6EHf6eWCu3gzN6Y2GCtcJwYfVx63F6yVqrOgFSTcOmI7XKioHhRqH5KiuKCiOlOCdEvSnWooRnqtmjVWPQ-BmqR_c9Y9Z1skMYZ0eOw3hn1g-1B9lXoutJGDSDDNdQKtWRFkt8LiYDQZQXESWPpkp-auzw1kOny3t3uraVSp_wtNsmFR8_8MtflF2TZiLg61534AAETwLnZQHGWM"
+                      alt="Farklı renk seçenekleriyle yelpaze formunda gösterilen iPhone 17"
+                      src="https://www.apple.com/v/iphone-17/e/images/overview/welcome/hero_startframe__e9e7pcnguyqi_xlarge.jpg"
                     />
                   </div>
 
                   <div className="featured-card__content">
                     <div className="featured-card__header">
-                      <h2>Cyber-Relic #082</h2>
+                      <h2>iPhone 17 256 GB</h2>
                       <span className="countdown-badge">02s 45dk kaldı</span>
                     </div>
 
                     <div className="featured-card__footer">
                       <div>
                         <p className="eyebrow">Güncel Teklif</p>
-                        <p className="price-tag">14.50 ETH</p>
+                        <p className="price-tag">39.999 TL</p>
                       </div>
-
-                      <button className="quick-bid" type="button">
-                        Hızlı Teklif
-                      </button>
                     </div>
                   </div>
                 </div>
@@ -156,7 +152,7 @@ function LandingPage({ navigate }) {
                 </div>
                 <div>
                   <p className="floating-activity__label">Son aktivite</p>
-                  <p className="floating-activity__value">+0.4 ETH teklif verildi</p>
+                  <p className="floating-activity__value">+5.000 TL teklif verildi</p>
                 </div>
               </div>
             </div>

@@ -312,26 +312,6 @@
   letter-spacing: -0.05em;
 }
 
-.quick-bid {
-  min-height: 46px;
-  padding: 10px 22px;
-  border: 0;
-  border-radius: 12px;
-  background: var(--color-secondary-container);
-  color: var(--color-on-secondary-container);
-  font-size: 0.9rem;
-  font-weight: 800;
-  cursor: pointer;
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
-}
-
-.quick-bid:hover {
-  transform: scale(1.04);
-  box-shadow: 0 10px 30px rgba(0, 165, 114, 0.25);
-}
-
 .floating-activity {
   position: absolute;
   top: -28px;

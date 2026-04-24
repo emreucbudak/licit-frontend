@@ -100,14 +100,22 @@ function LandingPage({ navigate }) {
               </p>
 
               <div className="hero-actions">
-                <a className="button button--primary" href="/login" onClick={navigate('/login')}>
-                  Müzayedeye Başla
+                <a
+                  className="button button--primary"
+                  href="/auctions/create"
+                  onClick={navigate('/auctions/create')}
+                >
+                  İhale Oluştur
                   <span className="material-symbols-outlined button__icon">
                     arrow_forward
                   </span>
                 </a>
-                <a className="button button--secondary" href="#features">
-                  Müzayedeye Katıl
+                <a
+                  className="button button--secondary"
+                  href="/auctions"
+                  onClick={navigate('/auctions')}
+                >
+                  Aktif İhaleleri Gör
                 </a>
               </div>
             </div>

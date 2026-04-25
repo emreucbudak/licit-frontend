@@ -5,8 +5,8 @@ function AuthLayout({ children, mode = 'login', navigate }) {
   const showHeroCopy = mode === 'register'
   const formAlignmentClass =
     mode === 'login'
-      ? 'items-center p-6 pt-8 sm:p-12 sm:pt-40 lg:p-24 lg:pt-56'
-      : 'items-start p-6 pt-36 pb-2 sm:p-12 sm:pt-28 sm:pb-6 lg:px-24 lg:pt-28 lg:pb-8'
+      ? 'items-center p-6 pt-4 sm:p-12 sm:pt-40 lg:p-24 lg:pt-56'
+      : 'items-start p-6 pt-28 pb-2 sm:p-12 sm:pt-28 sm:pb-6 lg:px-24 lg:pt-28 lg:pb-8'
 
   return (
     <main

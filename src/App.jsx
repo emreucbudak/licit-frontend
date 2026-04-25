@@ -16,6 +16,7 @@ import CreateAuctionPage from './CreateAuctionPage'
 import SettingsPage from './SettingsPage'
 import CreateNewPasswordPage from './CreateNewPasswordPage'
 import VerifyIdentityPage from './VerifyIdentityPage'
+import VerifyEmailPage from './VerifyEmailPage'
 import ForgotPasswordPage from './ForgotPasswordPage'
 
 const AUTH_STORAGE_KEY = 'licit.authenticated'
@@ -55,6 +56,7 @@ function titleForPath(pathname) {
       '/login': 'Giris Yap - Licit',
       '/forgot-password': 'Sifremi Unuttum | Licit',
       '/verify-identity': 'Kimligini Dogrula | Licit',
+      '/verify-email': 'E-postani Dogrula | Licit',
       '/reset-password': 'Yeni Sifre Olustur | Licit',
       '/register': 'Kaydol - Licit',
     }[pathname] || 'Licit - Real-time Bidding Platform'
@@ -91,6 +93,14 @@ function PasswordResetRoute({ passwordResetFlow, children }) {
   return children
 }
 
+function EmailVerificationRoute({ emailVerificationFlow, children }) {
+  if (!emailVerificationFlow.email) {
+    return <Navigate to="/register" replace />
+  }
+
+  return children
+}
+
 function AppRoutes() {
   const routerNavigate = useNavigate()
   const location = useLocation()
@@ -98,6 +108,9 @@ function AppRoutes() {
   const [passwordResetFlow, setPasswordResetFlow] = useState({
     email: '',
     codeVerified: false,
+  })
+  const [emailVerificationFlow, setEmailVerificationFlow] = useState({
+    email: '',
   })
 
   useEffect(() => {
@@ -149,6 +162,22 @@ function AppRoutes() {
     routerNavigate('/verify-identity')
   }
 
+  const handleRegisterRequested = (email) => {
+    setEmailVerificationFlow({
+      email,
+    })
+    routerNavigate('/verify-email')
+  }
+
+  const handleEmailVerified = () => {
+    setEmailVerificationFlow({
+      email: '',
+    })
+    storeAuthentication()
+    setIsAuthenticated(true)
+    routerNavigate('/dashboard', { replace: true })
+  }
+
   const handlePasswordResetVerified = () => {
     setPasswordResetFlow((currentFlow) => ({
       ...currentFlow,
@@ -179,7 +208,12 @@ function AppRoutes() {
       <Route
         path="/register"
         element={
-          <AuthPage mode="register" navigate={navigate} onLogin={handleLogin} />
+          <AuthPage
+            mode="register"
+            navigate={navigate}
+            onLogin={handleLogin}
+            onRegisterRequested={handleRegisterRequested}
+          />
         }
       />
       <Route
@@ -206,6 +240,18 @@ function AppRoutes() {
       <Route
         path="/verify-code"
         element={<Navigate to="/verify-identity" replace />}
+      />
+      <Route
+        path="/verify-email"
+        element={
+          <EmailVerificationRoute emailVerificationFlow={emailVerificationFlow}>
+            <VerifyEmailPage
+              email={emailVerificationFlow.email}
+              navigate={navigate}
+              onEmailVerified={handleEmailVerified}
+            />
+          </EmailVerificationRoute>
+        }
       />
       <Route
         path="/reset-password"

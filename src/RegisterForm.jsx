@@ -1,10 +1,24 @@
 import { useState } from 'react'
 
-function RegisterForm({ navigate, onLogin }) {
+function RegisterForm({ navigate, onLogin, onRegisterRequested }) {
   const [showPassword, setShowPassword] = useState(false)
 
   const handleSubmit = (event) => {
     event.preventDefault()
+
+    const formData = new FormData(event.currentTarget)
+    const email = String(formData.get('email') || '').trim()
+    const password = String(formData.get('password') || '').trim()
+
+    if (!email || !password) {
+      return
+    }
+
+    if (onRegisterRequested) {
+      onRegisterRequested(email)
+      return
+    }
+
     onLogin?.()
   }
 

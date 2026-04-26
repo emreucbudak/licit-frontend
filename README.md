@@ -55,6 +55,43 @@ Build alinmis surumu lokal olarak test etmek icin:
 npm run preview
 ```
 
+## Azure Container Apps
+
+Frontend image'i statik Vite build'ini `nginx` ile servis eder. Container App'te
+external ingress acilir ve target port `80` olarak ayarlanir.
+
+Frontend backend servislerine tek tek baglanmaz. Browser istekleri Gateway'e
+gider; Gateway de `auth-service`, `tendering-service`, `wallet-service`,
+`mail-service`, `bidding-engine` ve `auction-streamer` servislerine yonlendirir.
+
+### Secrets
+
+Frontend icin secret gerekmez. Browser tarafina secret verilmemelidir.
+
+### Gateway adresleri
+
+Frontend icin tek gerekli bilgi Gateway'in public adresidir. Bu bilgi secret
+degildir; browser zaten Gateway'e istek atacagi icin kullanici tarafindan da
+gorulebilir.
+
+Production build almadan once Git'e girmeyen `.env.production.local` dosyasini
+olustur:
+
+```text
+VITE_API_BASE_URL=https://<gateway-public-url>
+VITE_WS_BASE_URL=wss://<gateway-public-host>
+```
+
+Ornek:
+
+```text
+VITE_API_BASE_URL=https://gateway.<environment>.<region>.azurecontainerapps.io
+VITE_WS_BASE_URL=wss://gateway.<environment>.<region>.azurecontainerapps.io
+```
+
+`.gitignore` icindeki `*.local` kurali bu dosyanin GitHub'a gitmesini engeller.
+Image build edilirken Vite bu degerleri statik dosyalara yazar.
+
 ## Proje Yapisi
 
 ```text

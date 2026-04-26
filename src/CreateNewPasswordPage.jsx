@@ -1,75 +1,31 @@
 import { useState } from 'react'
-
-function getPasswordChecks(password) {
-  return [
-    {
-      id: 'length',
-      label: 'En az 8 karakter',
-      met: password.length >= 8,
-    },
-    {
-      id: 'number',
-      label: 'En az 1 rakam',
-      met: /\d/.test(password),
-    },
-    {
-      id: 'symbol',
-      label: 'En az 1 sembol',
-      met: /[^A-Za-z0-9]/.test(password),
-    },
-    {
-      id: 'case',
-      label: 'Büyük ve küçük harf',
-      met: /[a-z]/.test(password) && /[A-Z]/.test(password),
-    },
-  ]
-}
-
-function getStrengthMeta(score) {
-  if (score <= 1) {
-    return {
-      label: 'Zayıf',
-      textClass: 'text-error',
-      barClass: 'bg-error',
-    }
-  }
-
-  if (score === 2) {
-    return {
-      label: 'Orta',
-      textClass: 'text-tertiary',
-      barClass: 'bg-tertiary',
-    }
-  }
-
-  if (score === 3) {
-    return {
-      label: 'İyi',
-      textClass: 'text-primary',
-      barClass: 'bg-primary',
-    }
-  }
-
-  return {
-    label: 'Güçlü',
-    textClass: 'text-secondary',
-    barClass: 'bg-secondary',
-  }
-}
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm, useWatch } from 'react-hook-form'
+import {
+  PasswordRuleChecklist,
+  PasswordStrengthBars,
+} from './components/PasswordStrengthPanel'
+import {
+  getPasswordChecks,
+  passwordMeetsMinimumRules,
+} from './utils/passwordRules'
+import { createNewPasswordSchema } from './utils/authSchemas'
 
 function CreateNewPasswordPage({ navigate, onPasswordResetCompleted }) {
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const { control, handleSubmit, register } = useForm({
+    defaultValues: {
+      password: '',
+      confirmPassword: '',
+    },
+    resolver: zodResolver(createNewPasswordSchema),
+  })
+  const password = useWatch({ control, name: 'password' }) || ''
+  const confirmPassword = useWatch({ control, name: 'confirmPassword' }) || ''
 
   const checks = getPasswordChecks(password)
-  const strengthScore = checks.filter((check) => check.met).length
-  const strength = getStrengthMeta(strengthScore)
-  const meetsMinimumRules =
-    checks.find((check) => check.id === 'length')?.met &&
-    checks.find((check) => check.id === 'number')?.met &&
-    checks.find((check) => check.id === 'symbol')?.met
+  const meetsMinimumRules = passwordMeetsMinimumRules(password)
 
   const passwordsMatch =
     confirmPassword.length > 0 && password === confirmPassword
@@ -77,13 +33,7 @@ function CreateNewPasswordPage({ navigate, onPasswordResetCompleted }) {
   const canSubmit =
     Boolean(meetsMinimumRules) && passwordsMatch && password.length > 0
 
-  const handleSubmit = (event) => {
-    event.preventDefault()
-
-    if (!canSubmit) {
-      return
-    }
-
+  const onSubmit = () => {
     onPasswordResetCompleted?.()
   }
 
@@ -119,7 +69,7 @@ function CreateNewPasswordPage({ navigate, onPasswordResetCompleted }) {
               </p>
             </div>
 
-            <form className="space-y-6" onSubmit={handleSubmit}>
+            <form className="space-y-6" noValidate onSubmit={handleSubmit(onSubmit)}>
               <div className="space-y-2">
                 <label
                   className="font-label text-xs font-semibold uppercase tracking-wider text-on-surface-variant"
@@ -137,8 +87,8 @@ function CreateNewPasswordPage({ navigate, onPasswordResetCompleted }) {
                     id="new_password"
                     placeholder="••••••••"
                     type={showPassword ? 'text' : 'password'}
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
+                    autoComplete="new-password"
+                    {...register('password')}
                   />
                   <button
                     className="absolute right-4 top-1/2 flex -translate-y-1/2 items-center justify-center text-outline transition-colors hover:text-on-surface"
@@ -153,35 +103,7 @@ function CreateNewPasswordPage({ navigate, onPasswordResetCompleted }) {
                 </div>
               </div>
 
-              <div className="space-y-2 pt-1">
-                <div className="mb-1 flex items-center justify-between">
-                  <span className="font-label text-xs font-medium text-on-surface-variant">
-                    Şifre Gücü
-                  </span>
-                  <span
-                    className={`font-label text-xs font-medium ${strength.textClass}`}
-                  >
-                    {password.length === 0 ? 'Hazır değil' : strength.label}
-                  </span>
-                </div>
-
-                <div className="flex h-1.5 gap-1.5">
-                  {Array.from({ length: 4 }).map((_, index) => (
-                    <div
-                      key={`strength-bar-${index + 1}`}
-                      className={`h-full flex-1 rounded-full ${
-                        index < strengthScore
-                          ? strength.barClass
-                          : 'bg-surface-container-low'
-                      }`}
-                    />
-                  ))}
-                </div>
-
-                <p className="mt-2 font-label text-xs text-on-surface-variant/70">
-                  En az 8 karakter, bir rakam ve bir sembol içermeli.
-                </p>
-              </div>
+              <PasswordStrengthBars password={password} />
 
               <div className="space-y-2 pt-2">
                 <label
@@ -200,8 +122,8 @@ function CreateNewPasswordPage({ navigate, onPasswordResetCompleted }) {
                     id="confirm_password"
                     placeholder="••••••••"
                     type={showConfirmPassword ? 'text' : 'password'}
-                    value={confirmPassword}
-                    onChange={(event) => setConfirmPassword(event.target.value)}
+                    autoComplete="new-password"
+                    {...register('confirmPassword')}
                   />
                   <button
                     className="absolute right-4 top-1/2 flex -translate-y-1/2 items-center justify-center text-outline transition-colors hover:text-on-surface"
@@ -235,23 +157,7 @@ function CreateNewPasswordPage({ navigate, onPasswordResetCompleted }) {
                 ) : null}
               </div>
 
-              <div className="grid gap-2 rounded-lg border border-outline-variant/15 bg-surface-container-lowest/70 p-4">
-                {checks.map((check) => (
-                  <div
-                    key={check.id}
-                    className="flex items-center gap-2 text-xs text-on-surface-variant"
-                  >
-                    <span
-                      className={`material-symbols-outlined text-sm ${
-                        check.met ? 'text-secondary' : 'text-outline'
-                      }`}
-                    >
-                      {check.met ? 'check_circle' : 'radio_button_unchecked'}
-                    </span>
-                    <span>{check.label}</span>
-                  </div>
-                ))}
-              </div>
+              <PasswordRuleChecklist checks={checks} />
 
               <div className="pt-6">
                 <button

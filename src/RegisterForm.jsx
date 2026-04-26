@@ -1,21 +1,27 @@
 import { useState } from 'react'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form'
+
+import PasswordStrengthPanel from './components/PasswordStrengthPanel'
+import { registerSchema } from './utils/authSchemas'
 
 function RegisterForm({ navigate, onLogin, onRegisterRequested }) {
   const [showPassword, setShowPassword] = useState(false)
+  const { control, handleSubmit, register } = useForm({
+    defaultValues: {
+      fullName: '',
+      username: '',
+      email: '',
+      password: '',
+    },
+    resolver: zodResolver(registerSchema),
+  })
 
-  const handleSubmit = (event) => {
-    event.preventDefault()
-
-    const formData = new FormData(event.currentTarget)
-    const email = String(formData.get('email') || '').trim()
-    const password = String(formData.get('password') || '').trim()
-
-    if (!email || !password) {
-      return
-    }
+  const onSubmit = ({ email }) => {
+    const cleanEmail = String(email || '').trim()
 
     if (onRegisterRequested) {
-      onRegisterRequested(email)
+      onRegisterRequested(cleanEmail)
       return
     }
 
@@ -24,7 +30,7 @@ function RegisterForm({ navigate, onLogin, onRegisterRequested }) {
 
   return (
     <>
-      <form className="space-y-6" onSubmit={handleSubmit}>
+      <form className="space-y-6 lg:space-y-4" onSubmit={handleSubmit(onSubmit)}>
         <div className="space-y-2">
           <label
             className="block font-label text-xs font-semibold uppercase tracking-widest text-on-surface-variant"
@@ -35,10 +41,10 @@ function RegisterForm({ navigate, onLogin, onRegisterRequested }) {
           <input
             className="w-full rounded bg-surface-container-lowest px-4 py-3.5 text-on-surface ring-1 ring-transparent transition-all duration-200 placeholder:text-outline-variant/50 focus:bg-surface-container-highest focus:outline-none focus:ring-outline-variant/30"
             id="fullName"
-            name="fullName"
             placeholder="Emre Üçbudak"
             required
             type="text"
+            {...register('fullName')}
           />
         </div>
 
@@ -56,10 +62,11 @@ function RegisterForm({ navigate, onLogin, onRegisterRequested }) {
             <input
               className="w-full rounded bg-surface-container-lowest py-3.5 pl-9 pr-4 text-on-surface ring-1 ring-transparent transition-all duration-200 placeholder:text-outline-variant/50 focus:bg-surface-container-highest focus:outline-none focus:ring-outline-variant/30"
               id="username"
-              name="username"
               placeholder="emreucbudak"
               required
               type="text"
+              autoComplete="username"
+              {...register('username')}
             />
           </div>
         </div>
@@ -74,10 +81,11 @@ function RegisterForm({ navigate, onLogin, onRegisterRequested }) {
           <input
             className="w-full rounded bg-surface-container-lowest px-4 py-3.5 text-on-surface ring-1 ring-transparent transition-all duration-200 placeholder:text-outline-variant/50 focus:bg-surface-container-highest focus:outline-none focus:ring-outline-variant/30"
             id="registerEmail"
-            name="email"
             placeholder="emre@example.com"
             required
             type="email"
+            autoComplete="email"
+            {...register('email')}
           />
         </div>
 
@@ -92,10 +100,11 @@ function RegisterForm({ navigate, onLogin, onRegisterRequested }) {
             <input
               className="w-full rounded bg-surface-container-lowest px-4 py-3.5 pr-12 text-on-surface ring-1 ring-transparent transition-all duration-200 placeholder:text-outline-variant/50 focus:bg-surface-container-highest focus:outline-none focus:ring-outline-variant/30"
               id="registerPassword"
-              name="password"
               placeholder="********"
               required
               type={showPassword ? 'text' : 'password'}
+              autoComplete="new-password"
+              {...register('password')}
             />
             <button
               className="absolute inset-y-0 right-0 flex items-center pr-4 text-outline-variant transition-colors hover:text-on-surface"
@@ -110,15 +119,26 @@ function RegisterForm({ navigate, onLogin, onRegisterRequested }) {
           </div>
         </div>
 
+        <PasswordStrengthPanel
+          className="-mt-2"
+          control={control}
+          hideEmptyLabel
+          hideHelperText
+          hideStrengthLabel
+          hideTitle
+          name="password"
+          spacingClass="space-y-3"
+        />
+
         <button
-          className="mt-8 w-full rounded bg-gradient-to-r from-primary to-primary-container py-4 text-sm font-bold uppercase tracking-wider text-on-primary shadow-[0_4px_30px_-10px_rgba(192,193,255,0.4)] transition-all duration-200 hover:brightness-110 active:scale-[0.98]"
+          className="mt-4 w-full rounded bg-gradient-to-r from-primary to-primary-container py-4 text-sm font-bold uppercase tracking-wider text-on-primary shadow-[0_4px_30px_-10px_rgba(192,193,255,0.4)] transition-all duration-200 hover:brightness-110 active:scale-[0.98] lg:mt-1"
           type="submit"
         >
           Kaydol
         </button>
       </form>
 
-      <div className="mt-8 text-center">
+      <div className="mt-2 text-center">
         <p className="font-body text-sm text-on-surface-variant">
           Zaten hesabın var mı?{' '}
           <a

@@ -6,7 +6,7 @@ function AuthLayout({ children, mode = 'login', navigate }) {
   const formAlignmentClass =
     mode === 'login'
       ? 'items-start p-6 pt-40 sm:items-center sm:p-12 sm:pt-40 lg:p-24 lg:pt-56'
-      : 'items-start p-6 pt-16 pb-6 sm:p-12 sm:pt-28 sm:pb-6 lg:px-24 lg:pt-28 lg:pb-8'
+      : 'items-start p-6 pt-8 pb-6 sm:p-12 sm:pt-16 sm:pb-6 lg:px-24 lg:pt-12 lg:pb-8'
 
   return (
     <main
@@ -34,7 +34,7 @@ function AuthLayout({ children, mode = 'login', navigate }) {
         </div>
 
         {showHeroCopy ? (
-          <div className="relative z-10 -mb-4 max-w-lg -ml-1">
+          <div className="relative z-10 -mt-[300px] max-w-lg -ml-1">
             <h1 className="mb-4 font-headline text-5xl font-extrabold leading-tight tracking-tight text-on-surface">
               Yeni nesil ihale deneyimi
             </h1>

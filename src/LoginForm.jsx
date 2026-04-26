@@ -1,16 +1,20 @@
 import { useState } from 'react'
+import { useForm } from 'react-hook-form'
 
 function LoginForm({ navigate, onLogin }) {
   const [showPassword, setShowPassword] = useState(false)
+  const { handleSubmit, register } = useForm({
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  })
 
-  const handleSubmit = (event) => {
-    event.preventDefault()
+  const onSubmit = ({ email, password }) => {
+    const identifier = String(email || '').trim()
+    const cleanPassword = String(password || '').trim()
 
-    const formData = new FormData(event.currentTarget)
-    const identifier = String(formData.get('email') || '').trim()
-    const password = String(formData.get('password') || '').trim()
-
-    if (!identifier || !password) {
+    if (!identifier || !cleanPassword) {
       return
     }
 
@@ -19,7 +23,7 @@ function LoginForm({ navigate, onLogin }) {
 
   return (
     <>
-      <form className="space-y-6" onSubmit={handleSubmit}>
+      <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
         <div className="space-y-2">
           <label
             className="block font-label text-xs font-semibold uppercase tracking-widest text-on-surface-variant"
@@ -30,10 +34,10 @@ function LoginForm({ navigate, onLogin }) {
           <input
             className="w-full rounded bg-surface-container-lowest px-4 py-3.5 text-on-surface ring-1 ring-transparent transition-all duration-200 placeholder:text-outline-variant/50 focus:bg-surface-container-highest focus:outline-none focus:ring-outline-variant/30"
             id="email"
-            name="email"
             placeholder="emreucbudak"
             required
             type="text"
+            {...register('email', { required: true })}
           />
         </div>
 
@@ -58,10 +62,11 @@ function LoginForm({ navigate, onLogin }) {
             <input
               className="w-full rounded bg-surface-container-lowest px-4 py-3.5 pr-12 text-on-surface ring-1 ring-transparent transition-all duration-200 placeholder:text-outline-variant/50 focus:bg-surface-container-highest focus:outline-none focus:ring-outline-variant/30"
               id="password"
-              name="password"
               placeholder="********"
               required
               type={showPassword ? 'text' : 'password'}
+              autoComplete="current-password"
+              {...register('password', { required: true })}
             />
             <button
               className="absolute inset-y-0 right-0 flex items-center pr-4 text-outline-variant transition-colors hover:text-on-surface"

@@ -6,7 +6,7 @@ function AuthLayout({ children, mode = 'login', navigate }) {
   const formAlignmentClass =
     mode === 'login'
       ? 'items-start p-6 pt-40 sm:items-center sm:p-12 sm:pt-40 lg:p-24 lg:pt-56'
-      : 'items-start p-6 pt-20 pb-6 sm:p-12 sm:pt-16 sm:pb-6 lg:px-24 lg:pt-12 lg:pb-8'
+      : 'items-start p-6 pt-4 pb-6 sm:p-12 sm:pt-16 sm:pb-6 lg:px-24 lg:pt-12 lg:pb-8'
 
   return (
     <main

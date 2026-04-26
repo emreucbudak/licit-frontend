@@ -30,7 +30,7 @@ function RegisterForm({ navigate, onLogin, onRegisterRequested }) {
 
   return (
     <>
-      <form className="space-y-6 lg:space-y-4" onSubmit={handleSubmit(onSubmit)}>
+      <form className="space-y-5 lg:space-y-4" onSubmit={handleSubmit(onSubmit)}>
         <div className="space-y-2">
           <label
             className="block font-label text-xs font-semibold uppercase tracking-widest text-on-surface-variant"
@@ -131,7 +131,7 @@ function RegisterForm({ navigate, onLogin, onRegisterRequested }) {
         />
 
         <button
-          className="mt-4 w-full rounded bg-gradient-to-r from-primary to-primary-container py-4 text-sm font-bold uppercase tracking-wider text-on-primary shadow-[0_4px_30px_-10px_rgba(192,193,255,0.4)] transition-all duration-200 hover:brightness-110 active:scale-[0.98] lg:mt-1"
+          className="!mt-2 w-full rounded bg-gradient-to-r from-primary to-primary-container py-4 text-sm font-bold uppercase tracking-wider text-on-primary shadow-[0_4px_30px_-10px_rgba(192,193,255,0.4)] transition-all duration-200 hover:brightness-110 active:scale-[0.98] lg:!mt-1"
           type="submit"
         >
           Kaydol

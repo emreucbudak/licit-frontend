@@ -94,7 +94,7 @@ function PasswordResetRoute({ passwordResetFlow, children }) {
 }
 
 function EmailVerificationRoute({ emailVerificationFlow, children }) {
-  if (!emailVerificationFlow.email) {
+  if (!emailVerificationFlow.email || !emailVerificationFlow.temporaryToken) {
     return <Navigate to="/register" replace />
   }
 
@@ -111,6 +111,8 @@ function AppRoutes() {
   })
   const [emailVerificationFlow, setEmailVerificationFlow] = useState({
     email: '',
+    temporaryToken: '',
+    expiresAt: '',
   })
 
   useEffect(() => {
@@ -162,9 +164,11 @@ function AppRoutes() {
     routerNavigate('/verify-identity')
   }
 
-  const handleRegisterRequested = (email) => {
+  const handleRegisterRequested = (result) => {
     setEmailVerificationFlow({
-      email,
+      email: result?.email || '',
+      temporaryToken: result?.temporaryToken || '',
+      expiresAt: result?.expiresAt || '',
     })
     routerNavigate('/verify-email')
   }
@@ -172,6 +176,8 @@ function AppRoutes() {
   const handleEmailVerified = () => {
     setEmailVerificationFlow({
       email: '',
+      temporaryToken: '',
+      expiresAt: '',
     })
     storeAuthentication()
     setIsAuthenticated(true)

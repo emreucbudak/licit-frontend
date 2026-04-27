@@ -3,29 +3,85 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 
 import PasswordStrengthPanel from './components/PasswordStrengthPanel'
+import { buildApiUrl } from './config/runtimeConfig'
 import { registerSchema } from './utils/authSchemas'
+
+async function readRegisterError(response) {
+  const fallbackMessage = 'Kayit tamamlanamadi. Lutfen tekrar dene.'
+
+  try {
+    const payload = await response.json()
+    const validationMessage = payload?.errors
+      ?.map((error) => error.errorMessage || error.message)
+      .filter(Boolean)
+      .join(' ')
+
+    return validationMessage || payload?.message || fallbackMessage
+  } catch {
+    return fallbackMessage
+  }
+}
 
 function RegisterForm({ navigate, onLogin, onRegisterRequested }) {
   const [showPassword, setShowPassword] = useState(false)
-  const { control, handleSubmit, register } = useForm({
+  const [submitError, setSubmitError] = useState('')
+  const {
+    control,
+    formState: { isSubmitting },
+    handleSubmit,
+    register,
+  } = useForm({
     defaultValues: {
-      fullName: '',
-      username: '',
+      firstName: '',
+      lastName: '',
       email: '',
       password: '',
     },
     resolver: zodResolver(registerSchema),
   })
 
-  const onSubmit = ({ email }) => {
+  const onSubmit = async ({ email, firstName, lastName, password }) => {
+    setSubmitError('')
+
     const cleanEmail = String(email || '').trim()
+    const cleanFirstName = String(firstName || '').trim()
+    const cleanLastName = String(lastName || '').trim()
 
-    if (onRegisterRequested) {
-      onRegisterRequested(cleanEmail)
-      return
+    try {
+      const response = await fetch(buildApiUrl('/api/auth/register'), {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: cleanEmail,
+          firstName: cleanFirstName,
+          lastName: cleanLastName,
+          password: String(password || ''),
+        }),
+      })
+
+      if (!response.ok) {
+        setSubmitError(await readRegisterError(response))
+        return
+      }
+
+      const result = await response.json()
+      onRegisterRequested?.({
+        email: result?.email || cleanEmail,
+        temporaryToken: result?.temporaryToken || '',
+        expiresAt: result?.expiresAt || '',
+      })
+
+      if (onRegisterRequested) {
+        return
+      }
+
+      onLogin?.()
+    } catch {
+      setSubmitError('Kayit tamamlanamadi. Baglantiyi kontrol edip tekrar dene.')
     }
-
-    onLogin?.()
   }
 
   return (
@@ -34,41 +90,37 @@ function RegisterForm({ navigate, onLogin, onRegisterRequested }) {
         <div className="space-y-2">
           <label
             className="block font-label text-xs font-semibold uppercase tracking-widest text-on-surface-variant"
-            htmlFor="fullName"
+            htmlFor="firstName"
           >
-            Ad Soyad
+            Ad
           </label>
           <input
             className="w-full rounded bg-surface-container-lowest px-4 py-3.5 text-on-surface ring-1 ring-transparent transition-all duration-200 placeholder:text-outline-variant/50 focus:bg-surface-container-highest focus:outline-none focus:ring-outline-variant/30"
-            id="fullName"
-            placeholder="Emre Üçbudak"
+            id="firstName"
+            placeholder="Emre"
             required
             type="text"
-            {...register('fullName')}
+            autoComplete="given-name"
+            {...register('firstName')}
           />
         </div>
 
         <div className="space-y-2">
           <label
             className="block font-label text-xs font-semibold uppercase tracking-widest text-on-surface-variant"
-            htmlFor="username"
+            htmlFor="lastName"
           >
-            Kullanıcı Adı
+            Soyad
           </label>
-          <div className="relative">
-            <span className="absolute inset-y-0 left-0 flex items-center pl-4 font-medium text-outline-variant">
-              @
-            </span>
-            <input
-              className="w-full rounded bg-surface-container-lowest py-3.5 pl-9 pr-4 text-on-surface ring-1 ring-transparent transition-all duration-200 placeholder:text-outline-variant/50 focus:bg-surface-container-highest focus:outline-none focus:ring-outline-variant/30"
-              id="username"
-              placeholder="emreucbudak"
-              required
-              type="text"
-              autoComplete="username"
-              {...register('username')}
-            />
-          </div>
+          <input
+            className="w-full rounded bg-surface-container-lowest px-4 py-3.5 text-on-surface ring-1 ring-transparent transition-all duration-200 placeholder:text-outline-variant/50 focus:bg-surface-container-highest focus:outline-none focus:ring-outline-variant/30"
+            id="lastName"
+            placeholder="Ucbudak"
+            required
+            type="text"
+            autoComplete="family-name"
+            {...register('lastName')}
+          />
         </div>
 
         <div className="space-y-2">
@@ -94,7 +146,7 @@ function RegisterForm({ navigate, onLogin, onRegisterRequested }) {
             className="block font-label text-xs font-semibold uppercase tracking-widest text-on-surface-variant"
             htmlFor="registerPassword"
           >
-            Şifre
+            Sifre
           </label>
           <div className="relative">
             <input
@@ -109,7 +161,7 @@ function RegisterForm({ navigate, onLogin, onRegisterRequested }) {
             <button
               className="absolute inset-y-0 right-0 flex items-center pr-4 text-outline-variant transition-colors hover:text-on-surface"
               type="button"
-              aria-label={showPassword ? 'Şifreyi gizle' : 'Şifreyi göster'}
+              aria-label={showPassword ? 'Sifreyi gizle' : 'Sifreyi goster'}
               onClick={() => setShowPassword((current) => !current)}
             >
               <span className="material-symbols-outlined text-[20px]">
@@ -130,23 +182,30 @@ function RegisterForm({ navigate, onLogin, onRegisterRequested }) {
           spacingClass="space-y-3"
         />
 
+        {submitError ? (
+          <p className="rounded border border-error/20 bg-error/10 px-4 py-3 text-sm font-medium text-error" role="alert">
+            {submitError}
+          </p>
+        ) : null}
+
         <button
           className="!mt-2 w-full rounded bg-gradient-to-r from-primary to-primary-container py-4 text-sm font-bold uppercase tracking-wider text-on-primary shadow-[0_4px_30px_-10px_rgba(192,193,255,0.4)] transition-all duration-200 hover:brightness-110 active:scale-[0.98] lg:!mt-1"
+          disabled={isSubmitting}
           type="submit"
         >
-          Kaydol
+          {isSubmitting ? 'Kayit yapiliyor' : 'Kaydol'}
         </button>
       </form>
 
       <div className="mt-2 text-center">
         <p className="font-body text-sm text-on-surface-variant">
-          Zaten hesabın var mı?{' '}
+          Zaten hesabin var mi?{' '}
           <a
             className="font-semibold text-primary transition-colors hover:text-primary-container"
             href="/login"
             onClick={navigate('/login')}
           >
-            Giriş yap
+            Giris yap
           </a>
         </p>
       </div>

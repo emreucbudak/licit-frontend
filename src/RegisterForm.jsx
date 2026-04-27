@@ -22,7 +22,7 @@ async function readRegisterError(response) {
   }
 }
 
-function RegisterForm({ navigate, onLogin, onRegisterRequested }) {
+function RegisterForm({ navigate, onRegisterRequested }) {
   const [showPassword, setShowPassword] = useState(false)
   const [submitError, setSubmitError] = useState('')
   const {
@@ -70,15 +70,7 @@ function RegisterForm({ navigate, onLogin, onRegisterRequested }) {
       const result = await response.json()
       onRegisterRequested?.({
         email: result?.email || cleanEmail,
-        temporaryToken: result?.temporaryToken || '',
-        expiresAt: result?.expiresAt || '',
       })
-
-      if (onRegisterRequested) {
-        return
-      }
-
-      onLogin?.()
     } catch {
       setSubmitError('Kayit tamamlanamadi. Baglantiyi kontrol edip tekrar dene.')
     }

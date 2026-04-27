@@ -25,21 +25,40 @@ function OtpVerificationPage({
 }) {
   const [code, setCode] = useState(() => createEmptyOtpCode(CODE_LENGTH))
   const [resetFocusSignal, setResetFocusSignal] = useState(0)
+  const [submitError, setSubmitError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const { canResend, resetTimer, secondsLeft } = useResendTimer(RESEND_TIMEOUT)
   const isComplete = code.every((digit) => digit !== '')
 
-  const handleSubmit = (event) => {
+  const handleCodeChange = (nextCode) => {
+    setCode(nextCode)
+    setSubmitError('')
+  }
+
+  const handleSubmit = async (event) => {
     event.preventDefault()
 
-    if (!isComplete) {
+    if (!isComplete || isSubmitting) {
       return
     }
 
-    onVerified?.(code.join(''))
+    setSubmitError('')
+    setIsSubmitting(true)
+
+    try {
+      await onVerified?.(code.join(''))
+    } catch (error) {
+      setSubmitError(
+        error?.message || 'Kod dogrulanamadi. Lutfen tekrar dene.',
+      )
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const handleResend = () => {
     setCode(createEmptyOtpCode(CODE_LENGTH))
+    setSubmitError('')
     setResetFocusSignal((current) => current + 1)
     resetTimer()
     onResend?.()
@@ -80,15 +99,24 @@ function OtpVerificationPage({
             <OtpCodeInput
               resetFocusSignal={resetFocusSignal}
               value={code}
-              onChange={setCode}
+              onChange={handleCodeChange}
             />
+
+            {submitError ? (
+              <p
+                className="rounded border border-error/20 bg-error/10 px-4 py-3 text-sm font-medium text-error"
+                role="alert"
+              >
+                {submitError}
+              </p>
+            ) : null}
 
             <button
               className="flex w-full items-center justify-center rounded bg-gradient-to-r from-primary to-primary-container px-6 py-4 text-base font-bold tracking-wide text-background transition-all hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
               type="submit"
-              disabled={!isComplete}
+              disabled={!isComplete || isSubmitting}
             >
-              {submitLabel}
+              {isSubmitting ? 'Dogrulaniyor' : submitLabel}
             </button>
           </form>
 

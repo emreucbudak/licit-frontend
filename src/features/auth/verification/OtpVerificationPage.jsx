@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import OtpCodeInput from './components/OtpCodeInput'
-import useResendTimer from './hooks/useResendTimer'
-import { createEmptyOtpCode } from './utils/otpCode'
+import OtpCodeInput from '../components/OtpCodeInput'
+import useResendTimer from '../../../hooks/useResendTimer'
+import { createEmptyOtpCode } from '../utils/otpCode'
 
 const CODE_LENGTH = 6
 const RESEND_TIMEOUT = 45
@@ -18,9 +18,9 @@ function OtpVerificationPage({
   navigate,
   onResend,
   onVerified,
-  resendLabel = 'Kodu Tekrar Gonder',
-  resendPrompt = 'Kodu almadin mi?',
-  submitLabel = 'Dogrula ve Devam Et',
+  resendLabel = 'Kodu Tekrar Gönder',
+  resendPrompt = 'Kodu almadın mı?',
+  submitLabel = 'Doğrula ve Devam Et',
   title,
 }) {
   const [code, setCode] = useState(() => createEmptyOtpCode(CODE_LENGTH))
@@ -49,7 +49,7 @@ function OtpVerificationPage({
       await onVerified?.(code.join(''))
     } catch (error) {
       setSubmitError(
-        error?.message || 'Kod dogrulanamadi. Lutfen tekrar dene.',
+        error?.message || 'Kod doğrulanamadı. Lütfen tekrar dene.',
       )
     } finally {
       setIsSubmitting(false)
@@ -116,7 +116,7 @@ function OtpVerificationPage({
               type="submit"
               disabled={!isComplete || isSubmitting}
             >
-              {isSubmitting ? 'Dogrulaniyor' : submitLabel}
+              {isSubmitting ? 'Doğrulanıyor' : submitLabel}
             </button>
           </form>
 

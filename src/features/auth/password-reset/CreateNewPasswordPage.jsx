@@ -4,12 +4,12 @@ import { useForm, useWatch } from 'react-hook-form'
 import {
   PasswordRuleChecklist,
   PasswordStrengthBars,
-} from './components/PasswordStrengthPanel'
+} from '../components/PasswordStrengthPanel'
 import {
   getPasswordChecks,
   passwordMeetsMinimumRules,
-} from './utils/passwordRules'
-import { createNewPasswordSchema } from './utils/authSchemas'
+} from '../utils/passwordRules'
+import { createNewPasswordSchema } from '../utils/authSchemas'
 
 function CreateNewPasswordPage({ navigate, onPasswordResetCompleted }) {
   const [showPassword, setShowPassword] = useState(false)

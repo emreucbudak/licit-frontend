@@ -11,76 +11,35 @@ import LandingPage from './LandingPage'
 import LiveAuctionsPage from './LiveAuctionsPage'
 import LotDetailPage from './LotDetailPage'
 import DashboardPage from './DashboardPage'
-import AuthPage from './AuthPage'
 import CreateAuctionPage from './CreateAuctionPage'
 import SettingsPage from './SettingsPage'
-import CreateNewPasswordPage from './CreateNewPasswordPage'
-import VerifyIdentityPage from './VerifyIdentityPage'
-import VerifyEmailPage from './VerifyEmailPage'
-import VerifyLoginPage from './VerifyLoginPage'
-import ForgotPasswordPage from './ForgotPasswordPage'
-
-const AUTH_STORAGE_KEY = 'licit.authenticated'
-const ACCESS_TOKEN_STORAGE_KEY = 'licit.accessToken'
-const REFRESH_TOKEN_STORAGE_KEY = 'licit.refreshToken'
-const TOKEN_EXPIRES_AT_STORAGE_KEY = 'licit.tokenExpiresAt'
-
-function isStoredAuthenticated() {
-  try {
-    return (
-      window.localStorage.getItem(AUTH_STORAGE_KEY) === 'true' ||
-      Boolean(window.localStorage.getItem(ACCESS_TOKEN_STORAGE_KEY))
-    )
-  } catch {
-    return false
-  }
-}
-
-function storeAuthentication(authResult) {
-  try {
-    window.localStorage.setItem(AUTH_STORAGE_KEY, 'true')
-
-    if (authResult?.accessToken) {
-      window.localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, authResult.accessToken)
-    }
-
-    if (authResult?.refreshToken) {
-      window.localStorage.setItem(REFRESH_TOKEN_STORAGE_KEY, authResult.refreshToken)
-    }
-
-    if (authResult?.expiresAt) {
-      window.localStorage.setItem(TOKEN_EXPIRES_AT_STORAGE_KEY, authResult.expiresAt)
-    }
-  } catch {
-    // Backend auth will replace this temporary local flag.
-  }
-}
-
-function clearAuthentication() {
-  try {
-    window.localStorage.removeItem(AUTH_STORAGE_KEY)
-    window.localStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY)
-    window.localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY)
-    window.localStorage.removeItem(TOKEN_EXPIRES_AT_STORAGE_KEY)
-  } catch {
-    // Backend auth will replace this temporary local flag.
-  }
-}
+import CreateNewPasswordPage from './features/auth/password-reset/CreateNewPasswordPage'
+import ForgotPasswordPage from './features/auth/password-reset/ForgotPasswordPage'
+import VerifyIdentityPage from './features/auth/password-reset/VerifyIdentityPage'
+import LoginPage from './features/auth/login/LoginPage'
+import RegisterPage from './features/auth/register/RegisterPage'
+import VerifyEmailPage from './features/auth/verification/VerifyEmailPage'
+import VerifyLoginPage from './features/auth/verification/VerifyLoginPage'
+import {
+  clearAuthentication,
+  isStoredAuthenticated,
+  storeAuthentication,
+} from './utils/authStorage'
 
 function titleForPath(pathname) {
   return (
     {
       '/auctions': 'Licit | Premium Auction Exchange',
-      '/auctions/lot-4429': 'Licit | Lot Detayi',
-      '/auctions/create': 'Muzayede Olustur | Licit',
+      '/auctions/lot-4429': 'Licit | Lot Detayı',
+      '/auctions/create': 'Müzayede Oluştur | Licit',
       '/dashboard': 'Licit Panel - Koleksiyoner',
-      '/settings': 'Hesap Ayarlari | Licit',
-      '/login': 'Giris Yap - Licit',
-      '/verify-login': 'Giris Kodunu Dogrula | Licit',
-      '/forgot-password': 'Sifremi Unuttum | Licit',
-      '/verify-identity': 'Kimligini Dogrula | Licit',
-      '/verify-email': 'E-postani Dogrula | Licit',
-      '/reset-password': 'Yeni Sifre Olustur | Licit',
+      '/settings': 'Hesap Ayarları | Licit',
+      '/login': 'Giriş Yap - Licit',
+      '/verify-login': 'Giriş Kodunu Doğrula | Licit',
+      '/forgot-password': 'Şifremi Unuttum | Licit',
+      '/verify-identity': 'Kimliğini Doğrula | Licit',
+      '/verify-email': 'E-postanı Doğrula | Licit',
+      '/reset-password': 'Yeni Şifre Oluştur | Licit',
       '/register': 'Kaydol - Licit',
     }[pathname] || 'Licit - Real-time Bidding Platform'
   )
@@ -259,10 +218,8 @@ function AppRoutes() {
       <Route
         path="/login"
         element={
-          <AuthPage
-            mode="login"
+          <LoginPage
             navigate={navigate}
-            onLogin={handleLogin}
             onLoginChallengeRequested={handleLoginChallengeRequested}
           />
         }
@@ -283,10 +240,8 @@ function AppRoutes() {
       <Route
         path="/register"
         element={
-          <AuthPage
-            mode="register"
+          <RegisterPage
             navigate={navigate}
-            onLogin={handleLogin}
             onRegisterRequested={handleRegisterRequested}
           />
         }

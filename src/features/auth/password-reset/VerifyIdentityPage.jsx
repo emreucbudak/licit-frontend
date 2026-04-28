@@ -1,12 +1,12 @@
-import OtpVerificationPage from './OtpVerificationPage'
+import OtpVerificationPage from '../verification/OtpVerificationPage'
 
 function VerifyIdentityPage({ navigate, onPasswordResetVerified }) {
   return (
     <OtpVerificationPage
-      description="E-posta adresine 6 haneli bir dogrulama kodu gonderdik. Lutfen asagiya gir."
+      description="E-posta adresine 6 haneli bir doğrulama kodu gönderdik. Lütfen aşağıya gir."
       icon="lock_open"
       navigate={navigate}
-      title="Kimligini Dogrula"
+      title="Kimliğini Doğrula"
       onVerified={onPasswordResetVerified}
     />
   )

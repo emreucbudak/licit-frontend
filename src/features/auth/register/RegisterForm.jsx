@@ -2,25 +2,10 @@ import { useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 
-import PasswordStrengthPanel from './components/PasswordStrengthPanel'
-import { buildApiUrl } from './config/runtimeConfig'
-import { registerSchema } from './utils/authSchemas'
-
-async function readRegisterError(response) {
-  const fallbackMessage = 'Kayıt tamamlanamadı.Lütfen tekrar dene.'
-
-  try {
-    const payload = await response.json()
-    const validationMessage = payload?.errors
-      ?.map((error) => error.errorMessage || error.message)
-      .filter(Boolean)
-      .join(' ')
-
-    return validationMessage || payload?.message || fallbackMessage
-  } catch {
-    return fallbackMessage
-  }
-}
+import PasswordStrengthPanel from '../components/PasswordStrengthPanel'
+import { buildApiUrl } from '../../../config/runtimeConfig'
+import { readApiErrorMessage } from '../../../utils/apiError'
+import { registerSchema } from '../utils/authSchemas'
 
 function RegisterForm({ navigate, onRegisterRequested }) {
   const [showPassword, setShowPassword] = useState(false)
@@ -63,7 +48,12 @@ function RegisterForm({ navigate, onRegisterRequested }) {
       })
 
       if (!response.ok) {
-        setSubmitError(await readRegisterError(response))
+        setSubmitError(
+          await readApiErrorMessage(
+            response,
+            'Kayıt tamamlanamadı. Lütfen tekrar dene.',
+          ),
+        )
         return
       }
 
@@ -72,7 +62,7 @@ function RegisterForm({ navigate, onRegisterRequested }) {
         email: result?.email || cleanEmail,
       })
     } catch {
-      setSubmitError('Kayıt tamamlanamadı.Bağlantını kontrol et.')
+      setSubmitError('Kayıt tamamlanamadı. Bağlantını kontrol et.')
     }
   }
 
@@ -138,7 +128,7 @@ function RegisterForm({ navigate, onRegisterRequested }) {
             className="block font-label text-xs font-semibold uppercase tracking-widest text-on-surface-variant"
             htmlFor="registerPassword"
           >
-            Sifre
+            Şifre
           </label>
           <div className="relative">
             <input
@@ -153,7 +143,7 @@ function RegisterForm({ navigate, onRegisterRequested }) {
             <button
               className="absolute inset-y-0 right-0 flex items-center pr-4 text-outline-variant transition-colors hover:text-on-surface"
               type="button"
-              aria-label={showPassword ? 'Sifreyi gizle' : 'Sifreyi goster'}
+              aria-label={showPassword ? 'Şifreyi gizle' : 'Şifreyi göster'}
               onClick={() => setShowPassword((current) => !current)}
             >
               <span className="material-symbols-outlined text-[20px]">
@@ -185,19 +175,19 @@ function RegisterForm({ navigate, onRegisterRequested }) {
           disabled={isSubmitting}
           type="submit"
         >
-          {isSubmitting ? 'Kayit yapiliyor' : 'Kaydol'}
+          {isSubmitting ? 'Kayıt yapılıyor' : 'Kaydol'}
         </button>
       </form>
 
       <div className="mt-2 text-center">
         <p className="font-body text-sm text-on-surface-variant">
-          Zaten hesabin var mi?{' '}
+          Zaten hesabın var mı?{' '}
           <a
             className="font-semibold text-primary transition-colors hover:text-primary-container"
             href="/login"
             onClick={navigate('/login')}
           >
-            Giris yap
+            Giriş yap
           </a>
         </p>
       </div>

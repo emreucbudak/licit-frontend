@@ -1,23 +1,8 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 
-import { buildApiUrl } from './config/runtimeConfig'
-
-async function readLoginError(response) {
-  const fallbackMessage = 'Giris tamamlanamadi. Lutfen tekrar dene.'
-
-  try {
-    const payload = await response.json()
-    const validationMessage = payload?.errors
-      ?.map((error) => error.errorMessage || error.message)
-      .filter(Boolean)
-      .join(' ')
-
-    return validationMessage || payload?.message || fallbackMessage
-  } catch {
-    return fallbackMessage
-  }
-}
+import { buildApiUrl } from '../../../config/runtimeConfig'
+import { readApiErrorMessage } from '../../../utils/apiError'
 
 function LoginForm({ navigate, onLoginChallengeRequested }) {
   const [showPassword, setShowPassword] = useState(false)
@@ -57,7 +42,12 @@ function LoginForm({ navigate, onLoginChallengeRequested }) {
       })
 
       if (!response.ok) {
-        setSubmitError(await readLoginError(response))
+        setSubmitError(
+          await readApiErrorMessage(
+            response,
+            'Giriş tamamlanamadı. Lütfen tekrar dene.',
+          ),
+        )
         return
       }
 
@@ -68,7 +58,7 @@ function LoginForm({ navigate, onLoginChallengeRequested }) {
         expiresAt: result?.expiresAt || '',
       })
     } catch {
-      setSubmitError('Giris tamamlanamadi. Baglantiyi kontrol edip tekrar dene.')
+      setSubmitError('Giriş tamamlanamadı. Bağlantıyı kontrol edip tekrar dene.')
     }
   }
 
@@ -99,14 +89,14 @@ function LoginForm({ navigate, onLoginChallengeRequested }) {
               className="block font-label text-xs font-semibold uppercase tracking-widest text-on-surface-variant"
               htmlFor="password"
             >
-              Sifre
+              Şifre
             </label>
             <a
               className="text-xs font-semibold text-primary transition-colors hover:text-primary-container"
               href="/forgot-password"
               onClick={navigate('/forgot-password')}
             >
-              Sifreni mi unuttun?
+              Şifreni mi unuttun?
             </a>
           </div>
 
@@ -123,7 +113,7 @@ function LoginForm({ navigate, onLoginChallengeRequested }) {
             <button
               className="absolute inset-y-0 right-0 flex items-center pr-4 text-outline-variant transition-colors hover:text-on-surface"
               type="button"
-              aria-label={showPassword ? 'Sifreyi gizle' : 'Sifreyi goster'}
+              aria-label={showPassword ? 'Şifreyi gizle' : 'Şifreyi göster'}
               onClick={() => setShowPassword((current) => !current)}
             >
               <span className="material-symbols-outlined text-[20px]">
@@ -144,13 +134,13 @@ function LoginForm({ navigate, onLoginChallengeRequested }) {
           disabled={isSubmitting}
           type="submit"
         >
-          {isSubmitting ? 'Kod gonderiliyor' : 'Giris yap'}
+          {isSubmitting ? 'Kod gönderiliyor' : 'Giriş yap'}
         </button>
       </form>
 
       <div className="mt-8 text-center">
         <p className="font-body text-sm text-on-surface-variant">
-          Hesabin yok mu?{' '}
+          Hesabın yok mu?{' '}
           <a
             className="font-semibold text-primary transition-colors hover:text-primary-container"
             href="/register"

@@ -7,7 +7,7 @@ import { buildApiUrl } from './config/runtimeConfig'
 import { registerSchema } from './utils/authSchemas'
 
 async function readRegisterError(response) {
-  const fallbackMessage = 'Kayit tamamlanamadi. Lutfen tekrar dene.'
+  const fallbackMessage = 'Kayıt tamamlanamadı.Lütfen tekrar dene.'
 
   try {
     const payload = await response.json()
@@ -72,7 +72,7 @@ function RegisterForm({ navigate, onRegisterRequested }) {
         email: result?.email || cleanEmail,
       })
     } catch {
-      setSubmitError('Kayit tamamlanamadi. Baglantiyi kontrol edip tekrar dene.')
+      setSubmitError('Kayıt tamamlanamadı.Bağlantını kontrol et.')
     }
   }
 

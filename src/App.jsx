@@ -17,21 +17,40 @@ import SettingsPage from './SettingsPage'
 import CreateNewPasswordPage from './CreateNewPasswordPage'
 import VerifyIdentityPage from './VerifyIdentityPage'
 import VerifyEmailPage from './VerifyEmailPage'
+import VerifyLoginPage from './VerifyLoginPage'
 import ForgotPasswordPage from './ForgotPasswordPage'
 
 const AUTH_STORAGE_KEY = 'licit.authenticated'
+const ACCESS_TOKEN_STORAGE_KEY = 'licit.accessToken'
+const REFRESH_TOKEN_STORAGE_KEY = 'licit.refreshToken'
+const TOKEN_EXPIRES_AT_STORAGE_KEY = 'licit.tokenExpiresAt'
 
 function isStoredAuthenticated() {
   try {
-    return window.localStorage.getItem(AUTH_STORAGE_KEY) === 'true'
+    return (
+      window.localStorage.getItem(AUTH_STORAGE_KEY) === 'true' ||
+      Boolean(window.localStorage.getItem(ACCESS_TOKEN_STORAGE_KEY))
+    )
   } catch {
     return false
   }
 }
 
-function storeAuthentication() {
+function storeAuthentication(authResult) {
   try {
     window.localStorage.setItem(AUTH_STORAGE_KEY, 'true')
+
+    if (authResult?.accessToken) {
+      window.localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, authResult.accessToken)
+    }
+
+    if (authResult?.refreshToken) {
+      window.localStorage.setItem(REFRESH_TOKEN_STORAGE_KEY, authResult.refreshToken)
+    }
+
+    if (authResult?.expiresAt) {
+      window.localStorage.setItem(TOKEN_EXPIRES_AT_STORAGE_KEY, authResult.expiresAt)
+    }
   } catch {
     // Backend auth will replace this temporary local flag.
   }
@@ -40,6 +59,9 @@ function storeAuthentication() {
 function clearAuthentication() {
   try {
     window.localStorage.removeItem(AUTH_STORAGE_KEY)
+    window.localStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY)
+    window.localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY)
+    window.localStorage.removeItem(TOKEN_EXPIRES_AT_STORAGE_KEY)
   } catch {
     // Backend auth will replace this temporary local flag.
   }
@@ -54,6 +76,7 @@ function titleForPath(pathname) {
       '/dashboard': 'Licit Panel - Koleksiyoner',
       '/settings': 'Hesap Ayarlari | Licit',
       '/login': 'Giris Yap - Licit',
+      '/verify-login': 'Giris Kodunu Dogrula | Licit',
       '/forgot-password': 'Sifremi Unuttum | Licit',
       '/verify-identity': 'Kimligini Dogrula | Licit',
       '/verify-email': 'E-postani Dogrula | Licit',
@@ -101,6 +124,14 @@ function EmailVerificationRoute({ emailVerificationFlow, children }) {
   return children
 }
 
+function LoginVerificationRoute({ loginVerificationFlow, children }) {
+  if (!loginVerificationFlow.email || !loginVerificationFlow.temporaryToken) {
+    return <Navigate to="/login" replace />
+  }
+
+  return children
+}
+
 function AppRoutes() {
   const routerNavigate = useNavigate()
   const location = useLocation()
@@ -111,6 +142,12 @@ function AppRoutes() {
   })
   const [emailVerificationFlow, setEmailVerificationFlow] = useState({
     email: '',
+  })
+  const [loginVerificationFlow, setLoginVerificationFlow] = useState({
+    email: '',
+    temporaryToken: '',
+    expiresAt: '',
+    fromPath: '',
   })
 
   useEffect(() => {
@@ -140,17 +177,39 @@ function AppRoutes() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  const handleLogin = () => {
-    storeAuthentication()
+  const handleLogin = (authResult) => {
+    storeAuthentication(authResult)
     setIsAuthenticated(true)
 
-    const fromPath = location.state?.from?.pathname
+    const fromPath = loginVerificationFlow.fromPath || location.state?.from?.pathname
+    setLoginVerificationFlow({
+      email: '',
+      temporaryToken: '',
+      expiresAt: '',
+      fromPath: '',
+    })
     routerNavigate(fromPath || '/dashboard', { replace: true })
+  }
+
+  const handleLoginChallengeRequested = (result) => {
+    setLoginVerificationFlow({
+      email: result?.email || '',
+      temporaryToken: result?.temporaryToken || '',
+      expiresAt: result?.expiresAt || '',
+      fromPath: location.state?.from?.pathname || '',
+    })
+    routerNavigate('/verify-login')
   }
 
   const handleLogout = () => {
     clearAuthentication()
     setIsAuthenticated(false)
+    setLoginVerificationFlow({
+      email: '',
+      temporaryToken: '',
+      expiresAt: '',
+      fromPath: '',
+    })
     routerNavigate('/login', { replace: true })
   }
 
@@ -200,7 +259,25 @@ function AppRoutes() {
       <Route
         path="/login"
         element={
-          <AuthPage mode="login" navigate={navigate} onLogin={handleLogin} />
+          <AuthPage
+            mode="login"
+            navigate={navigate}
+            onLogin={handleLogin}
+            onLoginChallengeRequested={handleLoginChallengeRequested}
+          />
+        }
+      />
+      <Route
+        path="/verify-login"
+        element={
+          <LoginVerificationRoute loginVerificationFlow={loginVerificationFlow}>
+            <VerifyLoginPage
+              email={loginVerificationFlow.email}
+              navigate={navigate}
+              temporaryToken={loginVerificationFlow.temporaryToken}
+              onLoginVerified={handleLogin}
+            />
+          </LoginVerificationRoute>
         }
       />
       <Route

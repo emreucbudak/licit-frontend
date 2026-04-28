@@ -1,11 +1,315 @@
+import { useEffect, useState } from 'react'
 import { AppSideNavbar, AppTopNavbar } from '../../../shared/components/navigation/AppNavigation'
+import { buildApiUrl } from '../../../config/runtimeConfig'
+import { getApiErrorMessage, readResponsePayload } from '../../../utils/apiError'
+import {
+  getStoredAuthTokens,
+  storeAuthentication,
+} from '../../../utils/authStorage'
 
 const previewImage =
   'https://lh3.googleusercontent.com/aida-public/AB6AXuCEmI0z_YuP3x3BkXaINgNm4oQ4DHezF5XTTEjwh-70YPkKbgx1IYxq0koBKWQccZpreJLFFpkezKTdgTNXPtUqrgOOZKYT8ckcuXNQDwdeEtxj-jt-Geql1-IRNTpvgp35ZDgHl74pVzf5DjITuyboTLPceLctGcnbD84hh9THRfLtGsLfE3L0mGr4gvuKiHkanvdupB8_Ky44VsZ-lMtOfaC17lsVJBXbRLe2U9nd78B8OBiMbRtCAyzVnakb_FXHaf6Rh93fPlY'
 
+const durationOptions = [
+  { days: 3, label: '3 Gun' },
+  { days: 5, label: '5 Gun' },
+  { days: 7, label: '7 Gun' },
+  { days: 14, label: '14 Gun' },
+]
+
+function getTodayInputValue() {
+  const now = new Date()
+  const timezoneOffset = now.getTimezoneOffset() * 60000
+  return new Date(now.getTime() - timezoneOffset).toISOString().slice(0, 10)
+}
+
+function createStartDate(dateValue) {
+  const today = getTodayInputValue()
+  const selectedDate = new Date(`${dateValue}T09:00:00`)
+
+  if (dateValue === today && selectedDate < new Date()) {
+    return new Date()
+  }
+
+  return selectedDate
+}
+
+function createEndDate(startDate, durationDays) {
+  const endDate = new Date(startDate)
+  endDate.setDate(endDate.getDate() + Number(durationDays))
+  return endDate
+}
+
+async function refreshAccessToken() {
+  const { refreshToken } = getStoredAuthTokens()
+
+  if (!refreshToken) {
+    throw new Error('Oturum suresi doldu. Lutfen tekrar giris yap.')
+  }
+
+  const response = await fetch(buildApiUrl('/api/auth/refresh'), {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      refreshToken,
+    }),
+  })
+  const payload = await readResponsePayload(response)
+
+  if (!response.ok || !payload?.accessToken) {
+    throw new Error(
+      getApiErrorMessage(
+        payload,
+        'Oturum yenilenemedi. Lutfen tekrar giris yap.',
+      ),
+    )
+  }
+
+  storeAuthentication(payload)
+  return payload.accessToken
+}
+
+async function sendAuthorizedJson(path, { body, method }) {
+  const { accessToken } = getStoredAuthTokens()
+
+  if (!accessToken) {
+    throw new Error('Oturum bulunamadi. Lutfen tekrar giris yap.')
+  }
+
+  const sendRequest = (token) =>
+    fetch(buildApiUrl(path), {
+      method,
+      headers: {
+        Accept: 'application/json',
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+    })
+
+  let response = await sendRequest(accessToken)
+
+  if (response.status === 401) {
+    response = await sendRequest(await refreshAccessToken())
+  }
+
+  return {
+    payload: await readResponsePayload(response),
+    response,
+  }
+}
+
+const initialFormValues = {
+  title: '',
+  mainCategoryId: '',
+  categoryId: '',
+  startingPrice: '',
+  description: '',
+  durationDays: '7',
+  startDate: getTodayInputValue(),
+}
+
 function CreateAuctionPage({ navigate, onLogout }) {
-  const handleSubmit = (event) => {
-    event.preventDefault()
+  const [formValues, setFormValues] = useState(initialFormValues)
+  const [categories, setCategories] = useState([])
+  const [categoryError, setCategoryError] = useState('')
+  const [isLoadingCategories, setIsLoadingCategories] = useState(true)
+  const [submitError, setSubmitError] = useState('')
+  const [submitSuccess, setSubmitSuccess] = useState('')
+  const [createdTenderId, setCreatedTenderId] = useState('')
+  const [submitMode, setSubmitMode] = useState('')
+  const isSubmitting = Boolean(submitMode)
+  const isSavingDraft = submitMode === 'draft'
+  const isPublishing = submitMode === 'publish'
+  const selectedMainCategory = categories.find(
+    (category) => category.id === formValues.mainCategoryId,
+  )
+  const subCategoryOptions = selectedMainCategory?.children || []
+
+  useEffect(() => {
+    let isMounted = true
+
+    async function loadCategories() {
+      setIsLoadingCategories(true)
+      setCategoryError('')
+
+      try {
+        const response = await fetch(buildApiUrl('/api/categories'), {
+          headers: {
+            Accept: 'application/json',
+          },
+        })
+        const payload = await readResponsePayload(response)
+
+        if (!response.ok) {
+          throw new Error(
+            getApiErrorMessage(
+              payload,
+              'Kategoriler yuklenemedi. Lutfen tekrar dene.',
+            ),
+          )
+        }
+
+        const nextCategories = Array.isArray(payload?.categories)
+          ? payload.categories
+          : []
+
+        if (!isMounted) {
+          return
+        }
+
+        setCategories(nextCategories)
+        setFormValues((currentValues) => {
+          if (currentValues.mainCategoryId) {
+            return currentValues
+          }
+
+          return {
+            ...currentValues,
+            mainCategoryId: nextCategories[0]?.id || '',
+            categoryId: '',
+          }
+        })
+      } catch (error) {
+        if (isMounted) {
+          setCategoryError(
+            error?.message || 'Kategoriler yuklenemedi. Lutfen tekrar dene.',
+          )
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingCategories(false)
+        }
+      }
+    }
+
+    loadCategories()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
+  const handleFieldChange = (event) => {
+    const { name, value } = event.target
+
+    setFormValues((currentValues) => ({
+      ...currentValues,
+      [name]: value,
+      ...(name === 'mainCategoryId' ? { categoryId: '' } : {}),
+    }))
+    setSubmitError('')
+    setSubmitSuccess('')
+  }
+
+  const buildPayload = () => {
+    const title = formValues.title.trim()
+    const description = formValues.description.trim()
+    const startingPrice = Number(formValues.startingPrice)
+
+    if (!title || !description || !formValues.startDate) {
+      throw new Error('Lutfen urun detaylarini eksiksiz doldur.')
+    }
+
+    if (!formValues.mainCategoryId) {
+      throw new Error('Lutfen once ana kategori sec.')
+    }
+
+    if (!formValues.categoryId) {
+      throw new Error('Lutfen alt kategori sec. Ihaleler alt kategoriye gore filtrelenecek.')
+    }
+
+    if (!Number.isFinite(startingPrice) || startingPrice < 0) {
+      throw new Error('Baslangic fiyati 0 veya daha buyuk olmali.')
+    }
+
+    const startDate = createStartDate(formValues.startDate)
+    const endDate = createEndDate(startDate, formValues.durationDays)
+
+    return {
+      title,
+      description,
+      startingPrice,
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+      categoryId: formValues.categoryId,
+      rules: [],
+    }
+  }
+
+  const handleSubmit = async (event, shouldPublish = false) => {
+    event?.preventDefault()
+
+    if (isSubmitting) {
+      return
+    }
+
+    setSubmitError('')
+    setSubmitSuccess('')
+    setCreatedTenderId('')
+    setSubmitMode(shouldPublish ? 'publish' : 'draft')
+
+    try {
+      const { payload, response } = await sendAuthorizedJson('/api/tender', {
+        method: 'POST',
+        body: buildPayload(),
+      })
+
+      if (!response.ok) {
+        throw new Error(
+          getApiErrorMessage(
+            payload,
+            'Muzayede olusturulamadi. Lutfen tekrar dene.',
+          ),
+        )
+      }
+
+      if (!payload?.id) {
+        throw new Error('Muzayede olusturuldu ama sonuc kimligi alinamadi.')
+      }
+
+      setCreatedTenderId(payload.id)
+
+      if (shouldPublish) {
+        const {
+          payload: statusPayload,
+          response: statusResponse,
+        } = await sendAuthorizedJson(`/api/tender/${payload.id}/status`, {
+          method: 'PATCH',
+          body: {
+            status: 'Active',
+          },
+        })
+
+        if (!statusResponse.ok) {
+          throw new Error(
+            getApiErrorMessage(
+              statusPayload,
+              'Taslak olustu ancak muzayede yayina alinamadi.',
+            ),
+          )
+        }
+      }
+
+      setSubmitSuccess(
+        shouldPublish
+          ? 'Muzayede olusturuldu ve yayina alindi.'
+          : 'Muzayede taslak olarak kaydedildi.',
+      )
+      setFormValues({
+        ...initialFormValues,
+        mainCategoryId: categories[0]?.id || '',
+      })
+    } catch (error) {
+      setSubmitError(
+        error?.message || 'Muzayede olusturulamadi. Lutfen tekrar dene.',
+      )
+    } finally {
+      setSubmitMode('')
+    }
   }
 
   return (
@@ -34,17 +338,54 @@ function CreateAuctionPage({ navigate, onLogout }) {
             </div>
 
             <div className="hidden gap-3 md:flex">
-              <button className="rounded-lg border border-outline-variant/20 bg-surface-container-high px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-surface-container-highest" type="button">
-                Taslak Kaydet
+              <button
+                className="rounded-lg border border-outline-variant/20 bg-surface-container-high px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-surface-container-highest disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={isSubmitting}
+                type="button"
+                onClick={(event) => handleSubmit(event, false)}
+              >
+                {isSavingDraft ? 'Kaydediliyor' : 'Taslak Kaydet'}
               </button>
-              <button className="rounded-lg bg-gradient-to-r from-primary to-primary-container px-6 py-2.5 text-sm font-semibold text-on-primary shadow-lg shadow-primary/20 transition-opacity hover:opacity-90" type="button">
-                Müzayedeyi Yayına Al
+              <button
+                className="rounded-lg bg-gradient-to-r from-primary to-primary-container px-6 py-2.5 text-sm font-semibold text-on-primary shadow-lg shadow-primary/20 transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={isSubmitting}
+                type="button"
+                onClick={(event) => handleSubmit(event, true)}
+              >
+                {isPublishing ? 'Yayina aliniyor' : 'Muzayedeyi Yayina Al'}
               </button>
             </div>
           </header>
 
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
-            <form className="space-y-8 lg:col-span-7" onSubmit={handleSubmit}>
+            <form
+              className="space-y-8 lg:col-span-7"
+              id="create-auction-form"
+              onSubmit={(event) => handleSubmit(event, false)}
+            >
+              {submitError ? (
+                <p
+                  className="rounded-lg border border-error/20 bg-error/10 px-4 py-3 text-sm font-medium text-error"
+                  role="alert"
+                >
+                  {submitError}
+                </p>
+              ) : null}
+
+              {submitSuccess ? (
+                <div
+                  className="rounded-lg border border-secondary/20 bg-secondary-container/30 px-4 py-3 text-sm font-medium text-secondary"
+                  role="status"
+                >
+                  <p>{submitSuccess}</p>
+                  {createdTenderId ? (
+                    <p className="mt-1 font-mono text-xs text-on-surface-variant">
+                      ID: {createdTenderId}
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
+
               <section className="rounded-xl bg-surface-container-low p-6 shadow-sm sm:p-8">
                 <h2 className="mb-6 flex items-center gap-2 text-xl font-bold text-white">
                   <span className="material-symbols-outlined text-primary-container">
@@ -61,22 +402,75 @@ function CreateAuctionPage({ navigate, onLogout }) {
                     <input
                       className="w-full rounded-lg border-none bg-surface-container-lowest px-4 py-3.5 text-on-surface placeholder:text-slate-600 transition-all focus:ring-2 focus:ring-primary-container"
                       placeholder="Örn. Nadir Vintage Kronograf 1964"
+                      maxLength="200"
+                      name="title"
+                      required
                       type="text"
+                      value={formValues.title}
+                      onChange={handleFieldChange}
                     />
                   </div>
 
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
                       <label className="mb-2 ml-1 block text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                        Kategori
+                        Ana Kategori
                       </label>
-                      <select className="w-full appearance-none rounded-lg border-none bg-surface-container-lowest px-4 py-3.5 text-on-surface focus:ring-2 focus:ring-primary-container">
-                        <option>Saatler</option>
-                        <option>Güzel Sanatlar</option>
-                        <option>Dijital Varlıklar</option>
-                        <option>Koleksiyon Ürünleri</option>
+                      <select
+                        className="w-full appearance-none rounded-lg border-none bg-surface-container-lowest px-4 py-3.5 text-on-surface focus:ring-2 focus:ring-primary-container disabled:cursor-not-allowed disabled:opacity-60"
+                        disabled={isLoadingCategories}
+                        name="mainCategoryId"
+                        required
+                        value={formValues.mainCategoryId}
+                        onChange={handleFieldChange}
+                      >
+                        <option value="">
+                          {isLoadingCategories ? 'Kategoriler yukleniyor' : 'Ana kategori sec'}
+                        </option>
+                        {categories.map((category) => (
+                          <option key={category.id} value={category.id}>
+                            {category.name}
+                          </option>
+                        ))}
                       </select>
+                      {categoryError ? (
+                        <p className="mt-2 text-xs font-medium text-error">
+                          {categoryError}
+                        </p>
+                      ) : null}
                     </div>
+                    <div>
+                      <label className="mb-2 ml-1 block text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                        Alt Kategori
+                      </label>
+                      <select
+                        className="w-full appearance-none rounded-lg border-none bg-surface-container-lowest px-4 py-3.5 text-on-surface focus:ring-2 focus:ring-primary-container disabled:cursor-not-allowed disabled:opacity-60"
+                        disabled={!formValues.mainCategoryId || subCategoryOptions.length === 0}
+                        name="categoryId"
+                        required
+                        value={formValues.categoryId}
+                        onChange={handleFieldChange}
+                      >
+                        <option value="">
+                          {formValues.mainCategoryId
+                            ? 'Alt kategori sec'
+                            : 'Once ana kategori sec'}
+                        </option>
+                        {subCategoryOptions.map((category) => (
+                          <option key={category.id} value={category.id}>
+                            {category.name}
+                          </option>
+                        ))}
+                      </select>
+                      {formValues.mainCategoryId && subCategoryOptions.length === 0 ? (
+                        <p className="mt-2 text-xs font-medium text-error">
+                          Bu ana kategori icin alt kategori bulunmuyor.
+                        </p>
+                      ) : null}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
                       <label className="mb-2 ml-1 block text-xs font-bold uppercase tracking-wider text-on-surface-variant">
                         Başlangıç Fiyatı ($)
@@ -84,7 +478,13 @@ function CreateAuctionPage({ navigate, onLogout }) {
                       <input
                         className="w-full rounded-lg border-none bg-surface-container-lowest px-4 py-3.5 text-on-surface placeholder:text-slate-600 transition-all focus:ring-2 focus:ring-primary-container"
                         placeholder="0.00"
+                        min="0"
+                        name="startingPrice"
+                        required
+                        step="0.01"
                         type="number"
+                        value={formValues.startingPrice}
+                        onChange={handleFieldChange}
                       />
                     </div>
                   </div>
@@ -95,8 +495,13 @@ function CreateAuctionPage({ navigate, onLogout }) {
                     </label>
                     <textarea
                       className="w-full rounded-lg border-none bg-surface-container-lowest px-4 py-3.5 text-on-surface placeholder:text-slate-600 transition-all focus:ring-2 focus:ring-primary-container"
+                      maxLength="2000"
+                      name="description"
                       placeholder="Ürünün geçmişini, durumunu ve öne çıkan özelliklerini anlat..."
+                      required
                       rows="6"
+                      value={formValues.description}
+                      onChange={handleFieldChange}
                     ></textarea>
                   </div>
                 </div>
@@ -114,12 +519,17 @@ function CreateAuctionPage({ navigate, onLogout }) {
                     <label className="mb-2 ml-1 block text-xs font-bold uppercase tracking-wider text-on-surface-variant">
                       Süre
                     </label>
-                    <select className="w-full rounded-lg border-none bg-surface-container-lowest px-4 py-3.5 text-on-surface focus:ring-2 focus:ring-primary-container">
-                      <option>3 Gün</option>
-                      <option>5 Gün</option>
-                      <option>7 Gün</option>
-                      <option>14 Gün</option>
-                      <option>Özel Tarih...</option>
+                    <select
+                      className="w-full rounded-lg border-none bg-surface-container-lowest px-4 py-3.5 text-on-surface focus:ring-2 focus:ring-primary-container"
+                      name="durationDays"
+                      value={formValues.durationDays}
+                      onChange={handleFieldChange}
+                    >
+                      {durationOptions.map((duration) => (
+                        <option key={duration.days} value={duration.days}>
+                          {duration.label}
+                        </option>
+                      ))}
                     </select>
                   </div>
                   <div>
@@ -128,7 +538,12 @@ function CreateAuctionPage({ navigate, onLogout }) {
                     </label>
                     <input
                       className="w-full rounded-lg border-none bg-surface-container-lowest px-4 py-3.5 text-on-surface transition-all focus:ring-2 focus:ring-primary-container"
+                      min={getTodayInputValue()}
+                      name="startDate"
+                      required
                       type="date"
+                      value={formValues.startDate}
+                      onChange={handleFieldChange}
                     />
                   </div>
                 </div>
@@ -227,11 +642,21 @@ function CreateAuctionPage({ navigate, onLogout }) {
       </main>
 
       <div className="fixed inset-x-0 bottom-0 z-50 flex gap-3 border-t border-white/5 bg-[#0b1326] p-4 md:hidden">
-        <button className="flex-1 rounded-lg bg-surface-container-high py-3 text-sm font-semibold text-white" type="button">
-          Taslak Kaydet
+        <button
+          className="flex-1 rounded-lg bg-surface-container-high py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+          disabled={isSubmitting}
+          type="button"
+          onClick={(event) => handleSubmit(event, false)}
+        >
+          {isSavingDraft ? 'Kaydediliyor' : 'Taslak Kaydet'}
         </button>
-        <button className="flex-1 rounded-lg bg-primary py-3 text-sm font-semibold text-on-primary" type="button">
-          Yayına Al
+        <button
+          className="flex-1 rounded-lg bg-primary py-3 text-sm font-semibold text-on-primary disabled:cursor-not-allowed disabled:opacity-60"
+          disabled={isSubmitting}
+          type="button"
+          onClick={(event) => handleSubmit(event, true)}
+        >
+          {isPublishing ? 'Yayina aliniyor' : 'Yayina Al'}
         </button>
       </div>
     </div>

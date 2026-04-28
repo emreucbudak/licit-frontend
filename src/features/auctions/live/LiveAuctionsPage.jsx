@@ -228,10 +228,10 @@ function LiveAuctionsPage({ navigate, onLogout }) {
           <span className="material-symbols-outlined">category</span>
           <span>Ürünler</span>
         </button>
-        <button className="auctions-mobile-dock__item" type="button">
+        <a className="auctions-mobile-dock__item" href="/wallet" onClick={navigate('/wallet')}>
           <span className="material-symbols-outlined">account_balance_wallet</span>
           <span>Cüzdan</span>
-        </button>
+        </a>
       </nav>
     </div>
   )

@@ -7,7 +7,6 @@ const settingsTabs = [
   ['person', 'Profil'],
   ['shield', 'Güvenlik'],
   ['notifications_active', 'Bildirimler'],
-  ['payments', 'Ödemeler'],
 ]
 
 const alertRows = [
@@ -79,7 +78,7 @@ function SettingsPage({ navigate, onLogout }) {
                 Hesap Ayarları
               </h1>
               <p className="text-on-surface-variant">
-                Profilini, güvenlik tercihlerini ve ödeme ayarlarını tek yerden yönet.
+                Profilini, güvenlik tercihlerini ve bildirim ayarlarını tek yerden yönet.
               </p>
             </div>
 
@@ -100,7 +99,7 @@ function SettingsPage({ navigate, onLogout }) {
           </header>
 
           <nav
-            className="grid grid-cols-2 gap-2 rounded-xl border border-outline-variant/10 bg-surface-container/50 p-2 md:grid-cols-4"
+            className="grid grid-cols-1 gap-2 rounded-xl border border-outline-variant/10 bg-surface-container/50 p-2 sm:grid-cols-3"
             aria-label="Hesap ayarları bölümleri"
           >
             {settingsTabs.map(([icon, label], index) => (
@@ -121,7 +120,7 @@ function SettingsPage({ navigate, onLogout }) {
 
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
             <section
-              className="rounded-xl border border-outline-variant/10 bg-surface-variant/40 p-6 backdrop-blur-xl sm:p-8 lg:col-span-8"
+              className="rounded-xl border border-outline-variant/10 bg-surface-variant/40 p-6 backdrop-blur-xl sm:p-8 lg:col-span-12"
               id="profil"
             >
               <div className="mb-8 flex items-center gap-3">
@@ -206,85 +205,6 @@ function SettingsPage({ navigate, onLogout }) {
                   </label>
                 </div>
               </div>
-            </section>
-
-            <section
-              className="flex flex-col justify-between rounded-xl border border-outline-variant/10 bg-surface-variant/40 p-6 backdrop-blur-xl sm:p-8 lg:col-span-4"
-              id="ödemeler"
-            >
-              <div>
-                <div className="mb-6 flex items-center gap-3">
-                  <span className="material-symbols-outlined text-secondary">
-                    account_balance_wallet
-                  </span>
-                  <h2 className="text-xl font-bold">Ödeme ve Cüzdan</h2>
-                </div>
-
-                <div className="mb-6 rounded-xl border border-outline-variant/10 bg-surface-container-lowest p-5">
-                  <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
-                    Aktif Cüzdan
-                  </p>
-                  <div className="flex items-center justify-between gap-4">
-                    <span className="truncate font-mono text-sm text-primary">
-                      0x71C...3F29
-                    </span>
-                    <button
-                      className="text-on-surface-variant transition-colors hover:text-white"
-                      type="button"
-                      aria-label="Cüzdan adresini kopyala"
-                    >
-                      <span className="material-symbols-outlined text-sm">
-                        content_copy
-                      </span>
-                    </button>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <button
-                    className="group flex w-full items-center justify-between text-left"
-                    type="button"
-                  >
-                    <span className="flex items-center gap-3">
-                      <span className="flex h-8 w-8 items-center justify-center rounded bg-surface-container-high">
-                        <span className="material-symbols-outlined text-lg">
-                          history
-                        </span>
-                      </span>
-                      <span className="text-sm">İşlem Geçmişi</span>
-                    </span>
-                    <span className="material-symbols-outlined text-on-surface-variant transition-transform group-hover:translate-x-1">
-                      chevron_right
-                    </span>
-                  </button>
-
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="flex items-center gap-3">
-                      <span className="flex h-8 w-8 items-center justify-center rounded bg-surface-container-high">
-                        <span className="material-symbols-outlined text-lg">
-                          currency_exchange
-                        </span>
-                      </span>
-                      <span className="text-sm">Para Birimi</span>
-                    </span>
-                    <select
-                      className="cursor-pointer border-none bg-transparent text-sm font-bold text-primary focus:ring-0"
-                      defaultValue="USD ($)"
-                    >
-                      <option>USD ($)</option>
-                      <option>ETH (Ξ)</option>
-                      <option>EUR (€)</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              <button
-                className="mt-8 w-full rounded-lg border-2 border-secondary/30 py-3 font-bold text-secondary transition-colors hover:bg-secondary/5"
-                type="button"
-              >
-                Yeni Ödeme Yöntemi Ekle
-              </button>
             </section>
 
             <section

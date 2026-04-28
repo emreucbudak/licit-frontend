@@ -226,7 +226,7 @@ function DashboardPage({ navigate, onLogout }) {
         <button type="button"><span className="material-symbols-outlined">gavel</span><span>Canlı</span></button>
         <button className="dashboard-mobile-nav__active" type="button"><span className="material-symbols-outlined">dashboard</span><span>Panel</span></button>
         <a href="/auctions/create" onClick={navigate('/auctions/create')}><span className="material-symbols-outlined">add_circle</span><span>Sat</span></a>
-        <button type="button"><span className="material-symbols-outlined">account_balance_wallet</span><span>Cüzdan</span></button>
+        <a href="/wallet" onClick={navigate('/wallet')}><span className="material-symbols-outlined">account_balance_wallet</span><span>Cüzdan</span></a>
         <button type="button"><span className="material-symbols-outlined">person</span><span>Profil</span></button>
       </nav>
     </div>

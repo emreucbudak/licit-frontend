@@ -20,6 +20,7 @@ import VerifyLoginPage from '../features/auth/verification/VerifyLoginPage'
 import DashboardPage from '../features/dashboard/DashboardPage'
 import LandingPage from '../features/landing/LandingPage'
 import SettingsPage from '../features/settings/SettingsPage'
+import WalletPage from '../features/wallet/WalletPage'
 import { titleForPath } from './pageTitles'
 import {
   EmailVerificationRoute,
@@ -299,6 +300,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute isAuthenticated={isAuthenticated}>
             <SettingsPage navigate={navigate} onLogout={handleLogout} />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/wallet"
+        element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <WalletPage navigate={navigate} onLogout={handleLogout} />
           </ProtectedRoute>
         }
       />

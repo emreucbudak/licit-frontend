@@ -15,7 +15,13 @@ const sideNavLinks = [
     route: true,
     match: ['/dashboard'],
   },
-  { label: 'C\u00fczdan', icon: 'account_balance_wallet', href: '#' },
+  {
+    label: 'C\u00fczdan',
+    icon: 'account_balance_wallet',
+    href: '/wallet',
+    route: true,
+    match: ['/wallet'],
+  },
   {
     label: 'Ayarlar',
     icon: 'settings',

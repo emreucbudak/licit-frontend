@@ -11,7 +11,7 @@ export function ProtectedRoute({ isAuthenticated, children }) {
 }
 
 export function PasswordResetCodeRoute({ passwordResetFlow, children }) {
-  if (!passwordResetFlow.email) {
+  if (!passwordResetFlow.email || !passwordResetFlow.temporaryToken) {
     return <Navigate to="/forgot-password" replace />
   }
 
@@ -19,7 +19,7 @@ export function PasswordResetCodeRoute({ passwordResetFlow, children }) {
 }
 
 export function PasswordResetRoute({ passwordResetFlow, children }) {
-  if (!passwordResetFlow.email) {
+  if (!passwordResetFlow.email || !passwordResetFlow.temporaryToken) {
     return <Navigate to="/forgot-password" replace />
   }
 

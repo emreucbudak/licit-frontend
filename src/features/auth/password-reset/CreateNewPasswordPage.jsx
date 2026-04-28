@@ -10,11 +10,23 @@ import {
   passwordMeetsMinimumRules,
 } from '../utils/passwordRules'
 import { createNewPasswordSchema } from '../utils/authSchemas'
+import { buildApiUrl } from '../../../config/runtimeConfig'
+import { getApiErrorMessage, readResponsePayload } from '../../../utils/apiError'
 
-function CreateNewPasswordPage({ navigate, onPasswordResetCompleted }) {
+function CreateNewPasswordPage({
+  navigate,
+  temporaryToken,
+  onPasswordResetCompleted,
+}) {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const { control, handleSubmit, register } = useForm({
+  const [submitError, setSubmitError] = useState('')
+  const {
+    control,
+    formState: { isSubmitting },
+    handleSubmit,
+    register,
+  } = useForm({
     defaultValues: {
       password: '',
       confirmPassword: '',
@@ -33,8 +45,45 @@ function CreateNewPasswordPage({ navigate, onPasswordResetCompleted }) {
   const canSubmit =
     Boolean(meetsMinimumRules) && passwordsMatch && password.length > 0
 
-  const onSubmit = () => {
-    onPasswordResetCompleted?.()
+  const onSubmit = async ({ password }) => {
+    const cleanTemporaryToken = String(temporaryToken || '').trim()
+    setSubmitError('')
+
+    if (!cleanTemporaryToken) {
+      setSubmitError('Şifre sıfırlama oturumu bulunamadı. Lütfen tekrar dene.')
+      return
+    }
+
+    try {
+      const response = await fetch(buildApiUrl('/api/auth/forgot-password/reset'), {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          temporaryToken: cleanTemporaryToken,
+          newPassword: password,
+        }),
+      })
+      const payload = await readResponsePayload(response)
+
+      if (!response.ok || payload?.isReset === false) {
+        setSubmitError(
+          getApiErrorMessage(
+            payload,
+            'Şifre güncellenemedi. Lütfen tekrar dene.',
+          ),
+        )
+        return
+      }
+
+      onPasswordResetCompleted?.()
+    } catch {
+      setSubmitError(
+        'Şifre güncellenemedi. Bağlantıyı kontrol edip tekrar dene.',
+      )
+    }
   }
 
   return (
@@ -159,13 +208,22 @@ function CreateNewPasswordPage({ navigate, onPasswordResetCompleted }) {
 
               <PasswordRuleChecklist checks={checks} />
 
+              {submitError ? (
+                <p
+                  className="rounded border border-error/20 bg-error/10 px-4 py-3 text-sm font-medium text-error"
+                  role="alert"
+                >
+                  {submitError}
+                </p>
+              ) : null}
+
               <div className="pt-6">
                 <button
                   className="flex w-full items-center justify-center gap-2 rounded bg-gradient-to-r from-primary to-primary-container px-6 py-4 font-headline text-base font-bold text-on-primary shadow-[0_0_20px_-5px_rgba(192,193,255,0.4)] transition-all duration-200 hover:brightness-110 hover:shadow-[0_0_25px_-5px_rgba(192,193,255,0.6)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:brightness-100 disabled:hover:shadow-[0_0_20px_-5px_rgba(192,193,255,0.4)]"
                   type="submit"
-                  disabled={!canSubmit}
+                  disabled={!canSubmit || isSubmitting}
                 >
-                  Şifreyi Güncelle
+                  {isSubmitting ? 'Güncelleniyor' : 'Şifreyi Güncelle'}
                   <span className="material-symbols-outlined text-xl">
                     arrow_forward
                   </span>

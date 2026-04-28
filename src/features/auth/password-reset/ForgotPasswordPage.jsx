@@ -1,18 +1,65 @@
 import { useState } from 'react'
 
+import { buildApiUrl } from '../../../config/runtimeConfig'
+import { getApiErrorMessage, readResponsePayload } from '../../../utils/apiError'
+
 function ForgotPasswordPage({ navigate, onPasswordResetRequested }) {
   const [email, setEmail] = useState('')
+  const [submitError, setSubmitError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
 
     const trimmedEmail = email.trim()
+    setSubmitError('')
 
-    if (!trimmedEmail) {
+    if (!trimmedEmail || isSubmitting) {
       return
     }
 
-    onPasswordResetRequested?.(trimmedEmail)
+    setIsSubmitting(true)
+
+    try {
+      const response = await fetch(buildApiUrl('/api/auth/forgot-password'), {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: trimmedEmail,
+        }),
+      })
+      const payload = await readResponsePayload(response)
+
+      if (!response.ok) {
+        setSubmitError(
+          getApiErrorMessage(
+            payload,
+            'Şifre sıfırlama kodu gönderilemedi. Lütfen tekrar dene.',
+          ),
+        )
+        return
+      }
+
+      if (!payload?.temporaryToken) {
+        setSubmitError('Şifre sıfırlama oturumu başlatılamadı. Lütfen tekrar dene.')
+        return
+      }
+
+      onPasswordResetRequested?.({
+        email: payload?.email || trimmedEmail,
+        temporaryToken: payload.temporaryToken,
+        expiresAt: payload?.expiresAt || '',
+      })
+    } catch {
+      setSubmitError(
+        'Şifre sıfırlama kodu gönderilemedi. Bağlantıyı kontrol edip tekrar dene.',
+      )
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -74,10 +121,20 @@ function ForgotPasswordPage({ navigate, onPasswordResetRequested }) {
 
             <button
               className="flex w-full justify-center rounded bg-gradient-to-r from-primary to-primary-container px-4 py-3.5 font-label font-bold tracking-wide text-white transition-opacity hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background"
+              disabled={isSubmitting}
               type="submit"
             >
-              Kodu Gönder
+              {isSubmitting ? 'Kod gönderiliyor' : 'Kodu Gönder'}
             </button>
+
+            {submitError ? (
+              <p
+                className="rounded border border-error/20 bg-error/10 px-4 py-3 text-sm font-medium text-error"
+                role="alert"
+              >
+                {submitError}
+              </p>
+            ) : null}
           </form>
         </div>
       </div>

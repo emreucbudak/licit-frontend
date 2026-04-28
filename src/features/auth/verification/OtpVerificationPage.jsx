@@ -27,6 +27,7 @@ function OtpVerificationPage({
   const [resetFocusSignal, setResetFocusSignal] = useState(0)
   const [submitError, setSubmitError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isResending, setIsResending] = useState(false)
   const { canResend, resetTimer, secondsLeft } = useResendTimer(RESEND_TIMEOUT)
   const isComplete = code.every((digit) => digit !== '')
 
@@ -56,12 +57,26 @@ function OtpVerificationPage({
     }
   }
 
-  const handleResend = () => {
-    setCode(createEmptyOtpCode(CODE_LENGTH))
+  const handleResend = async () => {
+    if (!canResend || isResending) {
+      return
+    }
+
     setSubmitError('')
-    setResetFocusSignal((current) => current + 1)
-    resetTimer()
-    onResend?.()
+    setIsResending(true)
+
+    try {
+      await onResend?.()
+      setCode(createEmptyOtpCode(CODE_LENGTH))
+      setResetFocusSignal((current) => current + 1)
+      resetTimer()
+    } catch (error) {
+      setSubmitError(
+        error?.message || 'Kod tekrar gönderilemedi. Lütfen tekrar dene.',
+      )
+    } finally {
+      setIsResending(false)
+    }
   }
 
   return (
@@ -128,10 +143,10 @@ function OtpVerificationPage({
               <button
                 className="text-sm font-semibold text-primary transition-colors hover:text-primary-container disabled:cursor-not-allowed disabled:opacity-50"
                 type="button"
-                disabled={!canResend}
+                disabled={!canResend || isResending}
                 onClick={handleResend}
               >
-                {resendLabel}
+                {isResending ? 'Gönderiliyor' : resendLabel}
               </button>
               <span className="rounded border border-outline-variant/20 bg-surface-container px-2 py-0.5 font-mono text-sm tracking-tight text-on-surface-variant">
                 {formatTime(secondsLeft)}

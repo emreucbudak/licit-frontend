@@ -40,6 +40,8 @@ function AppRoutes() {
   const [isAuthenticated, setIsAuthenticated] = useState(isStoredAuthenticated)
   const [passwordResetFlow, setPasswordResetFlow] = useState({
     email: '',
+    temporaryToken: '',
+    expiresAt: '',
     codeVerified: false,
   })
   const [emailVerificationFlow, setEmailVerificationFlow] = useState({
@@ -115,12 +117,25 @@ function AppRoutes() {
     routerNavigate('/login', { replace: true })
   }
 
-  const handlePasswordResetRequested = (email) => {
+  const handlePasswordResetRequested = (result) => {
+    const email = typeof result === 'string' ? result : result?.email || ''
+
     setPasswordResetFlow({
       email,
+      temporaryToken: result?.temporaryToken || '',
+      expiresAt: result?.expiresAt || '',
       codeVerified: false,
     })
     routerNavigate('/verify-identity')
+  }
+
+  const handlePasswordResetCodeResent = (result) => {
+    setPasswordResetFlow((currentFlow) => ({
+      email: result?.email || currentFlow.email,
+      temporaryToken: result?.temporaryToken || '',
+      expiresAt: result?.expiresAt || '',
+      codeVerified: false,
+    }))
   }
 
   const handleRegisterRequested = (result) => {
@@ -140,7 +155,7 @@ function AppRoutes() {
   const handlePasswordResetVerified = () => {
     setPasswordResetFlow((currentFlow) => ({
       ...currentFlow,
-      codeVerified: Boolean(currentFlow.email),
+      codeVerified: Boolean(currentFlow.email && currentFlow.temporaryToken),
     }))
     routerNavigate('/reset-password')
   }
@@ -148,6 +163,8 @@ function AppRoutes() {
   const handlePasswordResetCompleted = () => {
     setPasswordResetFlow({
       email: '',
+      temporaryToken: '',
+      expiresAt: '',
       codeVerified: false,
     })
     clearAuthentication()
@@ -204,7 +221,10 @@ function AppRoutes() {
         element={
           <PasswordResetCodeRoute passwordResetFlow={passwordResetFlow}>
             <VerifyIdentityPage
+              email={passwordResetFlow.email}
               navigate={navigate}
+              temporaryToken={passwordResetFlow.temporaryToken}
+              onPasswordResetCodeResent={handlePasswordResetCodeResent}
               onPasswordResetVerified={handlePasswordResetVerified}
             />
           </PasswordResetCodeRoute>
@@ -232,6 +252,7 @@ function AppRoutes() {
           <PasswordResetRoute passwordResetFlow={passwordResetFlow}>
             <CreateNewPasswordPage
               navigate={navigate}
+              temporaryToken={passwordResetFlow.temporaryToken}
               onPasswordResetCompleted={handlePasswordResetCompleted}
             />
           </PasswordResetRoute>

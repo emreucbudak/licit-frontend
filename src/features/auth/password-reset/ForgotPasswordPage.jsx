@@ -1,7 +1,7 @@
 import { useState } from 'react'
 
-import { buildApiUrl } from '../../../config/runtimeConfig'
-import { getApiErrorMessage, readResponsePayload } from '../../../utils/apiError'
+import { buildApiUrl } from '../../../shared/config/runtimeConfig'
+import { getApiErrorMessage, readResponsePayload } from '../../../shared/api/apiError'
 
 function ForgotPasswordPage({ navigate, onPasswordResetRequested }) {
   const [email, setEmail] = useState('')

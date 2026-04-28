@@ -92,12 +92,43 @@ VITE_WS_BASE_URL=wss://gateway.<environment>.<region>.azurecontainerapps.io
 `.gitignore` icindeki `*.local` kurali bu dosyanin GitHub'a gitmesini engeller.
 Image build edilirken Vite bu degerleri statik dosyalara yazar.
 
+## Mimari Karar
+
+Proje strict feature-based architecture kullanir.
+
+Temel kural:
+
+- Tek feature tarafindan kullanilan kod ilgili feature klasoru icinde tutulur.
+- Birden fazla feature tarafindan kullanilan kod `shared` altinda tutulur.
+- Root `src` seviyesinde genel `api`, `components`, `config`, `hooks` veya `utils`
+  klasorleri tutulmaz.
+
 ## Proje Yapisi
 
 ```text
 licit-frontend/
   public/
   src/
+    app/
+    features/
+      auth/
+        components/
+        hooks/
+        layout/
+        login/
+        password-reset/
+        register/
+        utils/
+        verification/
+      auctions/
+      dashboard/
+      landing/
+      settings/
+    shared/
+      api/
+      auth/
+      components/
+      config/
   index.html
   package.json
   vite.config.js

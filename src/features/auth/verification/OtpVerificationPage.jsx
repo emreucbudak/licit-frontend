@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import OtpCodeInput from '../components/OtpCodeInput'
-import useResendTimer from '../../../hooks/useResendTimer'
+import useResendTimer from '../hooks/useResendTimer'
 import { createEmptyOtpCode } from '../utils/otpCode'
 
 const CODE_LENGTH = 6

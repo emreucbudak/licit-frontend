@@ -3,8 +3,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 
 import PasswordStrengthPanel from '../components/PasswordStrengthPanel'
-import { buildApiUrl } from '../../../config/runtimeConfig'
-import { readApiErrorMessage } from '../../../utils/apiError'
+import { buildApiUrl } from '../../../shared/config/runtimeConfig'
+import { readApiErrorMessage } from '../../../shared/api/apiError'
 import { registerSchema } from '../utils/authSchemas'
 
 function RegisterForm({ navigate, onRegisterRequested }) {

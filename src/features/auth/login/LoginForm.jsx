@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 
-import { buildApiUrl } from '../../../config/runtimeConfig'
-import { readApiErrorMessage } from '../../../utils/apiError'
+import { buildApiUrl } from '../../../shared/config/runtimeConfig'
+import { readApiErrorMessage } from '../../../shared/api/apiError'
 
 function LoginForm({ navigate, onLoginChallengeRequested }) {
   const [showPassword, setShowPassword] = useState(false)

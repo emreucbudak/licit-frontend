@@ -1,6 +1,6 @@
 import OtpVerificationPage from '../verification/OtpVerificationPage'
-import { buildApiUrl } from '../../../config/runtimeConfig'
-import { getApiErrorMessage, readResponsePayload } from '../../../utils/apiError'
+import { buildApiUrl } from '../../../shared/config/runtimeConfig'
+import { getApiErrorMessage, readResponsePayload } from '../../../shared/api/apiError'
 
 function VerifyIdentityPage({
   email,

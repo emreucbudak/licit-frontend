@@ -32,7 +32,7 @@ import {
   clearAuthentication,
   isStoredAuthenticated,
   storeAuthentication,
-} from '../utils/authStorage'
+} from '../shared/auth/authStorage'
 
 function AppRoutes() {
   const routerNavigate = useNavigate()

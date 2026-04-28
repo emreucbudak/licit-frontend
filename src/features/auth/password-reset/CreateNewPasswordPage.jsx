@@ -10,8 +10,8 @@ import {
   passwordMeetsMinimumRules,
 } from '../utils/passwordRules'
 import { createNewPasswordSchema } from '../utils/authSchemas'
-import { buildApiUrl } from '../../../config/runtimeConfig'
-import { getApiErrorMessage, readResponsePayload } from '../../../utils/apiError'
+import { buildApiUrl } from '../../../shared/config/runtimeConfig'
+import { getApiErrorMessage, readResponsePayload } from '../../../shared/api/apiError'
 
 function CreateNewPasswordPage({
   navigate,

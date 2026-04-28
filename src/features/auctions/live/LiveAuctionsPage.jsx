@@ -1,5 +1,5 @@
 import './LiveAuctionsPage.css'
-import { AppSideNavbar, AppTopNavbar } from './AppNavigation'
+import { AppSideNavbar, AppTopNavbar } from '../../../shared/components/navigation/AppNavigation'
 
 const categoryFilters = ['Tümü', 'Teknoloji', 'Sanat', 'Ev']
 const statusFilters = ['Canlı', 'Yakında Bitiyor']

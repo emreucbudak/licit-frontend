@@ -1,4 +1,4 @@
-import { AppSideNavbar, AppTopNavbar } from './AppNavigation'
+import { AppSideNavbar, AppTopNavbar } from '../../shared/components/navigation/AppNavigation'
 
 const profileAvatar =
   'https://lh3.googleusercontent.com/aida-public/AB6AXuBRljr7YaJ_oWQZEY8qFX7vRVl8ITpebpEKpwBk4k47oODTiuvrom4gbZgmapINGaFLiaWXsQJEFSFc6NFCVkR3umm5o18Uodt8-jPFwWjMUiI1pEuWJDiPGcOUjDg1-VwEeLxqdsIESvraCSQ-dM0DlE9Dk2GPHprazaES2vtj6A-8jhbMOIpmJwgAcRsjQihE7Nh8bNcEwRzc3QyxwaNptpzPjJFo3YEiEs2eawr4kz_xh0ApRS3Ef98oXW4AeVG6rbe60SuTTM4'

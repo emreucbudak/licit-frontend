@@ -1,4 +1,4 @@
-import { AppSideNavbar, AppTopNavbar } from './AppNavigation'
+import { AppSideNavbar, AppTopNavbar } from '../../../shared/components/navigation/AppNavigation'
 
 const previewImage =
   'https://lh3.googleusercontent.com/aida-public/AB6AXuCEmI0z_YuP3x3BkXaINgNm4oQ4DHezF5XTTEjwh-70YPkKbgx1IYxq0koBKWQccZpreJLFFpkezKTdgTNXPtUqrgOOZKYT8ckcuXNQDwdeEtxj-jt-Geql1-IRNTpvgp35ZDgHl74pVzf5DjITuyboTLPceLctGcnbD84hh9THRfLtGsLfE3L0mGr4gvuKiHkanvdupB8_Ky44VsZ-lMtOfaC17lsVJBXbRLe2U9nd78B8OBiMbRtCAyzVnakb_FXHaf6Rh93fPlY'

@@ -7,89 +7,32 @@ import {
   useLocation,
   useNavigate,
 } from 'react-router-dom'
-import LandingPage from './LandingPage'
-import LiveAuctionsPage from './LiveAuctionsPage'
-import LotDetailPage from './LotDetailPage'
-import DashboardPage from './DashboardPage'
-import CreateAuctionPage from './CreateAuctionPage'
-import SettingsPage from './SettingsPage'
-import CreateNewPasswordPage from './features/auth/password-reset/CreateNewPasswordPage'
-import ForgotPasswordPage from './features/auth/password-reset/ForgotPasswordPage'
-import VerifyIdentityPage from './features/auth/password-reset/VerifyIdentityPage'
-import LoginPage from './features/auth/login/LoginPage'
-import RegisterPage from './features/auth/register/RegisterPage'
-import VerifyEmailPage from './features/auth/verification/VerifyEmailPage'
-import VerifyLoginPage from './features/auth/verification/VerifyLoginPage'
+import CreateAuctionPage from '../features/auctions/create/CreateAuctionPage'
+import LotDetailPage from '../features/auctions/detail/LotDetailPage'
+import LiveAuctionsPage from '../features/auctions/live/LiveAuctionsPage'
+import LoginPage from '../features/auth/login/LoginPage'
+import CreateNewPasswordPage from '../features/auth/password-reset/CreateNewPasswordPage'
+import ForgotPasswordPage from '../features/auth/password-reset/ForgotPasswordPage'
+import VerifyIdentityPage from '../features/auth/password-reset/VerifyIdentityPage'
+import RegisterPage from '../features/auth/register/RegisterPage'
+import VerifyEmailPage from '../features/auth/verification/VerifyEmailPage'
+import VerifyLoginPage from '../features/auth/verification/VerifyLoginPage'
+import DashboardPage from '../features/dashboard/DashboardPage'
+import LandingPage from '../features/landing/LandingPage'
+import SettingsPage from '../features/settings/SettingsPage'
+import { titleForPath } from './pageTitles'
+import {
+  EmailVerificationRoute,
+  LoginVerificationRoute,
+  PasswordResetCodeRoute,
+  PasswordResetRoute,
+  ProtectedRoute,
+} from './routeGuards'
 import {
   clearAuthentication,
   isStoredAuthenticated,
   storeAuthentication,
-} from './utils/authStorage'
-
-function titleForPath(pathname) {
-  return (
-    {
-      '/auctions': 'Licit | Premium Auction Exchange',
-      '/auctions/lot-4429': 'Licit | Lot Detayı',
-      '/auctions/create': 'Müzayede Oluştur | Licit',
-      '/dashboard': 'Licit Panel - Koleksiyoner',
-      '/settings': 'Hesap Ayarları | Licit',
-      '/login': 'Giriş Yap - Licit',
-      '/verify-login': 'Giriş Kodunu Doğrula | Licit',
-      '/forgot-password': 'Şifremi Unuttum | Licit',
-      '/verify-identity': 'Kimliğini Doğrula | Licit',
-      '/verify-email': 'E-postanı Doğrula | Licit',
-      '/reset-password': 'Yeni Şifre Oluştur | Licit',
-      '/register': 'Kaydol - Licit',
-    }[pathname] || 'Licit - Real-time Bidding Platform'
-  )
-}
-
-function ProtectedRoute({ isAuthenticated, children }) {
-  const location = useLocation()
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace state={{ from: location }} />
-  }
-
-  return children
-}
-
-function PasswordResetCodeRoute({ passwordResetFlow, children }) {
-  if (!passwordResetFlow.email) {
-    return <Navigate to="/forgot-password" replace />
-  }
-
-  return children
-}
-
-function PasswordResetRoute({ passwordResetFlow, children }) {
-  if (!passwordResetFlow.email) {
-    return <Navigate to="/forgot-password" replace />
-  }
-
-  if (!passwordResetFlow.codeVerified) {
-    return <Navigate to="/verify-identity" replace />
-  }
-
-  return children
-}
-
-function EmailVerificationRoute({ emailVerificationFlow, children }) {
-  if (!emailVerificationFlow.email) {
-    return <Navigate to="/register" replace />
-  }
-
-  return children
-}
-
-function LoginVerificationRoute({ loginVerificationFlow, children }) {
-  if (!loginVerificationFlow.email || !loginVerificationFlow.temporaryToken) {
-    return <Navigate to="/login" replace />
-  }
-
-  return children
-}
+} from '../utils/authStorage'
 
 function AppRoutes() {
   const routerNavigate = useNavigate()

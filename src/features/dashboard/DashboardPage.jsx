@@ -1,5 +1,5 @@
 import './DashboardPage.css'
-import { AppSideNavbar, AppTopNavbar } from './AppNavigation'
+import { AppSideNavbar, AppTopNavbar } from '../../shared/components/navigation/AppNavigation'
 
 const statsCards = [
   {

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import './App.css'
+import './LandingPage.css'
 
 const featureCards = [
   {

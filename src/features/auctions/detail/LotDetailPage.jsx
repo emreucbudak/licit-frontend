@@ -1,5 +1,5 @@
 import './LotDetailPage.css'
-import { AppTopNavbar } from './AppNavigation'
+import { AppTopNavbar } from '../../../shared/components/navigation/AppNavigation'
 
 const galleryImages = [
   {

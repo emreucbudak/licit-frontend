@@ -77,8 +77,17 @@ function getUsernameFallback(profile) {
 
 function SettingsPage({ navigate, onLogout }) {
   const [profile, setProfile] = useState(null)
+  const [profileForm, setProfileForm] = useState({
+    firstName: '',
+    lastName: '',
+  })
   const [profileError, setProfileError] = useState('')
+  const [profileStatus, setProfileStatus] = useState({
+    message: '',
+    type: '',
+  })
   const [isProfileLoading, setIsProfileLoading] = useState(true)
+  const [isProfileSaving, setIsProfileSaving] = useState(false)
   const [passwordForm, setPasswordForm] = useState({
     confirmPassword: '',
     currentPassword: '',
@@ -108,6 +117,10 @@ function SettingsPage({ navigate, onLogout }) {
 
         if (isCurrent) {
           setProfile(payload)
+          setProfileForm({
+            firstName: payload?.firstName || '',
+            lastName: payload?.lastName || '',
+          })
         }
       } catch (error) {
         if (isCurrent) {
@@ -127,15 +140,89 @@ function SettingsPage({ navigate, onLogout }) {
     }
   }, [])
 
-  const profileValues = useMemo(() => {
-    const displayName = getFullName(profile)
-
-    return {
-      displayName: displayName || profile?.email || '',
+  const profileValues = useMemo(
+    () => ({
       email: profile?.email || '',
       username: getUsernameFallback(profile),
+    }),
+    [profile],
+  )
+
+  const normalizedProfileForm = useMemo(
+    () => ({
+      firstName: profileForm.firstName.trim(),
+      lastName: profileForm.lastName.trim(),
+    }),
+    [profileForm],
+  )
+
+  const isProfileDirty =
+    normalizedProfileForm.firstName !== (profile?.firstName || '').trim() ||
+    normalizedProfileForm.lastName !== (profile?.lastName || '').trim()
+
+  const isProfileValid =
+    normalizedProfileForm.firstName.length > 0 &&
+    normalizedProfileForm.lastName.length > 0
+
+  const isProfileSubmitDisabled =
+    isProfileLoading || isProfileSaving || !isProfileDirty || !isProfileValid
+
+  function updateProfileField(event) {
+    const { name, value } = event.target
+
+    setProfileForm((currentForm) => ({
+      ...currentForm,
+      [name]: value,
+    }))
+    setProfileStatus({ message: '', type: '' })
+  }
+
+  function resetProfileForm() {
+    setProfileForm({
+      firstName: profile?.firstName || '',
+      lastName: profile?.lastName || '',
+    })
+    setProfileStatus({ message: '', type: '' })
+  }
+
+  async function handleProfileSubmit(event) {
+    event.preventDefault()
+
+    if (!isProfileDirty || !isProfileValid) {
+      return
     }
-  }, [profile])
+
+    setIsProfileSaving(true)
+    setProfileStatus({ message: '', type: '' })
+
+    try {
+      const { payload, response } = await sendAuthorizedRequest('/api/auth/me', {
+        body: normalizedProfileForm,
+        method: 'PUT',
+      })
+
+      if (!response.ok) {
+        throw new Error(getApiErrorMessage(payload, 'Profil guncellenemedi.'))
+      }
+
+      setProfile(payload)
+      setProfileForm({
+        firstName: payload?.firstName || '',
+        lastName: payload?.lastName || '',
+      })
+      setProfileStatus({
+        message: 'Profil basariyla guncellendi.',
+        type: 'success',
+      })
+    } catch (error) {
+      setProfileStatus({
+        message: error.message || 'Profil guncellenemedi.',
+        type: 'error',
+      })
+    } finally {
+      setIsProfileSaving(false)
+    }
+  }
 
   function updatePasswordField(event) {
     const { name, value } = event.target
@@ -230,15 +317,22 @@ function SettingsPage({ navigate, onLogout }) {
             <div className="flex flex-wrap gap-3">
               <button
                 className="rounded-lg bg-surface-container-high px-5 py-2 text-sm font-semibold text-on-surface transition-colors hover:bg-surface-container-highest"
+                disabled={!isProfileDirty || isProfileSaving}
+                onClick={resetProfileForm}
                 type="button"
               >
                 Vazgeç
               </button>
               <button
-                className="cursor-not-allowed rounded-lg bg-gradient-to-r from-primary to-primary-container px-5 py-2 text-sm font-bold text-on-primary opacity-50 shadow-lg shadow-primary/20"
-                disabled
-                type="button"
-                title="Profil ve bildirim ayarlari icin henuz kaydetme API'si yok."
+                className="rounded-lg bg-gradient-to-r from-primary to-primary-container px-5 py-2 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-opacity disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={isProfileSubmitDisabled}
+                form="settings-profile-form"
+                type="submit"
+                title={
+                  isProfileDirty && !isProfileValid
+                    ? 'Ad ve soyad alanlari zorunludur.'
+                    : undefined
+                }
               >
                 Değişiklikleri Kaydet
               </button>
@@ -277,7 +371,11 @@ function SettingsPage({ navigate, onLogout }) {
                 <h2 className="text-xl font-bold">Profil Bilgileri</h2>
               </div>
 
-              <div className="flex flex-col gap-10 md:flex-row">
+              <form
+                className="flex flex-col gap-10 md:flex-row"
+                id="settings-profile-form"
+                onSubmit={handleProfileSubmit}
+              >
                 <div className="flex flex-col items-center gap-4">
                   <div className="group relative">
                     <div className="h-32 w-32 overflow-hidden rounded-2xl border-2 border-primary/20 bg-surface-container-lowest transition-colors group-hover:border-primary/50">
@@ -308,19 +406,44 @@ function SettingsPage({ navigate, onLogout }) {
                       {profileError}
                     </p>
                   ) : null}
+                  {profileStatus.message ? (
+                    <p
+                      className={`rounded-lg px-4 py-2 text-sm font-semibold md:col-span-2 ${
+                        profileStatus.type === 'success'
+                          ? 'bg-secondary/10 text-secondary'
+                          : 'bg-error/10 text-error'
+                      }`}
+                    >
+                      {profileStatus.message}
+                    </p>
+                  ) : null}
                   <label className="space-y-2">
                     <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
                       Görünen Ad
                     </span>
                     <input
                       className="w-full rounded-lg border-none bg-surface-container-lowest px-4 py-2.5 text-sm focus:ring-1 focus:ring-primary"
-                      readOnly
+                      disabled={isProfileLoading || isProfileSaving}
+                      name="firstName"
+                      onChange={updateProfileField}
+                      placeholder="Ad"
                       type="text"
-                      value={
-                        isProfileLoading
-                          ? 'Yukleniyor...'
-                          : profileValues.displayName
-                      }
+                      value={isProfileLoading ? 'Yukleniyor...' : profileForm.firstName}
+                    />
+                  </label>
+
+                  <label className="space-y-2">
+                    <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                      Soyad
+                    </span>
+                    <input
+                      className="w-full rounded-lg border-none bg-surface-container-lowest px-4 py-2.5 text-sm focus:ring-1 focus:ring-primary"
+                      disabled={isProfileLoading || isProfileSaving}
+                      name="lastName"
+                      onChange={updateProfileField}
+                      placeholder="Soyad"
+                      type="text"
+                      value={isProfileLoading ? 'Yukleniyor...' : profileForm.lastName}
                     />
                   </label>
 
@@ -359,14 +482,14 @@ function SettingsPage({ navigate, onLogout }) {
                     </span>
                     <textarea
                       className="w-full resize-none rounded-lg border-none bg-surface-container-lowest px-4 py-2.5 text-sm focus:ring-1 focus:ring-primary"
-                      placeholder="Koleksiyoner biyografini gir..."
+                      placeholder="Biyografi guncelleme API'si henuz yok."
                       readOnly
                       rows="3"
                       value=""
                     ></textarea>
                   </label>
                 </div>
-              </div>
+              </form>
             </section>
 
             <section

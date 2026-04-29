@@ -3,10 +3,6 @@ import './DashboardPage.css'
 import { sendAuthorizedRequest } from '../../shared/api/authorizedRequest'
 import { getApiErrorMessage } from '../../shared/api/apiError'
 import { AppSideNavbar, AppTopNavbar } from '../../shared/components/navigation/AppNavigation'
-import { buildApiUrl } from '../../shared/config/runtimeConfig'
-
-const DASHBOARD_TENDER_PAGE_SIZE = 20
-const DASHBOARD_TRANSACTION_PAGE_SIZE = 20
 
 const fallbackAuctionImages = [
   {
@@ -33,51 +29,22 @@ const openTenderStatuses = new Set([
   'yayinda',
 ])
 
-const bidHistory = [
-  {
-    date: '24 Eki 2023',
-    item: 'Eterik Parca #09',
-    bid: '1.85 ETH',
-    status: 'Statik',
-    tone: 'secondary',
-    action: 'open',
-    image:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuBr-CET40p7xe2JZRsdifpVUdzRDnW_N6B53hWzUzKGtAcPNJIlnbBFegLubuOy_sWZ196Rw049IjExVzcT1qTXja2TdSL1-UABna93X5EeTVu6k2FXtnYEa4hKOtW5ZTbXBcmvaHsYpXENdMF8H8oKbMXOCI0pqYNei3zpc1s-FG8gCMdX-sVocLoewmol3Qf5785yJddoDkQRgMVPhLmSKE3QZ7BV-W3s606gBXggOMEJ73bYvW6M8qoJeeTHYRC4JLyMVQIaOUM',
-  },
-  {
-    date: '23 Eki 2023',
-    item: 'Leica M6 Classic',
-    bid: '$3,200',
-    status: 'Statik',
-    tone: 'tertiary',
-    action: 'rebid',
-    image:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuAAvvNOcDnV52ocok7HAe__OqGPJ4qfUmhhkocF1DRyXLzYwZGSi6FGjNQx-AT0nAQpBNSY9yOv51lVX-F2GrNrMhLvpYZtpNsWQR4P1IkCXPzwZBD_6hzuj7D38TZo8dp1Qe6P36VZv3vIA5JLMCWq8sN89DPXLyC8KnTWaT8k_GYAVIed89I5mGvecWr5QYJi0HbYq8cqtt31Txp1TLH3OSdsVPMeB8Du_IKR6DIXQWJ_WbYQXvr17fZNrKS0FL6z6DLAAAcA7lI',
-  },
-  {
-    date: '21 Eki 2023',
-    item: 'El Yazmasi Cilt 1',
-    bid: '0.45 ETH',
-    status: 'Statik',
-    tone: 'secondary',
-    action: 'open',
-    image:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuBMgPgSvv2SIDJexLtAX5i36LcHIJU3YZsntVFH_UDqN9iEQMer9y6xGriNv9hqTPnly6ByXF9vSV75jQaB75z-BaSp2hqVpSZTzJNiQsQYsetvaQDbbX9RfkSdcinHFGQgg9GDPya_Sy2LyeIHz3XKgG8F7wcYEiqjXwlmaOjhcaUV73FYK7YsArNxiqQS1wWe6oDfmOYedw0aAaZ81yd4Em6JTNUoT4A6j4laLRKfG96QC5QMxbC4x_SPz7TPbTqyK9LPRLx7XoY',
-  },
-  {
-    date: '20 Eki 2023',
-    item: 'Metropolis Gokyuzu #12',
-    bid: '2.10 ETH',
-    status: 'Statik',
-    tone: 'tertiary',
-    action: 'rebid',
-    image:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuDjMgIviHVgJs_xnHcZ8tb3ysG5gP9CE0OFq_2FvHwQ4wgc7L0DLjVIy8fj9ltPzNRa9M8QSGW27iqRhxvjnDv6h-RZuYOyqJZfZnA6-DS2urlmTDYvaULFo1cstRywgreKPaTRXZbRUdWDseapB0iGjPxOH2yPttliJKnq0ABlTPL6_ZXb4rJtVSKTKUTvX6TSe2qMqvoxFySQl69XKBDaqZOjy-p-OpBoAql1If0JaybrK17E2XE9tf_xC_e_3yTgRrWuvq-gO80',
-  },
-]
-
 function normalizeStatus(status) {
   return String(status || '').trim().toLowerCase()
+}
+
+function getField(source, ...keys) {
+  if (!source || typeof source !== 'object') {
+    return undefined
+  }
+
+  for (const key of keys) {
+    if (source[key] !== undefined && source[key] !== null) {
+      return source[key]
+    }
+  }
+
+  return undefined
 }
 
 function isOpenTender(tender) {
@@ -87,11 +54,13 @@ function isOpenTender(tender) {
     return openTenderStatuses.has(normalizedStatus)
   }
 
-  if (!tender.endDate) {
+  const endDate = getField(tender, 'endDate', 'end_date', 'endsAt', 'ends_at')
+
+  if (!endDate) {
     return false
   }
 
-  return new Date(tender.endDate).getTime() > Date.now()
+  return new Date(endDate).getTime() > Date.now()
 }
 
 function formatCurrency(value) {
@@ -138,60 +107,28 @@ function formatEndDate(value) {
   }).format(date)
 }
 
-async function readJsonResponse(response) {
-  try {
-    return await response.json()
-  } catch {
-    return null
-  }
-}
-
-async function fetchPublicTenders() {
-  const response = await fetch(
-    buildApiUrl(`/api/tender?page=1&pageSize=${DASHBOARD_TENDER_PAGE_SIZE}`),
-    {
-      headers: {
-        Accept: 'application/json',
-      },
-    },
-  )
-  const payload = await readJsonResponse(response)
+async function fetchDashboardSummary() {
+  const { payload, response } = await sendAuthorizedRequest('/api/dashboard/summary')
 
   if (!response.ok) {
-    throw new Error(getApiErrorMessage(payload, 'Ilanlar alinamadi.'))
+    throw new Error(getApiErrorMessage(payload, 'Dashboard ozeti alinamadi.'))
   }
 
   return payload
 }
 
-async function fetchWalletBalance() {
-  const { payload, response } = await sendAuthorizedRequest('/api/wallet/balance')
+function getErrorMessage(errors, ...keys) {
+  const value = getField(errors, ...keys)
 
-  if (!response.ok) {
-    throw new Error(getApiErrorMessage(payload, 'Cuzdan bakiyesi alinamadi.'))
+  if (!value) {
+    return ''
   }
 
-  return payload
-}
-
-async function fetchWalletTransactions() {
-  const { payload, response } = await sendAuthorizedRequest(
-    `/api/wallet/transactions?page=1&pageSize=${DASHBOARD_TRANSACTION_PAGE_SIZE}`,
-  )
-
-  if (!response.ok) {
-    throw new Error(getApiErrorMessage(payload, 'Cuzdan hareketleri alinamadi.'))
-  }
-
-  return payload
+  return typeof value === 'string' ? value : 'Ozet verisinin bu bolumu alinamadi.'
 }
 
 function DashboardPage({ navigate, onLogout }) {
-  const [dashboardData, setDashboardData] = useState({
-    tenders: null,
-    walletBalance: null,
-    walletTransactions: null,
-  })
+  const [dashboardData, setDashboardData] = useState(null)
   const [dashboardErrors, setDashboardErrors] = useState({})
   const [isDashboardLoading, setIsDashboardLoading] = useState(true)
 
@@ -202,43 +139,29 @@ function DashboardPage({ navigate, onLogout }) {
       setIsDashboardLoading(true)
       setDashboardErrors({})
 
-      const [tendersResult, balanceResult, transactionsResult] =
-        await Promise.allSettled([
-          fetchPublicTenders(),
-          fetchWalletBalance(),
-          fetchWalletTransactions(),
-        ])
+      try {
+        const summary = await fetchDashboardSummary()
 
-      if (!isCurrent) {
-        return
+        if (!isCurrent) {
+          return
+        }
+
+        setDashboardData(summary)
+        setDashboardErrors(summary?.errors || {})
+      } catch (error) {
+        if (!isCurrent) {
+          return
+        }
+
+        setDashboardData(null)
+        setDashboardErrors({
+          summary: error.message,
+        })
+      } finally {
+        if (isCurrent) {
+          setIsDashboardLoading(false)
+        }
       }
-
-      const nextErrors = {}
-
-      if (tendersResult.status === 'rejected') {
-        nextErrors.tenders = tendersResult.reason.message
-      }
-
-      if (balanceResult.status === 'rejected') {
-        nextErrors.walletBalance = balanceResult.reason.message
-      }
-
-      if (transactionsResult.status === 'rejected') {
-        nextErrors.walletTransactions = transactionsResult.reason.message
-      }
-
-      setDashboardData({
-        tenders:
-          tendersResult.status === 'fulfilled' ? tendersResult.value : null,
-        walletBalance:
-          balanceResult.status === 'fulfilled' ? balanceResult.value : null,
-        walletTransactions:
-          transactionsResult.status === 'fulfilled'
-            ? transactionsResult.value
-            : null,
-      })
-      setDashboardErrors(nextErrors)
-      setIsDashboardLoading(false)
     }
 
     loadDashboardData()
@@ -248,12 +171,34 @@ function DashboardPage({ navigate, onLogout }) {
     }
   }, [])
 
+  const wallet = dashboardData?.wallet || null
+  const walletTransactions =
+    getField(dashboardData, 'walletTransactions', 'wallet_transactions') || null
+  const listings = useMemo(() => dashboardData?.listings || {}, [dashboardData?.listings])
+  const stats = useMemo(() => dashboardData?.stats || {}, [dashboardData?.stats])
+  const summaryError = dashboardErrors.summary || ''
+  const listingsError = summaryError || getErrorMessage(dashboardErrors, 'listings', 'tenders')
+  const walletError = summaryError || getErrorMessage(dashboardErrors, 'wallet')
+  const transactionsError =
+    summaryError || getErrorMessage(dashboardErrors, 'walletTransactions', 'wallet_transactions')
+  const bidsError = summaryError || getErrorMessage(dashboardErrors, 'recentBids', 'recent_bids')
+
   const tenders = useMemo(
     () =>
-      Array.isArray(dashboardData.tenders?.tenders)
-        ? dashboardData.tenders.tenders
+      Array.isArray(dashboardData?.listings?.tenders)
+        ? dashboardData.listings.tenders
         : [],
-    [dashboardData.tenders],
+    [dashboardData?.listings],
+  )
+
+  const activeAuctions = useMemo(
+    () =>
+      Array.isArray(dashboardData?.activeAuctions)
+        ? dashboardData.activeAuctions
+        : Array.isArray(dashboardData?.active_auctions)
+          ? dashboardData.active_auctions
+        : [],
+    [dashboardData?.activeAuctions, dashboardData?.active_auctions],
   )
 
   const openTenders = useMemo(
@@ -262,51 +207,105 @@ function DashboardPage({ navigate, onLogout }) {
   )
 
   const visibleTenders = useMemo(() => {
-    const preferredTenders = openTenders.length > 0 ? openTenders : tenders
+    const preferredTenders =
+      activeAuctions.length > 0
+        ? activeAuctions
+        : openTenders.length > 0
+          ? openTenders
+          : tenders
 
     return preferredTenders.slice(0, 3).map((tender, index) => {
       const fallbackImage =
         fallbackAuctionImages[index % fallbackAuctionImages.length]
+      const isAuction = activeAuctions.length > 0
+      const displayPrice = getField(
+        tender,
+        'currentPrice',
+        'current_price',
+        'startingPrice',
+        'starting_price',
+        'startPrice',
+        'start_price',
+      )
+      const endDate = getField(tender, 'endsAt', 'ends_at', 'endDate', 'end_date')
 
       return {
         id: tender.id,
         title: tender.title || 'Basliksiz ilan',
-        status: tender.status || 'Ilan',
-        tone: isOpenTender(tender) ? 'secondary' : 'neutral',
-        startingPrice: formatCurrency(tender.startingPrice),
-        endsAt: formatEndDate(tender.endDate),
+        status: tender.status || (isAuction ? 'Muzayede' : 'Ilan'),
+        tone: isAuction || isOpenTender(tender) ? 'secondary' : 'neutral',
+        priceLabel: isAuction ? 'Guncel Fiyat' : 'Baslangic Fiyati',
+        displayPrice: formatCurrency(displayPrice),
+        endsAt: formatEndDate(endDate),
         image: fallbackImage.image,
         alt: fallbackImage.alt,
       }
     })
-  }, [openTenders, tenders])
+  }, [activeAuctions, openTenders, tenders])
+
+  const recentBids = useMemo(
+    () =>
+      Array.isArray(dashboardData?.recentBids)
+        ? dashboardData.recentBids
+        : Array.isArray(dashboardData?.recent_bids)
+          ? dashboardData.recent_bids
+        : [],
+    [dashboardData?.recentBids, dashboardData?.recent_bids],
+  )
+
+  const bidRows = useMemo(
+    () =>
+      recentBids.map((bid, index) => {
+        const fallbackImage =
+          fallbackAuctionImages[index % fallbackAuctionImages.length]
+        const isWinning = Boolean(getField(bid, 'isWinning', 'is_winning'))
+        const status = bid.status || (isWinning ? 'Kazaniyor' : 'Teklif')
+
+        return {
+          id: bid.id || `${getField(bid, 'auctionId', 'auction_id')}-${index}`,
+          date: formatEndDate(getField(bid, 'createdAt', 'created_at')),
+          item: getField(bid, 'auctionTitle', 'auction_title') || 'Basliksiz muzayede',
+          bid: formatCurrency(bid.amount),
+          status,
+          tone: isWinning || normalizeStatus(status) === 'accepted' ? 'secondary' : 'tertiary',
+          image: fallbackImage.image,
+        }
+      }),
+    [recentBids],
+  )
 
   const statsCards = useMemo(() => {
-    const tenderTotal = dashboardData.tenders?.totalCount ?? tenders.length
+    const tenderTotal =
+      getField(stats, 'totalListings', 'total_listings') ??
+      getField(listings, 'totalCount', 'total_count') ??
+      tenders.length
+    const activeAuctionTotal =
+      getField(stats, 'activeAuctions', 'active_auctions') ?? activeAuctions.length
     const transactionTotal =
-      dashboardData.walletTransactions?.totalCount ??
-      dashboardData.walletTransactions?.transactions?.length
-    const walletBalance = dashboardData.walletBalance?.balance
+      getField(stats, 'walletTransactions', 'wallet_transactions') ??
+      getField(walletTransactions, 'totalCount', 'total_count') ??
+      walletTransactions?.transactions?.length
+    const walletBalance = wallet?.balance
 
     return [
       {
         label: 'Toplam Ilan',
-        value: isDashboardLoading && !dashboardData.tenders ? '...' : formatNumber(tenderTotal),
-        note: dashboardErrors.tenders || 'GET /api/tender toplam sayisi',
-        tone: dashboardErrors.tenders ? 'neutral' : 'secondary',
+        value: isDashboardLoading && !dashboardData ? '...' : formatNumber(tenderTotal),
+        note: listingsError || 'Ozet endpointi toplam sayisi',
+        tone: listingsError ? 'neutral' : 'secondary',
         icon: 'inventory_2',
-        noteIcon: dashboardErrors.tenders ? 'error' : 'dns',
+        noteIcon: listingsError ? 'error' : 'dns',
       },
       {
-        label: 'Sayfadaki Acik Ilan',
+        label: 'Aktif Muzayede',
         value:
-          isDashboardLoading && !dashboardData.tenders
+          isDashboardLoading && !dashboardData
             ? '...'
-            : formatNumber(openTenders.length),
+            : formatNumber(activeAuctionTotal),
         note:
-          openTenders.length > 0
-            ? 'Duruma gore filtrelendi'
-            : 'Son ilanlar gosteriliyor',
+          activeAuctions.length > 0
+            ? 'Canli ozet verisi'
+            : 'Ilanlardan yedekleniyor',
         tone: 'primary',
         icon: 'visibility',
         noteIcon: 'schedule',
@@ -314,30 +313,32 @@ function DashboardPage({ navigate, onLogout }) {
       {
         label: 'Cuzdan Bakiyesi',
         value:
-          isDashboardLoading && !dashboardData.walletBalance
+          isDashboardLoading && !dashboardData
             ? '...'
             : formatCurrency(walletBalance),
         note:
-          dashboardErrors.walletBalance ||
-          dashboardErrors.walletTransactions ||
+          walletError ||
+          transactionsError ||
           (Number.isFinite(Number(transactionTotal))
             ? `${formatNumber(transactionTotal)} cuzdan hareketi`
-            : 'Cuzdan API verisi'),
-        tone: dashboardErrors.walletBalance ? 'neutral' : 'secondary',
+            : 'Ozet endpointi cuzdan verisi'),
+        tone: walletError ? 'neutral' : 'secondary',
         icon: 'account_balance_wallet',
-        noteIcon: dashboardErrors.walletBalance ? 'error' : 'payments',
+        noteIcon: walletError ? 'error' : 'payments',
       },
     ]
   }, [
-    dashboardData.tenders,
-    dashboardData.walletBalance,
-    dashboardData.walletTransactions,
-    dashboardErrors.tenders,
-    dashboardErrors.walletBalance,
-    dashboardErrors.walletTransactions,
+    activeAuctions.length,
+    dashboardData,
     isDashboardLoading,
-    openTenders.length,
+    listingsError,
+    listings,
+    stats,
     tenders.length,
+    transactionsError,
+    wallet,
+    walletError,
+    walletTransactions,
   ])
 
   const feedItems = useMemo(
@@ -387,7 +388,7 @@ function DashboardPage({ navigate, onLogout }) {
           <div className="dashboard-grid">
             <section className="dashboard-active">
               <div className="dashboard-section-head">
-                <h3>{openTenders.length > 0 ? 'Acik Ilanlar' : 'Son Ilanlar'}</h3>
+                <h3>{activeAuctions.length > 0 ? 'Aktif Muzayedeler' : 'Son Ilanlar'}</h3>
                 <button type="button" onClick={navigate('/auctions')}>Tumunu Gor</button>
               </div>
               <div className="dashboard-active__list">
@@ -404,11 +405,11 @@ function DashboardPage({ navigate, onLogout }) {
                   </article>
                 ) : null}
 
-                {!isDashboardLoading && dashboardErrors.tenders ? (
+                {!isDashboardLoading && listingsError ? (
                   <article className="dashboard-auction-card">
                     <div className="dashboard-auction-card__body">
                       <div className="dashboard-auction-card__title">
-                        <h4>{dashboardErrors.tenders}</h4>
+                        <h4>{listingsError}</h4>
                         <span className="dashboard-auction-card__status dashboard-auction-card__status--tertiary">
                           Hata
                         </span>
@@ -418,7 +419,7 @@ function DashboardPage({ navigate, onLogout }) {
                 ) : null}
 
                 {!isDashboardLoading &&
-                !dashboardErrors.tenders &&
+                !listingsError &&
                 visibleTenders.length === 0 ? (
                   <article className="dashboard-auction-card">
                     <div className="dashboard-auction-card__body">
@@ -445,7 +446,7 @@ function DashboardPage({ navigate, onLogout }) {
                         </span>
                       </div>
                       <div className="dashboard-auction-card__meta">
-                        <div><span>Baslangic Fiyati</span><strong>{auction.startingPrice}</strong></div>
+                        <div><span>{auction.priceLabel}</span><strong>{auction.displayPrice}</strong></div>
                         <div className="dashboard-auction-card__meta-right"><span>Bitis</span><strong>{auction.endsAt}</strong></div>
                       </div>
                     </div>
@@ -464,25 +465,43 @@ function DashboardPage({ navigate, onLogout }) {
                     <tr><th>Tarih</th><th>Urun</th><th>Teklifin</th><th>Durum</th><th className="dashboard-table__right">Islem</th></tr>
                   </thead>
                   <tbody>
-                    {bidHistory.map((row) => (
-                      <tr key={`${row.date}-${row.item}`}>
+                    {isDashboardLoading && bidRows.length === 0 ? (
+                      <tr>
+                        <td colSpan="5">Yukleniyor...</td>
+                      </tr>
+                    ) : null}
+
+                    {!isDashboardLoading && bidsError ? (
+                      <tr>
+                        <td colSpan="5">{bidsError}</td>
+                      </tr>
+                    ) : null}
+
+                    {!isDashboardLoading && !bidsError && bidRows.length === 0 ? (
+                      <tr>
+                        <td colSpan="5">Teklif gecmisi bulunamadi.</td>
+                      </tr>
+                    ) : null}
+
+                    {bidRows.map((row) => (
+                      <tr key={row.id}>
                         <td>{row.date}</td>
                         <td><div className="dashboard-table__item"><div className="dashboard-table__thumb"><img alt="" src={row.image} /></div><span>{row.item}</span></div></td>
                         <td className="dashboard-table__bid">{row.bid}</td>
                         <td><span className={`dashboard-table__status dashboard-table__status--${row.tone}`}><span></span>{row.status}</span></td>
                         <td className="dashboard-table__right">
-                          {row.action === 'rebid' ? (
-                            <button className="dashboard-table__rebid" type="button">Statik</button>
-                          ) : (
-                            <button className="dashboard-table__open" type="button" aria-label="Muzayedeyi ac"><span className="material-symbols-outlined">open_in_new</span></button>
-                          )}
+                          <button className="dashboard-table__open" type="button" aria-label="Muzayedeyi ac"><span className="material-symbols-outlined">open_in_new</span></button>
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
                 <div className="dashboard-table__footer">
-                  <p>Bid history API olmadigi icin statik ornekler gosteriliyor.</p>
+                  <p>
+                    {isDashboardLoading
+                      ? 'Teklifler yukleniyor.'
+                      : bidsError || `${formatNumber(bidRows.length)} son teklif gosteriliyor.`}
+                  </p>
                   <div className="dashboard-pagination">
                     <button type="button" aria-label="Onceki sayfa"><span className="material-symbols-outlined">chevron_left</span></button>
                     <button className="dashboard-pagination__active" type="button">1</button>

@@ -272,7 +272,7 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/auctions/lot-4429"
+        path="/auctions/:auctionId"
         element={
           <ProtectedRoute isAuthenticated={isAuthenticated}>
             <LotDetailPage navigate={navigate} />

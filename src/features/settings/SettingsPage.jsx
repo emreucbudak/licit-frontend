@@ -9,41 +9,7 @@ const profileAvatar =
 const settingsTabs = [
   ['person', 'Profil'],
   ['shield', 'Güvenlik'],
-  ['notifications_active', 'Bildirimler'],
 ]
-
-const notificationOptions = [
-  {
-    key: 'email',
-    title: 'Email bildirimleri',
-    description: 'Hesap ve ihale gelismelerini email ile al.',
-    tone: 'primary',
-  },
-  {
-    key: 'onsite',
-    title: 'Site ici bildirimler',
-    description: 'Bildirimleri uygulama icinde goster.',
-    tone: 'secondary',
-  },
-]
-
-function Toggle({ checked = false, onChange, tone = 'secondary' }) {
-  const checkedColor = tone === 'primary' ? 'peer-checked:bg-primary' : 'peer-checked:bg-secondary'
-
-  return (
-    <label className="relative inline-flex cursor-pointer items-center">
-      <input
-        checked={checked}
-        className="peer sr-only"
-        onChange={onChange}
-        type="checkbox"
-      />
-      <span
-        className={`h-6 w-11 rounded-full bg-surface-container-highest transition-colors after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white ${checkedColor}`}
-      ></span>
-    </label>
-  )
-}
 
 function getFullName(profile) {
   return [profile?.firstName, profile?.lastName].filter(Boolean).join(' ').trim()
@@ -84,18 +50,6 @@ function SettingsPage({ navigate, onLogout }) {
     type: '',
   })
   const [isPasswordSaving, setIsPasswordSaving] = useState(false)
-  const [notificationPreferences, setNotificationPreferences] = useState({
-    email: true,
-    onsite: true,
-  })
-
-  function toggleNotificationPreference(key) {
-    setNotificationPreferences((current) => ({
-      ...current,
-      [key]: !current[key],
-    }))
-  }
-
   useEffect(() => {
     let isCurrent = true
 
@@ -307,7 +261,7 @@ function SettingsPage({ navigate, onLogout }) {
                 Hesap Ayarları
               </h1>
               <p className="text-on-surface-variant">
-                Profilini, güvenlik tercihlerini ve bildirim ayarlarını tek yerden yönet.
+                Profilini ve güvenlik tercihlerini tek yerden yönet.
               </p>
             </div>
 
@@ -337,7 +291,7 @@ function SettingsPage({ navigate, onLogout }) {
           </header>
 
           <nav
-            className="grid grid-cols-1 gap-2 rounded-xl border border-outline-variant/10 bg-surface-container/50 p-2 sm:grid-cols-3"
+            className="grid grid-cols-1 gap-2 rounded-xl border border-outline-variant/10 bg-surface-container/50 p-2 sm:grid-cols-2"
             aria-label="Hesap ayarları bölümleri"
           >
             {settingsTabs.map(([icon, label], index) => (
@@ -490,7 +444,7 @@ function SettingsPage({ navigate, onLogout }) {
             </section>
 
             <section
-              className="rounded-xl border border-outline-variant/10 bg-surface-variant/40 p-6 backdrop-blur-xl sm:p-8 lg:col-span-7"
+              className="rounded-xl border border-outline-variant/10 bg-surface-variant/40 p-6 backdrop-blur-xl sm:p-8 lg:col-span-12"
               id="güvenlik"
             >
               <div className="mb-8 flex items-center gap-3">
@@ -601,45 +555,6 @@ function SettingsPage({ navigate, onLogout }) {
                       </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            </section>
-
-            <section
-              className="rounded-xl border border-outline-variant/10 bg-surface-variant/40 p-6 backdrop-blur-xl sm:p-8 lg:col-span-5"
-              id="bildirimler"
-            >
-              <div className="mb-8 flex items-center gap-3">
-                <span className="material-symbols-outlined text-primary-container">
-                  notifications_active
-                </span>
-                <h2 className="text-xl font-bold">Bildirim Tercihleri</h2>
-              </div>
-
-              <div className="space-y-6">
-                <div className="space-y-4">
-                  {notificationOptions.map((option) => (
-                    <div
-                      className="flex items-center justify-between gap-4"
-                      key={option.key}
-                    >
-                      <div>
-                        <p className="text-sm font-medium">{option.title}</p>
-                        <p className="text-[10px] text-on-surface-variant">
-                          {option.description}
-                        </p>
-                      </div>
-                      <div className="scale-75 origin-right">
-                        <Toggle
-                          checked={notificationPreferences[option.key]}
-                          onChange={() =>
-                            toggleNotificationPreference(option.key)
-                          }
-                          tone={option.tone}
-                        />
-                      </div>
-                    </div>
-                  ))}
                 </div>
               </div>
             </section>

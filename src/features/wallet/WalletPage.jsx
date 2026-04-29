@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AppSideNavbar, AppTopNavbar } from '../../shared/components/navigation/AppNavigation'
 import { getApiErrorMessage } from '../../shared/api/apiError'
 import { sendAuthorizedRequest } from '../../shared/api/authorizedRequest'
@@ -36,6 +36,21 @@ const ethFormatter = new Intl.NumberFormat('en-US', {
   minimumFractionDigits: 2,
 })
 
+const walletActions = {
+  deposit: {
+    endpoint: '/api/wallet/deposit',
+    icon: 'arrow_downward',
+    label: 'Deposit',
+    successMessage: 'Deposit completed.',
+  },
+  withdraw: {
+    endpoint: '/api/wallet/withdraw',
+    icon: 'arrow_upward',
+    label: 'Withdraw',
+    successMessage: 'Withdraw completed.',
+  },
+}
+
 function readField(source, camelCaseKey, pascalCaseKey) {
   return source?.[camelCaseKey] ?? source?.[pascalCaseKey]
 }
@@ -56,6 +71,18 @@ function formatEthEquivalent(value) {
 function formatTransactionId(id) {
   const cleanId = String(id || '').replaceAll('-', '').toUpperCase()
   return cleanId ? `#TX-${cleanId.slice(0, 6)}` : '#TX-NEW'
+}
+
+function createIdempotencyKey() {
+  if (globalThis.crypto?.randomUUID) {
+    return globalThis.crypto.randomUUID()
+  }
+
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (token) => {
+    const randomValue = Math.floor(Math.random() * 16)
+    const value = token === 'x' ? randomValue : (randomValue & 0x3) | 0x8
+    return value.toString(16)
+  })
 }
 
 function formatDateParts(value) {
@@ -120,6 +147,7 @@ function mapTransaction(transaction) {
 }
 
 function WalletPage({ navigate, onLogout }) {
+  const isMountedRef = useRef(false)
   const [balance, setBalance] = useState({
     balance: 0,
     frozenBalance: 0,
@@ -130,66 +158,138 @@ function WalletPage({ navigate, onLogout }) {
   const [transactions, setTransactions] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [walletError, setWalletError] = useState('')
+  const [selectedAction, setSelectedAction] = useState('')
+  const [actionAmount, setActionAmount] = useState('')
+  const [actionMessage, setActionMessage] = useState('')
+  const [actionError, setActionError] = useState('')
+  const [isActionSubmitting, setIsActionSubmitting] = useState(false)
 
-  useEffect(() => {
-    let isCurrent = true
-
-    async function loadWallet() {
+  const loadWallet = useCallback(async ({ silent = false } = {}) => {
+    if (!silent) {
       setIsLoading(true)
-      setWalletError('')
+    }
+    setWalletError('')
 
-      try {
-        const balanceResult = await sendAuthorizedRequest('/api/wallet/balance')
-        const transactionsResult = await sendAuthorizedRequest(
-          '/api/wallet/transactions?page=1&pageSize=20',
+    try {
+      const balanceResult = await sendAuthorizedRequest('/api/wallet/balance')
+      const transactionsResult = await sendAuthorizedRequest(
+        '/api/wallet/transactions?page=1&pageSize=20',
+      )
+
+      if (!balanceResult.response.ok) {
+        throw new Error(
+          getApiErrorMessage(
+            balanceResult.payload,
+            'Cuzdan bakiyesi alinamadi.',
+          ),
         )
+      }
 
-        if (!balanceResult.response.ok) {
-          throw new Error(
-            getApiErrorMessage(
-              balanceResult.payload,
-              'Cuzdan bakiyesi alinamadi.',
-            ),
-          )
-        }
+      if (!transactionsResult.response.ok) {
+        throw new Error(
+          getApiErrorMessage(
+            transactionsResult.payload,
+            'Cuzdan hareketleri alinamadi.',
+          ),
+        )
+      }
 
-        if (!transactionsResult.response.ok) {
-          throw new Error(
-            getApiErrorMessage(
-              transactionsResult.payload,
-              'Cuzdan hareketleri alinamadi.',
-            ),
-          )
-        }
+      if (!isMountedRef.current) {
+        return
+      }
 
-        if (!isCurrent) {
-          return
-        }
-
-        setBalance(normalizeBalance(balanceResult.payload))
-        setTransactions(normalizeTransactions(transactionsResult.payload))
-      } catch (error) {
-        if (isCurrent) {
-          setWalletError(error.message || 'Cuzdan bilgileri yuklenemedi.')
-        }
-      } finally {
-        if (isCurrent) {
-          setIsLoading(false)
-        }
+      setBalance(normalizeBalance(balanceResult.payload))
+      setTransactions(normalizeTransactions(transactionsResult.payload))
+    } catch (error) {
+      if (isMountedRef.current) {
+        setWalletError(error.message || 'Cuzdan bilgileri yuklenemedi.')
+      }
+    } finally {
+      if (isMountedRef.current) {
+        setIsLoading(false)
       }
     }
+  }, [])
 
+  useEffect(() => {
+    isMountedRef.current = true
     loadWallet()
 
     return () => {
-      isCurrent = false
+      isMountedRef.current = false
     }
-  }, [])
+  }, [loadWallet])
 
   const renderedTransactions = useMemo(
     () => transactions.map(mapTransaction),
     [transactions],
   )
+
+  const activeAction = selectedAction ? walletActions[selectedAction] : null
+
+  function handleActionSelect(action) {
+    setSelectedAction(action)
+    setActionAmount('')
+    setActionError('')
+    setActionMessage('')
+  }
+
+  function handleActionCancel() {
+    setSelectedAction('')
+    setActionAmount('')
+    setActionError('')
+    setActionMessage('')
+  }
+
+  async function handleActionSubmit(event) {
+    event.preventDefault()
+
+    if (!activeAction) {
+      return
+    }
+
+    const amount = Number(actionAmount)
+
+    setActionError('')
+    setActionMessage('')
+
+    if (!Number.isFinite(amount) || amount <= 0) {
+      setActionError('Amount must be greater than 0.')
+      return
+    }
+
+    if (selectedAction === 'withdraw' && amount > balance.balance) {
+      setActionError('Amount cannot exceed available balance.')
+      return
+    }
+
+    setIsActionSubmitting(true)
+
+    try {
+      const result = await sendAuthorizedRequest(activeAction.endpoint, {
+        body: { amount },
+        headers:
+          selectedAction === 'deposit'
+            ? { 'Idempotency-Key': createIdempotencyKey() }
+            : {},
+        method: 'POST',
+      })
+
+      if (!result.response.ok) {
+        throw new Error(
+          getApiErrorMessage(result.payload, `${activeAction.label} failed.`),
+        )
+      }
+
+      setActionAmount('')
+      setActionMessage(activeAction.successMessage)
+      await loadWallet({ silent: true })
+    } catch (error) {
+      setActionError(error.message || `${activeAction.label} failed.`)
+    } finally {
+      setIsActionSubmitting(false)
+    }
+  }
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-surface text-on-surface">
@@ -260,6 +360,7 @@ function WalletPage({ navigate, onLogout }) {
               <div className="relative z-10 mt-10 flex flex-wrap gap-4 border-t border-outline-variant/10 pt-6">
                 <button
                   className="flex min-w-36 flex-1 items-center justify-center gap-2 rounded-lg border border-outline-variant/20 bg-surface-container-highest py-3 text-sm font-medium text-on-surface transition-colors hover:bg-surface-bright"
+                  onClick={() => handleActionSelect('deposit')}
                   type="button"
                 >
                   <span className="material-symbols-outlined text-[18px]">
@@ -269,6 +370,7 @@ function WalletPage({ navigate, onLogout }) {
                 </button>
                 <button
                   className="flex min-w-36 flex-1 items-center justify-center gap-2 rounded-lg border border-outline-variant/20 bg-surface-container-highest py-3 text-sm font-medium text-on-surface transition-colors hover:bg-surface-bright"
+                  onClick={() => handleActionSelect('withdraw')}
                   type="button"
                 >
                   <span className="material-symbols-outlined text-[18px]">
@@ -277,7 +379,9 @@ function WalletPage({ navigate, onLogout }) {
                   Withdraw
                 </button>
                 <button
-                  className="flex min-w-36 flex-1 items-center justify-center gap-2 rounded-lg border border-outline-variant/20 bg-surface-container-highest py-3 text-sm font-medium text-on-surface transition-colors hover:bg-surface-bright"
+                  className="flex min-w-36 flex-1 cursor-not-allowed items-center justify-center gap-2 rounded-lg border border-outline-variant/20 bg-surface-container-highest py-3 text-sm font-medium text-on-surface-variant opacity-70"
+                  disabled
+                  title="Transfer API yok / not available yet"
                   type="button"
                 >
                   <span className="material-symbols-outlined text-[18px]">
@@ -286,6 +390,69 @@ function WalletPage({ navigate, onLogout }) {
                   Transfer
                 </button>
               </div>
+
+              <div className="relative z-10 mt-3 text-xs text-on-surface-variant">
+                Transfer API yok / not available yet.
+              </div>
+
+              {activeAction ? (
+                <form
+                  className="relative z-10 mt-6 rounded-lg border border-outline-variant/20 bg-surface-container-highest p-4"
+                  onSubmit={handleActionSubmit}
+                >
+                  <div className="flex flex-col gap-4 md:flex-row md:items-end">
+                    <div className="flex-1">
+                      <label
+                        className="mb-2 flex items-center gap-2 text-sm font-medium text-on-surface"
+                        htmlFor="wallet-action-amount"
+                      >
+                        <span className="material-symbols-outlined text-[18px] text-on-surface-variant">
+                          {activeAction.icon}
+                        </span>
+                        {activeAction.label} amount
+                      </label>
+                      <input
+                        className="w-full rounded-lg border border-outline-variant/30 bg-surface px-3 py-2 text-sm text-on-surface outline-none transition-colors placeholder:text-on-surface-variant focus:border-primary"
+                        disabled={isActionSubmitting}
+                        id="wallet-action-amount"
+                        inputMode="decimal"
+                        min="0"
+                        onChange={(event) => setActionAmount(event.target.value)}
+                        placeholder="0.00"
+                        step="0.01"
+                        type="number"
+                        value={actionAmount}
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-on-primary transition-colors hover:bg-primary/90 disabled:cursor-wait disabled:opacity-60"
+                        disabled={isActionSubmitting}
+                        type="submit"
+                      >
+                        {isActionSubmitting ? 'Submitting...' : 'Submit'}
+                      </button>
+                      <button
+                        className="rounded-lg border border-outline-variant/20 px-4 py-2 text-sm font-medium text-on-surface transition-colors hover:bg-surface-bright disabled:cursor-wait disabled:opacity-60"
+                        disabled={isActionSubmitting}
+                        onClick={handleActionCancel}
+                        type="button"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+
+                  {actionError ? (
+                    <p className="mt-3 text-sm text-error">{actionError}</p>
+                  ) : null}
+                  {actionMessage ? (
+                    <p className="mt-3 text-sm text-secondary">
+                      {actionMessage}
+                    </p>
+                  ) : null}
+                </form>
+              ) : null}
             </div>
           </section>
 

@@ -12,46 +12,32 @@ const settingsTabs = [
   ['notifications_active', 'Bildirimler'],
 ]
 
-const alertRows = [
+const notificationOptions = [
   {
-    title: 'Müzayede başlangıç uyarıları',
-    description: 'Takip ettiğin lotlar yayına alındığında',
-    channels: ['mail'],
+    key: 'email',
+    title: 'Email bildirimleri',
+    description: 'Hesap ve ihale gelismelerini email ile al.',
+    tone: 'primary',
   },
   {
-    title: 'Geçilme bildirimleri',
-    description: 'Teklifin geçildiğinde anında haber ver',
-    channels: ['mail', 'smartphone', 'chat_bubble'],
-  },
-  {
-    title: 'Teklif önerileri',
-    description: 'İlgine göre seçilmiş ürün tavsiyeleri',
-    channels: [],
+    key: 'onsite',
+    title: 'Site ici bildirimler',
+    description: 'Bildirimleri uygulama icinde goster.',
+    tone: 'secondary',
   },
 ]
 
-function ChannelButton({ icon, active }) {
-  return (
-    <button
-      className={`flex h-8 w-8 items-center justify-center rounded transition-colors ${
-        active
-          ? 'bg-primary/20 text-primary hover:bg-primary/30'
-          : 'bg-surface-container-high text-on-surface-variant hover:bg-surface-container-highest'
-      }`}
-      type="button"
-      aria-label={icon}
-    >
-      <span className="material-symbols-outlined text-sm">{icon}</span>
-    </button>
-  )
-}
-
-function Toggle({ checked = false, tone = 'secondary' }) {
+function Toggle({ checked = false, onChange, tone = 'secondary' }) {
   const checkedColor = tone === 'primary' ? 'peer-checked:bg-primary' : 'peer-checked:bg-secondary'
 
   return (
     <label className="relative inline-flex cursor-pointer items-center">
-      <input className="peer sr-only" defaultChecked={checked} type="checkbox" />
+      <input
+        checked={checked}
+        className="peer sr-only"
+        onChange={onChange}
+        type="checkbox"
+      />
       <span
         className={`h-6 w-11 rounded-full bg-surface-container-highest transition-colors after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white ${checkedColor}`}
       ></span>
@@ -98,6 +84,17 @@ function SettingsPage({ navigate, onLogout }) {
     type: '',
   })
   const [isPasswordSaving, setIsPasswordSaving] = useState(false)
+  const [notificationPreferences, setNotificationPreferences] = useState({
+    email: true,
+    onsite: true,
+  })
+
+  function toggleNotificationPreference(key) {
+    setNotificationPreferences((current) => ({
+      ...current,
+      [key]: !current[key],
+    }))
+  }
 
   useEffect(() => {
     let isCurrent = true
@@ -621,40 +618,28 @@ function SettingsPage({ navigate, onLogout }) {
 
               <div className="space-y-6">
                 <div className="space-y-4">
-                  {alertRows.map((row) => (
+                  {notificationOptions.map((option) => (
                     <div
                       className="flex items-center justify-between gap-4"
-                      key={row.title}
+                      key={option.key}
                     >
                       <div>
-                        <p className="text-sm font-medium">{row.title}</p>
+                        <p className="text-sm font-medium">{option.title}</p>
                         <p className="text-[10px] text-on-surface-variant">
-                          {row.description}
+                          {option.description}
                         </p>
                       </div>
-                      <div className="flex shrink-0 gap-2">
-                        {['mail', 'smartphone', 'chat_bubble'].map((icon) => (
-                          <ChannelButton
-                            active={row.channels.includes(icon)}
-                            icon={icon}
-                            key={`${row.title}-${icon}`}
-                          />
-                        ))}
+                      <div className="scale-75 origin-right">
+                        <Toggle
+                          checked={notificationPreferences[option.key]}
+                          onChange={() =>
+                            toggleNotificationPreference(option.key)
+                          }
+                          tone={option.tone}
+                        />
                       </div>
                     </div>
                   ))}
-                </div>
-
-                <div className="rounded-xl border border-outline-variant/10 bg-surface-container-high/30 p-4">
-                  <h3 className="mb-2 text-xs font-bold">Sessiz Saatler</h3>
-                  <div className="flex items-center justify-between gap-4">
-                    <span className="text-xs text-on-surface-variant">
-                      Gece yarısından sonra push bildirimlerini sustur
-                    </span>
-                    <div className="scale-75 origin-right">
-                      <Toggle tone="primary" />
-                    </div>
-                  </div>
                 </div>
               </div>
             </section>

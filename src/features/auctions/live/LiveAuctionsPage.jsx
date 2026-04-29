@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import './LiveAuctionsPage.css'
 import { AppSideNavbar, AppTopNavbar } from '../../../shared/components/navigation/AppNavigation'
 import { getApiErrorMessage } from '../../../shared/api/apiError'
@@ -162,9 +163,15 @@ function SkeletonCard() {
 }
 
 function LiveAuctionsPage({ navigate, onLogout }) {
+  const location = useLocation()
   const [auctions, setAuctions] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [auctionError, setAuctionError] = useState('')
+  const searchQuery = useMemo(() => {
+    const query = new URLSearchParams(location.search).get('search') || ''
+
+    return query.trim()
+  }, [location.search])
 
   useEffect(() => {
     let isCurrent = true
@@ -174,11 +181,19 @@ function LiveAuctionsPage({ navigate, onLogout }) {
       setAuctionError('')
 
       try {
-        const { payload, response } = await sendAuthorizedRequest('/api/v1/auctions')
+        const auctionsPath = searchQuery
+          ? `/api/v1/auctions?search=${encodeURIComponent(searchQuery)}`
+          : '/api/v1/auctions'
+        const { payload, response } = await sendAuthorizedRequest(auctionsPath)
 
         if (!response.ok) {
           throw new Error(
-            getApiErrorMessage(payload, 'Muzayedeler yuklenemedi. Lutfen tekrar dene.'),
+            getApiErrorMessage(
+              payload,
+              searchQuery
+                ? 'Arama sonuclari yuklenemedi. Lutfen tekrar dene.'
+                : 'Muzayedeler yuklenemedi. Lutfen tekrar dene.',
+            ),
           )
         }
 
@@ -201,7 +216,7 @@ function LiveAuctionsPage({ navigate, onLogout }) {
     return () => {
       isCurrent = false
     }
-  }, [])
+  }, [searchQuery])
 
   const renderedAuctions = useMemo(
     () => auctions.map((auction, index) => normalizeAuction(auction, index)),
@@ -209,10 +224,17 @@ function LiveAuctionsPage({ navigate, onLogout }) {
   )
   const featuredAuction = renderedAuctions[0]
   const cardAuctions = renderedAuctions.slice(1)
+  const emptyMessage = searchQuery
+    ? `"${searchQuery}" icin sonuc bulunamadi.`
+    : 'Henuz yayinda muzayede yok.'
 
   return (
     <div className="auctions-page">
-      <AppTopNavbar currentPath="/auctions" navigate={navigate} />
+      <AppTopNavbar
+        currentPath="/auctions"
+        navigate={navigate}
+        searchValue={searchQuery}
+      />
 
       <div className="auctions-shell">
         <AppSideNavbar
@@ -226,7 +248,9 @@ function LiveAuctionsPage({ navigate, onLogout }) {
             <div>
               <h1>Canli Muzayedeler</h1>
               <p>
-                Seckin koleksiyonerler icin kuratorlu dijital ve fiziksel varliklar.
+                {searchQuery
+                  ? `"${searchQuery}" arama sonuclari.`
+                  : 'Seckin koleksiyonerler icin kuratorlu dijital ve fiziksel varliklar.'}
               </p>
             </div>
 
@@ -275,7 +299,7 @@ function LiveAuctionsPage({ navigate, onLogout }) {
             ) : null}
 
             {!isLoading && !auctionError && renderedAuctions.length === 0 ? (
-              <div className="auction-state">Henuz yayinda muzayede yok.</div>
+              <div className="auction-state">{emptyMessage}</div>
             ) : null}
 
             {!isLoading && featuredAuction ? (

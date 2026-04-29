@@ -9,7 +9,6 @@
 .lot-bid-card__header,
 .lot-activity-card__header,
 .lot-activity-item__meta,
-.lot-comment-box,
 .lot-ticker__content,
 .lot-ticker__watchers,
 .lot-ticker__actions {
@@ -341,9 +340,7 @@
 }
 
 .lot-bid-button:disabled,
-.lot-bid-input input:disabled,
-.lot-comment-box input:disabled,
-.lot-comment-box button:disabled {
+.lot-bid-input input:disabled {
   cursor: not-allowed;
   opacity: 0.6;
 }
@@ -498,33 +495,6 @@
 .lot-activity-item__check {
   color: var(--color-primary);
   font-variation-settings: 'FILL' 1;
-}
-
-.lot-comment-box {
-  gap: 12px;
-  padding: 16px;
-  border-top: 1px solid rgba(70, 69, 84, 0.14);
-}
-
-.lot-comment-box input {
-  flex: 1;
-  padding: 12px 14px;
-  border: 0;
-  border-radius: 14px;
-  background: var(--color-surface-container);
-  color: #fff;
-  outline: none;
-}
-
-.lot-comment-box button {
-  border: 0;
-  background: transparent;
-  color: var(--color-primary);
-  cursor: pointer;
-}
-
-.lot-comment-box button:hover {
-  color: var(--color-primary-container);
 }
 
 .lot-info-grid {
@@ -730,8 +700,7 @@
   }
 
   .lot-activity-card__header,
-  .lot-activity-feed,
-  .lot-comment-box {
+  .lot-activity-feed {
     padding-inline: 20px;
   }
 

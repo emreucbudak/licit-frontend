@@ -34,6 +34,7 @@ import {
   isStoredAuthenticated,
   storeAuthentication,
 } from '../shared/auth/authStorage'
+import { revokeStoredRefreshToken } from '../shared/api/authorizedRequest'
 
 function AppRoutes() {
   const routerNavigate = useNavigate()
@@ -106,16 +107,20 @@ function AppRoutes() {
     routerNavigate('/verify-login')
   }
 
-  const handleLogout = () => {
-    clearAuthentication()
-    setIsAuthenticated(false)
-    setLoginVerificationFlow({
-      email: '',
-      temporaryToken: '',
-      expiresAt: '',
-      fromPath: '',
-    })
-    routerNavigate('/login', { replace: true })
+  const handleLogout = async () => {
+    try {
+      await revokeStoredRefreshToken()
+    } finally {
+      clearAuthentication()
+      setIsAuthenticated(false)
+      setLoginVerificationFlow({
+        email: '',
+        temporaryToken: '',
+        expiresAt: '',
+        fromPath: '',
+      })
+      routerNavigate('/login', { replace: true })
+    }
   }
 
   const handlePasswordResetRequested = (result) => {

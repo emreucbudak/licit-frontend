@@ -523,12 +523,6 @@ function LotDetailPage({ navigate }) {
                 : null}
             </div>
 
-            <div className="lot-comment-box">
-              <input disabled placeholder="Yorum API bekleniyor" type="text" />
-              <button disabled type="button" aria-label="Yorum gonder">
-                <span className="material-symbols-outlined">send</span>
-              </button>
-            </div>
           </div>
 
           <div className="lot-info-grid">

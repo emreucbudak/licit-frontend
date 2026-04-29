@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import './AppNavigation.css'
 
 const sideNavLinks = [
@@ -53,7 +54,25 @@ export function AppTopNavbar({
   currentPath,
   navigate,
   searchPlaceholder = 'M\u00fczayede ara...',
+  searchValue = '',
 }) {
+  const [searchTerm, setSearchTerm] = useState(searchValue)
+
+  useEffect(() => {
+    setSearchTerm(searchValue)
+  }, [searchValue])
+
+  const handleSearchSubmit = (event) => {
+    event.preventDefault()
+
+    const trimmedSearch = searchTerm.trim()
+    const searchPath = trimmedSearch
+      ? `/auctions?search=${encodeURIComponent(trimmedSearch)}`
+      : '/auctions'
+
+    navigate(searchPath)(event)
+  }
+
   return (
     <header className="app-topbar">
       <div className="app-topbar__brand-row">
@@ -63,10 +82,15 @@ export function AppTopNavbar({
       </div>
 
       <div className="app-topbar__actions">
-        <label className="app-search" aria-label={'M\u00fczayede ara'}>
+        <form className="app-search" aria-label="M\u00fczayede ara" onSubmit={handleSearchSubmit}>
           <span className="material-symbols-outlined">search</span>
-          <input placeholder={searchPlaceholder} type="search" />
-        </label>
+          <input
+            onChange={(event) => setSearchTerm(event.target.value)}
+            placeholder={searchPlaceholder}
+            type="search"
+            value={searchTerm}
+          />
+        </form>
 
         <button
           className={`app-icon-button${

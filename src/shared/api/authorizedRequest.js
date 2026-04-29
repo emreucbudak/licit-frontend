@@ -34,6 +34,32 @@ export async function refreshAccessToken() {
   return payload.accessToken
 }
 
+export async function revokeStoredRefreshToken() {
+  const { accessToken, refreshToken } = getStoredAuthTokens()
+
+  if (!refreshToken) {
+    return false
+  }
+
+  try {
+    const response = await fetch(buildApiUrl('/api/auth/revoke'), {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        refreshToken,
+      }),
+    })
+
+    return response.ok
+  } catch {
+    return false
+  }
+}
+
 export async function sendAuthorizedRequest(
   path,
   { body, headers = {}, method = 'GET' } = {},

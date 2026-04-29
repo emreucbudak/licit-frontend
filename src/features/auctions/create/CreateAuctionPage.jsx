@@ -1,11 +1,8 @@
 import { useEffect, useState } from 'react'
 import { AppSideNavbar, AppTopNavbar } from '../../../shared/components/navigation/AppNavigation'
+import { sendAuthorizedRequest } from '../../../shared/api/authorizedRequest'
 import { buildApiUrl } from '../../../shared/config/runtimeConfig'
 import { getApiErrorMessage, readResponsePayload } from '../../../shared/api/apiError'
-import {
-  getStoredAuthTokens,
-  storeAuthentication,
-} from '../../../shared/auth/authStorage'
 
 const previewImage =
   'https://lh3.googleusercontent.com/aida-public/AB6AXuCEmI0z_YuP3x3BkXaINgNm4oQ4DHezF5XTTEjwh-70YPkKbgx1IYxq0koBKWQccZpreJLFFpkezKTdgTNXPtUqrgOOZKYT8ckcuXNQDwdeEtxj-jt-Geql1-IRNTpvgp35ZDgHl74pVzf5DjITuyboTLPceLctGcnbD84hh9THRfLtGsLfE3L0mGr4gvuKiHkanvdupB8_Ky44VsZ-lMtOfaC17lsVJBXbRLe2U9nd78B8OBiMbRtCAyzVnakb_FXHaf6Rh93fPlY'
@@ -38,68 +35,6 @@ function createEndDate(startDate, durationDays) {
   const endDate = new Date(startDate)
   endDate.setDate(endDate.getDate() + Number(durationDays))
   return endDate
-}
-
-async function refreshAccessToken() {
-  const { refreshToken } = getStoredAuthTokens()
-
-  if (!refreshToken) {
-    throw new Error('Oturum suresi doldu. Lutfen tekrar giris yap.')
-  }
-
-  const response = await fetch(buildApiUrl('/api/auth/refresh'), {
-    method: 'POST',
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      refreshToken,
-    }),
-  })
-  const payload = await readResponsePayload(response)
-
-  if (!response.ok || !payload?.accessToken) {
-    throw new Error(
-      getApiErrorMessage(
-        payload,
-        'Oturum yenilenemedi. Lutfen tekrar giris yap.',
-      ),
-    )
-  }
-
-  storeAuthentication(payload)
-  return payload.accessToken
-}
-
-async function sendAuthorizedJson(path, { body, method }) {
-  const { accessToken } = getStoredAuthTokens()
-
-  if (!accessToken) {
-    throw new Error('Oturum bulunamadi. Lutfen tekrar giris yap.')
-  }
-
-  const sendRequest = (token) =>
-    fetch(buildApiUrl(path), {
-      method,
-      headers: {
-        Accept: 'application/json',
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
-    })
-
-  let response = await sendRequest(accessToken)
-
-  if (response.status === 401) {
-    response = await sendRequest(await refreshAccessToken())
-  }
-
-  return {
-    payload: await readResponsePayload(response),
-    response,
-  }
 }
 
 const initialFormValues = {
@@ -253,7 +188,7 @@ function CreateAuctionPage({ navigate, onLogout }) {
     setSubmitMode(shouldPublish ? 'publish' : 'draft')
 
     try {
-      const { payload, response } = await sendAuthorizedJson('/api/tender', {
+      const { payload, response } = await sendAuthorizedRequest('/api/tender', {
         method: 'POST',
         body: buildPayload(),
       })
@@ -277,7 +212,7 @@ function CreateAuctionPage({ navigate, onLogout }) {
         const {
           payload: statusPayload,
           response: statusResponse,
-        } = await sendAuthorizedJson(`/api/tender/${payload.id}/status`, {
+        } = await sendAuthorizedRequest(`/api/tender/${payload.id}/status`, {
           method: 'PATCH',
           body: {
             status: 'Active',

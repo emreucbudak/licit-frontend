@@ -1,4 +1,7 @@
+import { useEffect, useMemo, useState } from 'react'
 import { AppSideNavbar, AppTopNavbar } from '../../shared/components/navigation/AppNavigation'
+import { getApiErrorMessage } from '../../shared/api/apiError'
+import { sendAuthorizedRequest } from '../../shared/api/authorizedRequest'
 
 const profileAvatar =
   'https://lh3.googleusercontent.com/aida-public/AB6AXuBRljr7YaJ_oWQZEY8qFX7vRVl8ITpebpEKpwBk4k47oODTiuvrom4gbZgmapINGaFLiaWXsQJEFSFc6NFCVkR3umm5o18Uodt8-jPFwWjMUiI1pEuWJDiPGcOUjDg1-VwEeLxqdsIESvraCSQ-dM0DlE9Dk2GPHprazaES2vtj6A-8jhbMOIpmJwgAcRsjQihE7Nh8bNcEwRzc3QyxwaNptpzPjJFo3YEiEs2eawr4kz_xh0ApRS3Ef98oXW4AeVG6rbe60SuTTM4'
@@ -56,7 +59,149 @@ function Toggle({ checked = false, tone = 'secondary' }) {
   )
 }
 
+function getFullName(profile) {
+  return [profile?.firstName, profile?.lastName].filter(Boolean).join(' ').trim()
+}
+
+function getUsernameFallback(profile) {
+  const fullName = getFullName(profile)
+  const emailPrefix = profile?.email?.split('@')[0]
+  const source = fullName || emailPrefix || 'licit_user'
+  const username = source
+    .toLocaleLowerCase('tr-TR')
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+
+  return username || emailPrefix || 'licit_user'
+}
+
 function SettingsPage({ navigate, onLogout }) {
+  const [profile, setProfile] = useState(null)
+  const [profileError, setProfileError] = useState('')
+  const [isProfileLoading, setIsProfileLoading] = useState(true)
+  const [passwordForm, setPasswordForm] = useState({
+    confirmPassword: '',
+    currentPassword: '',
+    newPassword: '',
+  })
+  const [passwordStatus, setPasswordStatus] = useState({
+    message: '',
+    type: '',
+  })
+  const [isPasswordSaving, setIsPasswordSaving] = useState(false)
+
+  useEffect(() => {
+    let isCurrent = true
+
+    async function loadProfile() {
+      setIsProfileLoading(true)
+      setProfileError('')
+
+      try {
+        const { payload, response } = await sendAuthorizedRequest('/api/auth/me')
+
+        if (!response.ok) {
+          throw new Error(
+            getApiErrorMessage(payload, 'Profil bilgileri yuklenemedi.'),
+          )
+        }
+
+        if (isCurrent) {
+          setProfile(payload)
+        }
+      } catch (error) {
+        if (isCurrent) {
+          setProfileError(error.message || 'Profil bilgileri yuklenemedi.')
+        }
+      } finally {
+        if (isCurrent) {
+          setIsProfileLoading(false)
+        }
+      }
+    }
+
+    loadProfile()
+
+    return () => {
+      isCurrent = false
+    }
+  }, [])
+
+  const profileValues = useMemo(() => {
+    const displayName = getFullName(profile)
+
+    return {
+      displayName: displayName || profile?.email || '',
+      email: profile?.email || '',
+      username: getUsernameFallback(profile),
+    }
+  }, [profile])
+
+  function updatePasswordField(event) {
+    const { name, value } = event.target
+
+    setPasswordForm((currentForm) => ({
+      ...currentForm,
+      [name]: value,
+    }))
+    setPasswordStatus({ message: '', type: '' })
+  }
+
+  async function handlePasswordSubmit(event) {
+    event.preventDefault()
+
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setPasswordStatus({
+        message: 'Yeni sifreler eslesmiyor.',
+        type: 'error',
+      })
+      return
+    }
+
+    setIsPasswordSaving(true)
+    setPasswordStatus({ message: '', type: '' })
+
+    try {
+      const { payload, response } = await sendAuthorizedRequest(
+        '/api/auth/change-password',
+        {
+          body: {
+            currentPassword: passwordForm.currentPassword,
+            newPassword: passwordForm.newPassword,
+          },
+          method: 'POST',
+        },
+      )
+
+      if (!response.ok) {
+        throw new Error(getApiErrorMessage(payload, 'Sifre guncellenemedi.'))
+      }
+
+      setPasswordForm({
+        confirmPassword: '',
+        currentPassword: '',
+        newPassword: '',
+      })
+      setPasswordStatus({
+        message: 'Sifre basariyla guncellendi.',
+        type: 'success',
+      })
+    } catch (error) {
+      setPasswordStatus({
+        message: error.message || 'Sifre guncellenemedi.',
+        type: 'error',
+      })
+    } finally {
+      setIsPasswordSaving(false)
+    }
+  }
+
+  const isPasswordSubmitDisabled =
+    isPasswordSaving ||
+    !passwordForm.currentPassword ||
+    !passwordForm.newPassword ||
+    !passwordForm.confirmPassword
+
   return (
     <div className="min-h-screen overflow-x-hidden bg-surface text-on-surface">
       <AppTopNavbar
@@ -90,8 +235,10 @@ function SettingsPage({ navigate, onLogout }) {
                 Vazgeç
               </button>
               <button
-                className="rounded-lg bg-gradient-to-r from-primary to-primary-container px-5 py-2 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-transform hover:scale-[1.02]"
+                className="cursor-not-allowed rounded-lg bg-gradient-to-r from-primary to-primary-container px-5 py-2 text-sm font-bold text-on-primary opacity-50 shadow-lg shadow-primary/20"
+                disabled
                 type="button"
+                title="Profil ve bildirim ayarlari icin henuz kaydetme API'si yok."
               >
                 Değişiklikleri Kaydet
               </button>
@@ -141,9 +288,11 @@ function SettingsPage({ navigate, onLogout }) {
                       />
                     </div>
                     <button
-                      className="absolute -bottom-2 -right-2 rounded-lg bg-primary p-2 text-on-primary shadow-xl transition-transform hover:scale-110"
+                      className="absolute -bottom-2 -right-2 cursor-not-allowed rounded-lg bg-primary p-2 text-on-primary opacity-60 shadow-xl"
+                      disabled
                       type="button"
                       aria-label="Avatarı düzenle"
+                      title="Avatar guncelleme API'si henuz yok."
                     >
                       <span className="material-symbols-outlined text-sm">edit</span>
                     </button>
@@ -154,14 +303,24 @@ function SettingsPage({ navigate, onLogout }) {
                 </div>
 
                 <div className="grid flex-1 grid-cols-1 gap-6 md:grid-cols-2">
+                  {profileError ? (
+                    <p className="rounded-lg bg-error/10 px-4 py-2 text-sm font-semibold text-error md:col-span-2">
+                      {profileError}
+                    </p>
+                  ) : null}
                   <label className="space-y-2">
                     <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
                       Görünen Ad
                     </span>
                     <input
                       className="w-full rounded-lg border-none bg-surface-container-lowest px-4 py-2.5 text-sm focus:ring-1 focus:ring-primary"
-                      defaultValue="Alexander Vance"
+                      readOnly
                       type="text"
+                      value={
+                        isProfileLoading
+                          ? 'Yukleniyor...'
+                          : profileValues.displayName
+                      }
                     />
                   </label>
 
@@ -175,8 +334,9 @@ function SettingsPage({ navigate, onLogout }) {
                       </span>
                       <input
                         className="w-full rounded-lg border-none bg-surface-container-lowest py-2.5 pl-8 pr-4 text-sm focus:ring-1 focus:ring-primary"
-                        defaultValue="vance_licit"
+                        readOnly
                         type="text"
+                        value={isProfileLoading ? '...' : profileValues.username}
                       />
                     </span>
                   </label>
@@ -187,8 +347,9 @@ function SettingsPage({ navigate, onLogout }) {
                     </span>
                     <input
                       className="w-full rounded-lg border-none bg-surface-container-lowest px-4 py-2.5 text-sm focus:ring-1 focus:ring-primary"
-                      defaultValue="alex.v@licit-market.io"
+                      readOnly
                       type="email"
+                      value={isProfileLoading ? 'Yukleniyor...' : profileValues.email}
                     />
                   </label>
 
@@ -198,9 +359,10 @@ function SettingsPage({ navigate, onLogout }) {
                     </span>
                     <textarea
                       className="w-full resize-none rounded-lg border-none bg-surface-container-lowest px-4 py-2.5 text-sm focus:ring-1 focus:ring-primary"
-                      defaultValue="Gelişen dijital varlıklara ve nadir koleksiyon ürünlerine odaklanan stratejik koleksiyoner. 12 yıllık pazar deneyimi."
                       placeholder="Koleksiyoner biyografini gir..."
+                      readOnly
                       rows="3"
+                      value=""
                     ></textarea>
                   </label>
                 </div>
@@ -217,31 +379,60 @@ function SettingsPage({ navigate, onLogout }) {
               </div>
 
               <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-                <div className="space-y-4">
+                <form className="space-y-4" onSubmit={handlePasswordSubmit}>
                   <h3 className="text-sm font-bold uppercase tracking-wider text-on-surface-variant">
                     Şifreyi Güncelle
                   </h3>
                   <div className="space-y-3">
                     <input
                       className="w-full rounded-lg border-none bg-surface-container-lowest px-4 py-2.5 text-sm focus:ring-1 focus:ring-primary"
+                      name="currentPassword"
+                      onChange={updatePasswordField}
                       placeholder="Mevcut şifre"
                       type="password"
+                      value={passwordForm.currentPassword}
                     />
                     <input
                       className="w-full rounded-lg border-none bg-surface-container-lowest px-4 py-2.5 text-sm focus:ring-1 focus:ring-primary"
+                      name="newPassword"
+                      onChange={updatePasswordField}
                       placeholder="Yeni şifre"
                       type="password"
+                      value={passwordForm.newPassword}
                     />
                     <input
                       className="w-full rounded-lg border-none bg-surface-container-lowest px-4 py-2.5 text-sm focus:ring-1 focus:ring-primary"
+                      name="confirmPassword"
+                      onChange={updatePasswordField}
                       placeholder="Yeni şifreyi onayla"
                       type="password"
+                      value={passwordForm.confirmPassword}
                     />
                   </div>
-                  <button className="text-sm font-bold text-primary hover:underline" type="button">
-                    Şifreni mi unuttun?
-                  </button>
-                </div>
+                  {passwordStatus.message ? (
+                    <p
+                      className={`rounded-lg px-3 py-2 text-xs font-semibold ${
+                        passwordStatus.type === 'success'
+                          ? 'bg-secondary/10 text-secondary'
+                          : 'bg-error/10 text-error'
+                      }`}
+                    >
+                      {passwordStatus.message}
+                    </p>
+                  ) : null}
+                  <div className="flex flex-wrap items-center gap-4">
+                    <button
+                      className="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-on-primary transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+                      disabled={isPasswordSubmitDisabled}
+                      type="submit"
+                    >
+                      {isPasswordSaving ? 'Kaydediliyor...' : 'Sifreyi Guncelle'}
+                    </button>
+                    <button className="text-sm font-bold text-primary hover:underline" type="button">
+                      Şifreni mi unuttun?
+                    </button>
+                  </div>
+                </form>
 
                 <div className="space-y-6">
                   <div className="rounded-xl border-l-4 border-secondary bg-surface-container-high/50 p-4">

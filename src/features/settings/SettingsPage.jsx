@@ -435,20 +435,6 @@ function SettingsPage({ navigate, onLogout }) {
                 </form>
 
                 <div className="space-y-6">
-                  <div className="rounded-xl border-l-4 border-secondary bg-surface-container-high/50 p-4">
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <h3 className="text-sm font-bold">
-                          İki Aşamalı Doğrulama
-                        </h3>
-                        <p className="mt-1 text-xs text-on-surface-variant">
-                          Hesabına ekstra bir güvenlik katmanı ekle.
-                        </p>
-                      </div>
-                      <Toggle checked />
-                    </div>
-                  </div>
-
                   <div className="space-y-3">
                     <h3 className="text-sm font-bold uppercase tracking-wider text-on-surface-variant">
                       Aktif Oturumlar

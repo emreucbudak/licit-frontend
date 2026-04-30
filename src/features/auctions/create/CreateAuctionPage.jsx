@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react'
 import { AppSideNavbar, AppTopNavbar } from '../../../shared/components/navigation/AppNavigation'
 import { sendAuthorizedRequest } from '../../../shared/api/authorizedRequest'
-import { buildApiUrl } from '../../../shared/config/runtimeConfig'
-import { getApiErrorMessage, readResponsePayload } from '../../../shared/api/apiError'
+import { getApiErrorMessage } from '../../../shared/api/apiError'
+import {
+  flattenSubCategoryOptions,
+  normalizeCategoryTree,
+} from './categoryOptions'
 
 const previewImage =
   'https://lh3.googleusercontent.com/aida-public/AB6AXuCEmI0z_YuP3x3BkXaINgNm4oQ4DHezF5XTTEjwh-70YPkKbgx1IYxq0koBKWQccZpreJLFFpkezKTdgTNXPtUqrgOOZKYT8ckcuXNQDwdeEtxj-jt-Geql1-IRNTpvgp35ZDgHl74pVzf5DjITuyboTLPceLctGcnbD84hh9THRfLtGsLfE3L0mGr4gvuKiHkanvdupB8_Ky44VsZ-lMtOfaC17lsVJBXbRLe2U9nd78B8OBiMbRtCAyzVnakb_FXHaf6Rh93fPlY'
@@ -62,7 +65,9 @@ function CreateAuctionPage({ navigate, onLogout }) {
   const selectedMainCategory = categories.find(
     (category) => category.id === formValues.mainCategoryId,
   )
-  const subCategoryOptions = selectedMainCategory?.children || []
+  const subCategoryOptions = flattenSubCategoryOptions(
+    selectedMainCategory?.children || [],
+  )
 
   useEffect(() => {
     let isMounted = true
@@ -72,12 +77,7 @@ function CreateAuctionPage({ navigate, onLogout }) {
       setCategoryError('')
 
       try {
-        const response = await fetch(buildApiUrl('/api/categories'), {
-          headers: {
-            Accept: 'application/json',
-          },
-        })
-        const payload = await readResponsePayload(response)
+        const { payload, response } = await sendAuthorizedRequest('/api/categories')
 
         if (!response.ok) {
           throw new Error(
@@ -88,9 +88,7 @@ function CreateAuctionPage({ navigate, onLogout }) {
           )
         }
 
-        const nextCategories = Array.isArray(payload?.categories)
-          ? payload.categories
-          : []
+        const nextCategories = normalizeCategoryTree(payload)
 
         if (!isMounted) {
           return
@@ -98,8 +96,23 @@ function CreateAuctionPage({ navigate, onLogout }) {
 
         setCategories(nextCategories)
         setFormValues((currentValues) => {
-          if (currentValues.mainCategoryId) {
-            return currentValues
+          const currentMainCategory = nextCategories.find(
+            (category) => category.id === currentValues.mainCategoryId,
+          )
+
+          if (currentMainCategory) {
+            const currentSubCategories = flattenSubCategoryOptions(
+              currentMainCategory.children || [],
+            )
+
+            return {
+              ...currentValues,
+              categoryId: currentSubCategories.some(
+                (category) => category.id === currentValues.categoryId,
+              )
+                ? currentValues.categoryId
+                : '',
+            }
           }
 
           return {
@@ -393,7 +406,7 @@ function CreateAuctionPage({ navigate, onLogout }) {
                         </option>
                         {subCategoryOptions.map((category) => (
                           <option key={category.id} value={category.id}>
-                            {category.name}
+                            {category.label}
                           </option>
                         ))}
                       </select>

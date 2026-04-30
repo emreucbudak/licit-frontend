@@ -17,6 +17,8 @@ const fallbackAuctionImages = [
   },
 ]
 
+const BID_HISTORY_PAGE_SIZE = 5
+
 const openTenderStatuses = new Set([
   'active',
   'open',
@@ -88,6 +90,12 @@ function formatNumber(value) {
   return new Intl.NumberFormat('tr-TR').format(numericValue)
 }
 
+function toNumber(value) {
+  const numericValue = Number(value)
+
+  return Number.isFinite(numericValue) ? numericValue : 0
+}
+
 function formatEndDate(value) {
   if (!value) {
     return '-'
@@ -117,6 +125,38 @@ async function fetchDashboardSummary() {
   return payload
 }
 
+function normalizeBidHistoryPage(payload, requestedPage, requestedPageSize) {
+  const bids =
+    getField(payload, 'bids', 'Bids', 'items', 'Items', 'data', 'Data') ||
+    (Array.isArray(payload) ? payload : [])
+  const totalCount =
+    getField(payload, 'totalCount', 'total_count', 'TotalCount', 'total', 'Total', 'count') ??
+    bids.length
+
+  return {
+    bids: Array.isArray(bids) ? bids : [],
+    page:
+      toNumber(getField(payload, 'page', 'Page', 'currentPage', 'current_page')) ||
+      requestedPage,
+    pageSize:
+      toNumber(getField(payload, 'pageSize', 'page_size', 'PageSize', 'perPage')) ||
+      requestedPageSize,
+    totalCount: toNumber(totalCount),
+  }
+}
+
+async function fetchBidHistory(page, pageSize) {
+  const { payload, response } = await sendAuthorizedRequest(
+    `/api/v1/bids/me?page=${page}&pageSize=${pageSize}`,
+  )
+
+  if (!response.ok) {
+    throw new Error(getApiErrorMessage(payload, 'Teklif gecmisi alinamadi.'))
+  }
+
+  return normalizeBidHistoryPage(payload, page, pageSize)
+}
+
 function getErrorMessage(errors, ...keys) {
   const value = getField(errors, ...keys)
 
@@ -127,10 +167,25 @@ function getErrorMessage(errors, ...keys) {
   return typeof value === 'string' ? value : 'Ozet verisinin bu bolumu alinamadi.'
 }
 
+function getBidAuctionId(bid) {
+  const nestedAuction = getField(bid, 'auction', 'Auction')
+
+  return (
+    getField(bid, 'auctionId', 'auction_id', 'AuctionId') ??
+    getField(nestedAuction, 'id', 'Id')
+  )
+}
+
 function DashboardPage({ navigate, onLogout }) {
   const [dashboardData, setDashboardData] = useState(null)
   const [dashboardErrors, setDashboardErrors] = useState({})
   const [isDashboardLoading, setIsDashboardLoading] = useState(true)
+  const [bidHistory, setBidHistory] = useState([])
+  const [bidPage, setBidPage] = useState(1)
+  const [bidPageSize, setBidPageSize] = useState(BID_HISTORY_PAGE_SIZE)
+  const [bidTotalCount, setBidTotalCount] = useState(0)
+  const [isBidsLoading, setIsBidsLoading] = useState(true)
+  const [bidHistoryError, setBidHistoryError] = useState('')
 
   useEffect(() => {
     let isCurrent = true
@@ -171,6 +226,45 @@ function DashboardPage({ navigate, onLogout }) {
     }
   }, [])
 
+  useEffect(() => {
+    let isCurrent = true
+
+    async function loadBidHistory() {
+      setIsBidsLoading(true)
+      setBidHistoryError('')
+
+      try {
+        const bidPageData = await fetchBidHistory(bidPage, bidPageSize)
+
+        if (!isCurrent) {
+          return
+        }
+
+        setBidHistory(bidPageData.bids)
+        setBidPage(bidPageData.page)
+        setBidPageSize(bidPageData.pageSize)
+        setBidTotalCount(bidPageData.totalCount)
+      } catch (error) {
+        if (!isCurrent) {
+          return
+        }
+
+        setBidHistory([])
+        setBidHistoryError(error.message || 'Teklif gecmisi yuklenemedi.')
+      } finally {
+        if (isCurrent) {
+          setIsBidsLoading(false)
+        }
+      }
+    }
+
+    loadBidHistory()
+
+    return () => {
+      isCurrent = false
+    }
+  }, [bidPage, bidPageSize])
+
   const wallet = dashboardData?.wallet || null
   const walletTransactions =
     getField(dashboardData, 'walletTransactions', 'wallet_transactions') || null
@@ -181,7 +275,7 @@ function DashboardPage({ navigate, onLogout }) {
   const walletError = summaryError || getErrorMessage(dashboardErrors, 'wallet')
   const transactionsError =
     summaryError || getErrorMessage(dashboardErrors, 'walletTransactions', 'wallet_transactions')
-  const bidsError = summaryError || getErrorMessage(dashboardErrors, 'recentBids', 'recent_bids')
+  const bidsError = bidHistoryError
 
   const tenders = useMemo(
     () =>
@@ -243,36 +337,46 @@ function DashboardPage({ navigate, onLogout }) {
     })
   }, [activeAuctions, openTenders, tenders])
 
-  const recentBids = useMemo(
-    () =>
-      Array.isArray(dashboardData?.recentBids)
-        ? dashboardData.recentBids
-        : Array.isArray(dashboardData?.recent_bids)
-          ? dashboardData.recent_bids
-        : [],
-    [dashboardData?.recentBids, dashboardData?.recent_bids],
-  )
-
   const bidRows = useMemo(
     () =>
-      recentBids.map((bid, index) => {
+      bidHistory.map((bid, index) => {
         const fallbackImage =
           fallbackAuctionImages[index % fallbackAuctionImages.length]
+        const auction = getField(bid, 'auction', 'Auction')
+        const auctionId = getBidAuctionId(bid)
         const isWinning = Boolean(getField(bid, 'isWinning', 'is_winning'))
-        const status = bid.status || (isWinning ? 'Kazaniyor' : 'Teklif')
+        const status =
+          getField(bid, 'status', 'Status') || (isWinning ? 'Kazaniyor' : 'Teklif')
 
         return {
-          id: bid.id || `${getField(bid, 'auctionId', 'auction_id')}-${index}`,
+          id: getField(bid, 'id', 'Id') || `${auctionId || 'bid'}-${index}`,
+          auctionId,
           date: formatEndDate(getField(bid, 'createdAt', 'created_at')),
-          item: getField(bid, 'auctionTitle', 'auction_title') || 'Basliksiz muzayede',
-          bid: formatCurrency(bid.amount),
+          item:
+            getField(bid, 'auctionTitle', 'auction_title', 'AuctionTitle') ||
+            getField(auction, 'title', 'Title') ||
+            'Basliksiz muzayede',
+          bid: formatCurrency(getField(bid, 'amount', 'Amount', 'bidAmount', 'bid_amount')),
           status,
           tone: isWinning || normalizeStatus(status) === 'accepted' ? 'secondary' : 'tertiary',
           image: fallbackImage.image,
         }
       }),
-    [recentBids],
+    [bidHistory],
   )
+
+  const bidTotalPages = Math.max(1, Math.ceil(bidTotalCount / bidPageSize))
+  const bidRangeStart =
+    bidTotalCount === 0 ? 0 : (bidPage - 1) * bidPageSize + 1
+  const bidRangeEnd = Math.min(bidPage * bidPageSize, bidTotalCount)
+  const bidPageNumbers = useMemo(() => {
+    const firstPage = Math.max(1, Math.min(bidPage - 1, bidTotalPages - 2))
+
+    return Array.from(
+      { length: Math.min(3, bidTotalPages) },
+      (_, index) => firstPage + index,
+    ).filter((pageNumber) => pageNumber <= bidTotalPages)
+  }, [bidPage, bidTotalPages])
 
   const statsCards = useMemo(() => {
     const tenderTotal =
@@ -350,6 +454,14 @@ function DashboardPage({ navigate, onLogout }) {
       ]),
     [tenders],
   )
+
+  function handleBidPageChange(nextPage) {
+    const clampedPage = Math.min(Math.max(nextPage, 1), bidTotalPages)
+
+    if (clampedPage !== bidPage) {
+      setBidPage(clampedPage)
+    }
+  }
 
   return (
     <div className="dashboard-page">
@@ -465,19 +577,19 @@ function DashboardPage({ navigate, onLogout }) {
                     <tr><th>Tarih</th><th>Urun</th><th>Teklifin</th><th>Durum</th><th className="dashboard-table__right">Islem</th></tr>
                   </thead>
                   <tbody>
-                    {isDashboardLoading && bidRows.length === 0 ? (
+                    {isBidsLoading && bidRows.length === 0 ? (
                       <tr>
                         <td colSpan="5">Yukleniyor...</td>
                       </tr>
                     ) : null}
 
-                    {!isDashboardLoading && bidsError ? (
+                    {!isBidsLoading && bidsError ? (
                       <tr>
                         <td colSpan="5">{bidsError}</td>
                       </tr>
                     ) : null}
 
-                    {!isDashboardLoading && !bidsError && bidRows.length === 0 ? (
+                    {!isBidsLoading && !bidsError && bidRows.length === 0 ? (
                       <tr>
                         <td colSpan="5">Teklif gecmisi bulunamadi.</td>
                       </tr>
@@ -490,7 +602,19 @@ function DashboardPage({ navigate, onLogout }) {
                         <td className="dashboard-table__bid">{row.bid}</td>
                         <td><span className={`dashboard-table__status dashboard-table__status--${row.tone}`}><span></span>{row.status}</span></td>
                         <td className="dashboard-table__right">
-                          <button className="dashboard-table__open" type="button" aria-label="Muzayedeyi ac"><span className="material-symbols-outlined">open_in_new</span></button>
+                          <button
+                            aria-label="Muzayedeyi ac"
+                            className="dashboard-table__open"
+                            disabled={!row.auctionId}
+                            onClick={
+                              row.auctionId
+                                ? navigate(`/auctions/${row.auctionId}`)
+                                : undefined
+                            }
+                            type="button"
+                          >
+                            <span className="material-symbols-outlined">open_in_new</span>
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -498,16 +622,43 @@ function DashboardPage({ navigate, onLogout }) {
                 </table>
                 <div className="dashboard-table__footer">
                   <p>
-                    {isDashboardLoading
+                    {isBidsLoading
                       ? 'Teklifler yukleniyor.'
-                      : bidsError || `${formatNumber(bidRows.length)} son teklif gosteriliyor.`}
+                      : bidsError ||
+                        `${formatNumber(bidRangeStart)}-${formatNumber(bidRangeEnd)} / ${formatNumber(bidTotalCount)} teklif gosteriliyor.`}
                   </p>
                   <div className="dashboard-pagination">
-                    <button type="button" aria-label="Onceki sayfa"><span className="material-symbols-outlined">chevron_left</span></button>
-                    <button className="dashboard-pagination__active" type="button">1</button>
-                    <button type="button">2</button>
-                    <button type="button">3</button>
-                    <button type="button" aria-label="Sonraki sayfa"><span className="material-symbols-outlined">chevron_right</span></button>
+                    <button
+                      aria-label="Onceki sayfa"
+                      disabled={isBidsLoading || bidPage <= 1}
+                      onClick={() => handleBidPageChange(bidPage - 1)}
+                      type="button"
+                    >
+                      <span className="material-symbols-outlined">chevron_left</span>
+                    </button>
+                    {bidPageNumbers.map((pageNumber) => (
+                      <button
+                        className={
+                          pageNumber === bidPage
+                            ? 'dashboard-pagination__active'
+                            : ''
+                        }
+                        disabled={isBidsLoading}
+                        key={pageNumber}
+                        onClick={() => handleBidPageChange(pageNumber)}
+                        type="button"
+                      >
+                        {pageNumber}
+                      </button>
+                    ))}
+                    <button
+                      aria-label="Sonraki sayfa"
+                      disabled={isBidsLoading || bidPage >= bidTotalPages}
+                      onClick={() => handleBidPageChange(bidPage + 1)}
+                      type="button"
+                    >
+                      <span className="material-symbols-outlined">chevron_right</span>
+                    </button>
                   </div>
                 </div>
               </div>

@@ -4,6 +4,7 @@ export function titleForPath(pathname) {
       '/auctions': 'Licit | Premium Auction Exchange',
       '/auctions/lot-4429': 'Licit | Lot Detayı',
       '/auctions/create': 'Müzayede Oluştur | Licit',
+      '/auctions/manage': 'Ihale Yonetimi | Licit',
       '/dashboard': 'Licit Panel - Koleksiyoner',
       '/settings': 'Hesap Ayarları | Licit',
       '/wallet': 'Cüzdan | Licit',

@@ -25,6 +25,8 @@ const transactionIconByType = {
 
 const positiveTransactionTypes = new Set(['Deposit', 'Unfreeze'])
 const reservedTransactionTypes = new Set(['Freeze'])
+const RECENT_TRANSACTION_PAGE_SIZE = 5
+const EXPANDED_TRANSACTION_PAGE_SIZE = 10
 
 const moneyFormatter = new Intl.NumberFormat('en-US', {
   currency: 'USD',
@@ -123,6 +125,24 @@ function normalizeTransactions(payload) {
   return Array.isArray(transactions) ? transactions : []
 }
 
+function normalizeTransactionPage(payload, requestedPage, requestedPageSize) {
+  const transactions = normalizeTransactions(payload)
+  const totalCount =
+    readField(payload, 'totalCount', 'TotalCount') ??
+    readField(payload, 'total_count', 'Total') ??
+    transactions.length
+
+  return {
+    page: toNumber(readField(payload, 'page', 'Page')) || requestedPage,
+    pageSize:
+      toNumber(readField(payload, 'pageSize', 'PageSize')) ||
+      toNumber(readField(payload, 'page_size', 'PerPage')) ||
+      requestedPageSize,
+    totalCount: toNumber(totalCount),
+    transactions,
+  }
+}
+
 function mapTransaction(transaction) {
   const id = readField(transaction, 'id', 'Id')
   const type = readField(transaction, 'type', 'Type') || 'Transaction'
@@ -156,6 +176,12 @@ function WalletPage({ navigate, onLogout }) {
     walletId: '',
   })
   const [transactions, setTransactions] = useState([])
+  const [transactionPage, setTransactionPage] = useState(1)
+  const [transactionPageSize, setTransactionPageSize] = useState(
+    RECENT_TRANSACTION_PAGE_SIZE,
+  )
+  const [transactionTotalCount, setTransactionTotalCount] = useState(0)
+  const [isHistoryExpanded, setIsHistoryExpanded] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [walletError, setWalletError] = useState('')
   const [selectedAction, setSelectedAction] = useState('')
@@ -164,52 +190,70 @@ function WalletPage({ navigate, onLogout }) {
   const [actionError, setActionError] = useState('')
   const [isActionSubmitting, setIsActionSubmitting] = useState(false)
 
-  const loadWallet = useCallback(async ({ silent = false } = {}) => {
-    if (!silent) {
-      setIsLoading(true)
-    }
-    setWalletError('')
+  const loadWallet = useCallback(
+    async ({
+      page = 1,
+      pageSize = RECENT_TRANSACTION_PAGE_SIZE,
+      silent = false,
+    } = {}) => {
+      const requestedPage = page
+      const requestedPageSize = pageSize
 
-    try {
-      const balanceResult = await sendAuthorizedRequest('/api/wallet/balance')
-      const transactionsResult = await sendAuthorizedRequest(
-        '/api/wallet/transactions?page=1&pageSize=20',
-      )
+      if (!silent) {
+        setIsLoading(true)
+      }
+      setWalletError('')
 
-      if (!balanceResult.response.ok) {
-        throw new Error(
-          getApiErrorMessage(
-            balanceResult.payload,
-            'Cuzdan bakiyesi alinamadi.',
-          ),
+      try {
+        const balanceResult = await sendAuthorizedRequest('/api/wallet/balance')
+        const transactionsResult = await sendAuthorizedRequest(
+          `/api/wallet/transactions?page=${requestedPage}&pageSize=${requestedPageSize}`,
         )
-      }
 
-      if (!transactionsResult.response.ok) {
-        throw new Error(
-          getApiErrorMessage(
-            transactionsResult.payload,
-            'Cuzdan hareketleri alinamadi.',
-          ),
+        if (!balanceResult.response.ok) {
+          throw new Error(
+            getApiErrorMessage(
+              balanceResult.payload,
+              'Cuzdan bakiyesi alinamadi.',
+            ),
+          )
+        }
+
+        if (!transactionsResult.response.ok) {
+          throw new Error(
+            getApiErrorMessage(
+              transactionsResult.payload,
+              'Cuzdan hareketleri alinamadi.',
+            ),
+          )
+        }
+
+        if (!isMountedRef.current) {
+          return
+        }
+
+        setBalance(normalizeBalance(balanceResult.payload))
+        const transactionData = normalizeTransactionPage(
+          transactionsResult.payload,
+          requestedPage,
+          requestedPageSize,
         )
+        setTransactions(transactionData.transactions)
+        setTransactionPage(transactionData.page)
+        setTransactionPageSize(transactionData.pageSize)
+        setTransactionTotalCount(transactionData.totalCount)
+      } catch (error) {
+        if (isMountedRef.current) {
+          setWalletError(error.message || 'Cuzdan bilgileri yuklenemedi.')
+        }
+      } finally {
+        if (isMountedRef.current) {
+          setIsLoading(false)
+        }
       }
-
-      if (!isMountedRef.current) {
-        return
-      }
-
-      setBalance(normalizeBalance(balanceResult.payload))
-      setTransactions(normalizeTransactions(transactionsResult.payload))
-    } catch (error) {
-      if (isMountedRef.current) {
-        setWalletError(error.message || 'Cuzdan bilgileri yuklenemedi.')
-      }
-    } finally {
-      if (isMountedRef.current) {
-        setIsLoading(false)
-      }
-    }
-  }, [])
+    },
+    [],
+  )
 
   useEffect(() => {
     isMountedRef.current = true
@@ -226,6 +270,31 @@ function WalletPage({ navigate, onLogout }) {
   )
 
   const activeAction = selectedAction ? walletActions[selectedAction] : null
+  const transactionTotalPages = Math.max(
+    1,
+    Math.ceil(transactionTotalCount / transactionPageSize),
+  )
+  const transactionRangeStart =
+    transactionTotalCount === 0
+      ? 0
+      : (transactionPage - 1) * transactionPageSize + 1
+  const transactionRangeEnd = Math.min(
+    transactionPage * transactionPageSize,
+    transactionTotalCount,
+  )
+  const transactionPageNumbers = useMemo(() => {
+    const firstPage = Math.max(
+      1,
+      Math.min(transactionPage - 1, transactionTotalPages - 2),
+    )
+
+    return Array.from(
+      { length: Math.min(3, transactionTotalPages) },
+      (_, index) => firstPage + index,
+    ).filter((pageNumber) => pageNumber <= transactionTotalPages)
+  }, [transactionPage, transactionTotalPages])
+  const showTransactionPagination =
+    isHistoryExpanded && (transactionTotalPages > 1 || transactionTotalCount > transactions.length)
 
   function handleActionSelect(action) {
     setSelectedAction(action)
@@ -283,12 +352,39 @@ function WalletPage({ navigate, onLogout }) {
 
       setActionAmount('')
       setActionMessage(activeAction.successMessage)
-      await loadWallet({ silent: true })
+      await loadWallet({ page: transactionPage, pageSize: transactionPageSize, silent: true })
     } catch (error) {
       setActionError(error.message || `${activeAction.label} failed.`)
     } finally {
       setIsActionSubmitting(false)
     }
+  }
+
+  function handleHistoryToggle() {
+    const nextExpanded = !isHistoryExpanded
+
+    setIsHistoryExpanded(nextExpanded)
+    loadWallet({
+      page: 1,
+      pageSize: nextExpanded
+        ? EXPANDED_TRANSACTION_PAGE_SIZE
+        : RECENT_TRANSACTION_PAGE_SIZE,
+      silent: true,
+    })
+  }
+
+  function handleTransactionPageChange(nextPage) {
+    const clampedPage = Math.min(Math.max(nextPage, 1), transactionTotalPages)
+
+    if (clampedPage === transactionPage) {
+      return
+    }
+
+    loadWallet({
+      page: clampedPage,
+      pageSize: transactionPageSize,
+      silent: true,
+    })
   }
 
   return (
@@ -461,11 +557,12 @@ function WalletPage({ navigate, onLogout }) {
               <h2 className="text-xl font-bold text-on-surface">Recent Activity</h2>
               <button
                 className="flex items-center gap-1 text-sm font-medium text-primary transition-colors hover:text-primary-container"
+                onClick={handleHistoryToggle}
                 type="button"
               >
-                View All
+                {isHistoryExpanded ? 'Show Recent' : 'View All'}
                 <span className="material-symbols-outlined text-[18px]">
-                  arrow_forward
+                  {isHistoryExpanded ? 'history' : 'arrow_forward'}
                 </span>
               </button>
             </div>
@@ -538,6 +635,57 @@ function WalletPage({ navigate, onLogout }) {
                 </tbody>
               </table>
             </div>
+
+            {isHistoryExpanded ? (
+              <div className="flex flex-col gap-3 border-t border-outline-variant/10 px-6 py-4 text-sm text-on-surface-variant sm:flex-row sm:items-center sm:justify-between">
+                <p>
+                  {isLoading
+                    ? 'Wallet activity is loading.'
+                    : `Showing ${transactionRangeStart}-${transactionRangeEnd} of ${transactionTotalCount} transactions.`}
+                </p>
+                {showTransactionPagination ? (
+                  <div className="flex items-center gap-2">
+                    <button
+                      aria-label="Previous transaction page"
+                      className="grid h-9 w-9 place-items-center rounded-lg bg-surface-container-high text-on-surface-variant transition-colors hover:bg-surface-bright disabled:cursor-not-allowed disabled:opacity-50"
+                      disabled={isLoading || transactionPage <= 1}
+                      onClick={() => handleTransactionPageChange(transactionPage - 1)}
+                      type="button"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">
+                        chevron_left
+                      </span>
+                    </button>
+                    {transactionPageNumbers.map((pageNumber) => (
+                      <button
+                        className={`h-9 min-w-9 rounded-lg px-3 text-sm font-bold transition-colors ${
+                          pageNumber === transactionPage
+                            ? 'bg-primary text-on-primary'
+                            : 'bg-surface-container-high text-on-surface-variant hover:bg-surface-bright'
+                        }`}
+                        disabled={isLoading}
+                        key={pageNumber}
+                        onClick={() => handleTransactionPageChange(pageNumber)}
+                        type="button"
+                      >
+                        {pageNumber}
+                      </button>
+                    ))}
+                    <button
+                      aria-label="Next transaction page"
+                      className="grid h-9 w-9 place-items-center rounded-lg bg-surface-container-high text-on-surface-variant transition-colors hover:bg-surface-bright disabled:cursor-not-allowed disabled:opacity-50"
+                      disabled={isLoading || transactionPage >= transactionTotalPages}
+                      onClick={() => handleTransactionPageChange(transactionPage + 1)}
+                      type="button"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">
+                        chevron_right
+                      </span>
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
           </section>
         </div>
       </main>

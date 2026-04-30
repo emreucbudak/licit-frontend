@@ -10,6 +10,7 @@ import {
 import CreateAuctionPage from '../features/auctions/create/CreateAuctionPage'
 import LotDetailPage from '../features/auctions/detail/LotDetailPage'
 import LiveAuctionsPage from '../features/auctions/live/LiveAuctionsPage'
+import TenderManagementPage from '../features/auctions/manage/TenderManagementPage'
 import LoginPage from '../features/auth/login/LoginPage'
 import CreateNewPasswordPage from '../features/auth/password-reset/CreateNewPasswordPage'
 import ForgotPasswordPage from '../features/auth/password-reset/ForgotPasswordPage'
@@ -289,6 +290,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute isAuthenticated={isAuthenticated}>
             <CreateAuctionPage navigate={navigate} onLogout={handleLogout} />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/auctions/manage"
+        element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <TenderManagementPage navigate={navigate} onLogout={handleLogout} />
           </ProtectedRoute>
         }
       />

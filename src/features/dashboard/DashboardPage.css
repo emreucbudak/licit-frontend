@@ -409,6 +409,11 @@
   cursor: pointer;
 }
 
+.dashboard-table__open:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
 .dashboard-table__footer {
   display: flex;
   align-items: center;
@@ -442,6 +447,11 @@
   font-size: 0.72rem;
   font-weight: 900;
   cursor: pointer;
+}
+
+.dashboard-pagination button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
 }
 
 .dashboard-pagination__active {

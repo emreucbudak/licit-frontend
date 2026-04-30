@@ -45,6 +45,22 @@ function readField(source, ...keys) {
   return keys.map((key) => source?.[key]).find((value) => value !== undefined)
 }
 
+function readCollection(payload, ...keys) {
+  if (Array.isArray(payload)) {
+    return payload
+  }
+
+  for (const key of keys) {
+    const value = payload?.[key]
+
+    if (Array.isArray(value)) {
+      return value
+    }
+  }
+
+  return []
+}
+
 function toNumber(value) {
   const numberValue = Number(value)
   return Number.isFinite(numberValue) ? numberValue : 0
@@ -87,10 +103,18 @@ function normalizeAuction(auction, index) {
   const fallback = imageFallbacks[index % imageFallbacks.length]
   const id = readField(auction, 'id', 'Id')
   const currentPrice = readField(auction, 'current_price', 'currentPrice', 'CurrentPrice')
-  const endTime = readField(auction, 'ends_at', 'endsAt', 'EndsAt')
+  const endTime = readField(auction, 'ends_at', 'endsAt', 'EndsAt', 'endDate', 'EndDate')
   const title = readField(auction, 'title', 'Title') || 'Isimsiz muzayede'
   const status = readField(auction, 'status', 'Status') || 'unknown'
   const endsLabel = formatEndsAt(endTime)
+  const startingPrice = readField(
+    auction,
+    'startingPrice',
+    'StartingPrice',
+    'start_price',
+    'startPrice',
+    'StartPrice',
+  )
 
   return {
     id,
@@ -101,7 +125,7 @@ function normalizeAuction(auction, index) {
     endsAt: endTime,
     endsIn: endsLabel,
     image: fallback.image,
-    price: formatMoney(currentPrice ?? readField(auction, 'start_price', 'startPrice', 'StartPrice')),
+    price: formatMoney(currentPrice ?? startingPrice),
     status,
     title,
     urgency: endsLabel !== 'Bitti' && new Date(endTime).getTime() - Date.now() < 60 * 60 * 1000,
@@ -182,7 +206,7 @@ function LiveAuctionsPage({ navigate, onLogout }) {
 
       try {
         const auctionsPath = searchQuery
-          ? `/api/v1/auctions?search=${encodeURIComponent(searchQuery)}`
+          ? `/api/tender?search=${encodeURIComponent(searchQuery)}&activeOnly=true`
           : '/api/v1/auctions'
         const { payload, response } = await sendAuthorizedRequest(auctionsPath)
 
@@ -198,7 +222,17 @@ function LiveAuctionsPage({ navigate, onLogout }) {
         }
 
         if (isCurrent) {
-          setAuctions(Array.isArray(payload?.auctions) ? payload.auctions : [])
+          setAuctions(
+            readCollection(
+              payload,
+              searchQuery ? 'tenders' : 'auctions',
+              searchQuery ? 'Tenders' : 'Auctions',
+              'items',
+              'Items',
+              'data',
+              'Data',
+            ),
+          )
         }
       } catch (error) {
         if (isCurrent) {

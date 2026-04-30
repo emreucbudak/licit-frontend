@@ -13,7 +13,7 @@
   justify-content: space-between;
   gap: 24px;
   max-width: 100vw;
-  overflow: hidden;
+  overflow: visible;
   padding: 16px 24px;
   border-bottom: 1px solid rgba(70, 69, 84, 0.24);
   background: rgba(11, 19, 38, 0.94);
@@ -87,10 +87,16 @@
     transform 0.2s ease;
 }
 
-.app-icon-button:hover {
+.app-icon-button:hover,
+.app-icon-button--active {
   color: #fff;
   background: rgba(30, 41, 59, 0.62);
   transform: translateY(-1px);
+}
+
+.app-icon-button:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
 }
 
 .app-icon-button__dot {
@@ -102,6 +108,270 @@
   border-radius: 50%;
   background: var(--color-secondary);
   box-shadow: 0 0 0 4px rgba(78, 222, 163, 0.1);
+}
+
+.app-icon-button__badge {
+  position: absolute;
+  top: 4px;
+  right: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border: 2px solid rgba(11, 19, 38, 0.94);
+  border-radius: 999px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 0.64rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.app-notifications {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+.app-notifications__panel {
+  position: absolute;
+  top: calc(100% + 14px);
+  right: -56px;
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  width: min(380px, calc(100vw - 32px));
+  max-height: min(560px, calc(100vh - 92px));
+  overflow: hidden;
+  border: 1px solid rgba(100, 116, 139, 0.28);
+  border-radius: 12px;
+  background: #0f172a;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.42);
+}
+
+.app-notifications__panel::before {
+  position: absolute;
+  top: -7px;
+  right: 72px;
+  width: 14px;
+  height: 14px;
+  border-top: 1px solid rgba(100, 116, 139, 0.28);
+  border-left: 1px solid rgba(100, 116, 139, 0.28);
+  background: #0f172a;
+  content: '';
+  transform: rotate(45deg);
+}
+
+.app-notifications__header {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px;
+  border-bottom: 1px solid rgba(100, 116, 139, 0.18);
+  background: #111c31;
+}
+
+.app-notifications__header h2,
+.app-notifications__header p,
+.app-notifications__item-title h3,
+.app-notifications__item-content p,
+.app-notifications__state p {
+  margin: 0;
+}
+
+.app-notifications__header h2 {
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 850;
+  line-height: 1.2;
+}
+
+.app-notifications__header p {
+  margin-top: 4px;
+  color: var(--color-slate-400);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.app-notifications__mark-all,
+.app-notifications__state button {
+  border: 0;
+  border-radius: 8px;
+  background: rgba(73, 75, 214, 0.16);
+  color: var(--color-primary);
+  cursor: pointer;
+  font-size: 0.76rem;
+  font-weight: 800;
+  line-height: 1.2;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.app-notifications__mark-all {
+  flex: 0 0 auto;
+  max-width: 132px;
+  padding: 8px 10px;
+}
+
+.app-notifications__mark-all:hover,
+.app-notifications__state button:hover {
+  background: rgba(73, 75, 214, 0.24);
+  color: #fff;
+}
+
+.app-notifications__mark-all:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.app-notifications__body {
+  min-height: 168px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.app-notifications__state {
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+  padding: 38px 24px;
+  color: var(--color-slate-400);
+  text-align: center;
+}
+
+.app-notifications__state .material-symbols-outlined {
+  color: var(--color-primary);
+  font-size: 1.8rem;
+}
+
+.app-notifications__state p {
+  font-size: 0.9rem;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+.app-notifications__state button {
+  padding: 9px 12px;
+}
+
+.app-notifications__state--error .material-symbols-outlined,
+.app-notifications__state--error p {
+  color: #f87171;
+}
+
+.app-notifications__list {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.app-notifications__item {
+  display: grid;
+  grid-template-columns: 8px minmax(0, 1fr) 34px;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 14px 12px 14px 14px;
+  border-bottom: 1px solid rgba(100, 116, 139, 0.14);
+  color: var(--color-slate-400);
+}
+
+.app-notifications__item:last-child {
+  border-bottom: 0;
+}
+
+.app-notifications__item--unread {
+  background: rgba(73, 75, 214, 0.1);
+}
+
+.app-notifications__item-status {
+  width: 8px;
+  height: 8px;
+  margin-top: 7px;
+  border-radius: 999px;
+  background: transparent;
+}
+
+.app-notifications__item--unread .app-notifications__item-status {
+  background: var(--color-secondary);
+  box-shadow: 0 0 0 4px rgba(78, 222, 163, 0.1);
+}
+
+.app-notifications__item-content {
+  min-width: 0;
+}
+
+.app-notifications__item-title {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+
+.app-notifications__item-title h3 {
+  min-width: 0;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 800;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.app-notifications__item-title time {
+  flex: 0 0 auto;
+  color: #64748b;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.app-notifications__item-content p {
+  margin-top: 6px;
+  color: #94a3b8;
+  font-size: 0.82rem;
+  font-weight: 500;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.app-notifications__read-button {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid rgba(78, 222, 163, 0.22);
+  border-radius: 8px;
+  background: rgba(78, 222, 163, 0.09);
+  color: var(--color-secondary);
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.app-notifications__read-button:hover {
+  background: rgba(78, 222, 163, 0.18);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.app-notifications__read-button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.app-notifications__read-button .material-symbols-outlined {
+  font-size: 1.1rem;
 }
 
 .app-sidebar {
@@ -239,5 +509,25 @@
 
   .app-brand {
     font-size: 1.5rem;
+  }
+
+  .app-notifications__header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .app-notifications__mark-all {
+    max-width: none;
+  }
+}
+
+@media (max-width: 420px) {
+  .app-notifications__item-title {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .app-notifications__item-title time {
+    white-space: normal;
   }
 }

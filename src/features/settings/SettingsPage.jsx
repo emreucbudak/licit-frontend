@@ -427,18 +427,6 @@ function SettingsPage({ navigate, onLogout }) {
                     />
                   </label>
 
-                  <label className="space-y-2 md:col-span-2">
-                    <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                      Koleksiyoner Biyografisi
-                    </span>
-                    <textarea
-                      className="w-full resize-none rounded-lg border-none bg-surface-container-lowest px-4 py-2.5 text-sm focus:ring-1 focus:ring-primary"
-                      placeholder="Biyografi guncelleme API'si henuz yok."
-                      readOnly
-                      rows="3"
-                      value=""
-                    ></textarea>
-                  </label>
                 </div>
               </form>
             </section>

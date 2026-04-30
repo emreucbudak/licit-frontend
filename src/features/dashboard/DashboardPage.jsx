@@ -326,8 +326,6 @@ function DashboardPage({ navigate, onLogout }) {
       return {
         id: tender.id,
         title: tender.title || 'Basliksiz ilan',
-        status: tender.status || (isAuction ? 'Muzayede' : 'Ilan'),
-        tone: isAuction || isOpenTender(tender) ? 'secondary' : 'neutral',
         priceLabel: isAuction ? 'Guncel Fiyat' : 'Baslangic Fiyati',
         displayPrice: formatCurrency(displayPrice),
         endsAt: formatEndDate(endDate),
@@ -449,8 +447,8 @@ function DashboardPage({ navigate, onLogout }) {
     () =>
       tenders.slice(0, 4).map((tender) => [
         tender.title || 'Basliksiz ilan',
-        tender.categoryName || tender.status || 'Ilan',
-        isOpenTender(tender) ? 'secondary' : 'primary',
+        tender.categoryName || 'Ilan',
+        'primary',
       ]),
     [tenders],
   )
@@ -509,9 +507,6 @@ function DashboardPage({ navigate, onLogout }) {
                     <div className="dashboard-auction-card__body">
                       <div className="dashboard-auction-card__title">
                         <h4>Yukleniyor...</h4>
-                        <span className="dashboard-auction-card__status dashboard-auction-card__status--neutral">
-                          API
-                        </span>
                       </div>
                     </div>
                   </article>
@@ -522,9 +517,6 @@ function DashboardPage({ navigate, onLogout }) {
                     <div className="dashboard-auction-card__body">
                       <div className="dashboard-auction-card__title">
                         <h4>{listingsError}</h4>
-                        <span className="dashboard-auction-card__status dashboard-auction-card__status--tertiary">
-                          Hata
-                        </span>
                       </div>
                     </div>
                   </article>
@@ -537,9 +529,6 @@ function DashboardPage({ navigate, onLogout }) {
                     <div className="dashboard-auction-card__body">
                       <div className="dashboard-auction-card__title">
                         <h4>Gosterilecek ilan bulunamadi.</h4>
-                        <span className="dashboard-auction-card__status dashboard-auction-card__status--neutral">
-                          Bos
-                        </span>
                       </div>
                     </div>
                   </article>
@@ -553,9 +542,6 @@ function DashboardPage({ navigate, onLogout }) {
                     <div className="dashboard-auction-card__body">
                       <div className="dashboard-auction-card__title">
                         <h4>{auction.title}</h4>
-                        <span className={`dashboard-auction-card__status dashboard-auction-card__status--${auction.tone}`}>
-                          {auction.status}
-                        </span>
                       </div>
                       <div className="dashboard-auction-card__meta">
                         <div><span>{auction.priceLabel}</span><strong>{auction.displayPrice}</strong></div>

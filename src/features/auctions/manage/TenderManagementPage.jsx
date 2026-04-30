@@ -11,11 +11,11 @@ import {
 const pageSizeOptions = [10, 20, 50]
 
 const statusLabels = {
-  Active: 'Yayinda',
-  Cancelled: 'Iptal',
-  Closed: 'Kapandi',
-  Completed: 'Tamamlandi',
-  Draft: 'Taslak',
+  active: 'Açık',
+  cancelled: 'İptal edildi',
+  closed: 'Bitti',
+  completed: 'Tamamlandı',
+  draft: 'Taslak',
 }
 
 const nextStatusesByStatus = {
@@ -69,9 +69,9 @@ function normalizeStatusKey(status) {
 }
 
 function getStatusLabel(status) {
-  const normalizedStatus = normalizeStatus(status)
+  const normalizedStatus = normalizeStatusKey(status)
 
-  return statusLabels[normalizedStatus] || normalizedStatus || 'Bilinmiyor'
+  return statusLabels[normalizedStatus] || normalizeStatus(status) || 'Bilinmiyor'
 }
 
 function getStatusBadgeClass(status) {

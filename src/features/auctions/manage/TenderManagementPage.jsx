@@ -7,6 +7,11 @@ import {
   flattenSubCategoryOptions,
   normalizeCategoryTree,
 } from '../create/categoryOptions'
+import TenderRulesEditor from '../rules/TenderRulesEditor'
+import {
+  buildTenderRulePayload,
+  normalizeTenderRules,
+} from '../rules/tenderRuleUtils'
 
 const pageSizeOptions = [10, 20, 50]
 
@@ -33,6 +38,7 @@ function createEmptyEditValues() {
     endDate: '',
     mainCategoryId: '',
     categoryId: '',
+    rules: [],
   }
 }
 
@@ -180,6 +186,20 @@ function readTenderList(payload) {
   return candidateLists.find((candidate) => Array.isArray(candidate)) || []
 }
 
+function flattenCategoryFilterOptions(categories, prefix = '') {
+  return categories.flatMap((category) => {
+    const label = prefix ? `${prefix} / ${category.name}` : category.name
+
+    return [
+      {
+        id: category.id,
+        label,
+      },
+      ...flattenCategoryFilterOptions(category.children || [], label),
+    ]
+  })
+}
+
 function buildPagination(payload, fallbackPage, fallbackPageSize, visibleCount) {
   const totalCount = toNumber(
     readField(payload, 'totalCount', 'TotalCount', 'total_count'),
@@ -217,6 +237,7 @@ function TenderManagementPage({ navigate, onLogout }) {
   const [categoryError, setCategoryError] = useState('')
   const [isLoadingCategories, setIsLoadingCategories] = useState(true)
   const [tenders, setTenders] = useState([])
+  const [filterCategoryId, setFilterCategoryId] = useState('')
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const [pagination, setPagination] = useState({
@@ -242,6 +263,10 @@ function TenderManagementPage({ navigate, onLogout }) {
   const subCategoryOptions = useMemo(
     () => flattenSubCategoryOptions(selectedMainCategory?.children || []),
     [selectedMainCategory],
+  )
+  const categoryFilterOptions = useMemo(
+    () => flattenCategoryFilterOptions(categories),
+    [categories],
   )
   const isSelectedCategoryVisible = subCategoryOptions.some(
     (category) => category.id === editValues.categoryId,
@@ -298,7 +323,16 @@ function TenderManagementPage({ navigate, onLogout }) {
       setListError('')
 
       try {
-        const tenderPath = `/api/tender?page=${encodeURIComponent(page)}&pageSize=${encodeURIComponent(pageSize)}`
+        const tenderParams = new URLSearchParams({
+          page: String(page),
+          pageSize: String(pageSize),
+        })
+
+        if (filterCategoryId) {
+          tenderParams.set('categoryId', filterCategoryId)
+        }
+
+        const tenderPath = `/api/tender?${tenderParams.toString()}`
         const { payload, response } = await sendAuthorizedRequest(tenderPath)
 
         if (!response.ok) {
@@ -346,7 +380,7 @@ function TenderManagementPage({ navigate, onLogout }) {
     return () => {
       isCurrent = false
     }
-  }, [page, pageSize, reloadKey])
+  }, [filterCategoryId, page, pageSize, reloadKey])
 
   useEffect(() => {
     if (
@@ -376,24 +410,48 @@ function TenderManagementPage({ navigate, onLogout }) {
     editValues.mainCategoryId,
   ])
 
-  const startEditingTender = (tender) => {
-    const selection = findCategorySelection(categories, tender.categoryId)
+  const startEditingTender = async (tender) => {
+    if (busyAction || !tender.id) {
+      return
+    }
 
-    setEditingTenderId(tender.id)
+    setBusyAction(`edit:${tender.id}`)
     setActionError('')
     setNotice('')
-    setEditValues({
-      title: tender.title,
-      description: tender.description,
-      startingPrice:
-        tender.startingPrice === undefined || tender.startingPrice === null
-          ? ''
-          : String(tender.startingPrice),
-      startDate: toDateTimeInputValue(tender.startDate),
-      endDate: toDateTimeInputValue(tender.endDate),
-      mainCategoryId: selection.mainCategoryId,
-      categoryId: selection.categoryId || tender.categoryId,
-    })
+
+    try {
+      const { payload, response } = await sendAuthorizedRequest(
+        `/api/tender/${tender.id}`,
+      )
+
+      if (!response.ok) {
+        throw new Error(
+          getApiErrorMessage(payload, 'Ihale detaylari alinamadi.'),
+        )
+      }
+
+      const detail = normalizeTender(payload)
+      const selection = findCategorySelection(categories, detail.categoryId)
+
+      setEditingTenderId(detail.id || tender.id)
+      setEditValues({
+        title: detail.title,
+        description: detail.description,
+        startingPrice:
+          detail.startingPrice === undefined || detail.startingPrice === null
+            ? ''
+            : String(detail.startingPrice),
+        startDate: toDateTimeInputValue(detail.startDate),
+        endDate: toDateTimeInputValue(detail.endDate),
+        mainCategoryId: selection.mainCategoryId,
+        categoryId: selection.categoryId || detail.categoryId,
+        rules: normalizeTenderRules(payload),
+      })
+    } catch (error) {
+      setActionError(error?.message || 'Ihale detaylari alinamadi.')
+    } finally {
+      setBusyAction('')
+    }
   }
 
   const closeEditor = () => {
@@ -448,7 +506,7 @@ function TenderManagementPage({ navigate, onLogout }) {
       startDate: startDate.toISOString(),
       endDate: endDate.toISOString(),
       categoryId: editValues.categoryId,
-      rules: [],
+      rules: buildTenderRulePayload(editValues.rules),
     }
   }
 
@@ -594,6 +652,11 @@ function TenderManagementPage({ navigate, onLogout }) {
     setPage(1)
   }
 
+  const handleFilterCategoryChange = (event) => {
+    setFilterCategoryId(event.target.value)
+    setPage(1)
+  }
+
   return (
     <div className="min-h-screen overflow-x-hidden bg-surface text-on-surface">
       <AppTopNavbar currentPath="/auctions/manage" navigate={navigate} />
@@ -640,7 +703,7 @@ function TenderManagementPage({ navigate, onLogout }) {
             </div>
           </header>
 
-          <section className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+          <section className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-4">
             <div className="rounded-lg bg-surface-container-low p-5">
               <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
                 Toplam Ihale
@@ -669,6 +732,24 @@ function TenderManagementPage({ navigate, onLogout }) {
                 {pageSizeOptions.map((option) => (
                   <option key={option} value={option}>
                     {option} kayit
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="rounded-lg bg-surface-container-low p-5">
+              <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                Kategori
+              </label>
+              <select
+                className="mt-2 w-full rounded-lg border-none bg-surface-container-lowest px-4 py-3 text-on-surface focus:ring-2 focus:ring-primary-container disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={isLoadingCategories}
+                value={filterCategoryId}
+                onChange={handleFilterCategoryChange}
+              >
+                <option value="">Tum kategoriler</option>
+                {categoryFilterOptions.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.label}
                   </option>
                 ))}
               </select>
@@ -844,6 +925,19 @@ function TenderManagementPage({ navigate, onLogout }) {
                     onChange={handleEditFieldChange}
                   ></textarea>
                 </div>
+
+                <TenderRulesEditor
+                  disabled={isSavingEdit}
+                  embedded
+                  onChange={(rules) =>
+                    setEditValues((currentValues) => ({
+                      ...currentValues,
+                      rules,
+                    }))
+                  }
+                  rules={editValues.rules}
+                  subtitle="Kaydedince ihale kurallari bu listeyle guncellenir."
+                />
 
                 <div className="flex flex-wrap justify-end gap-3">
                   <button

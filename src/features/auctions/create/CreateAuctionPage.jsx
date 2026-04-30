@@ -6,6 +6,8 @@ import {
   flattenSubCategoryOptions,
   normalizeCategoryTree,
 } from './categoryOptions'
+import TenderRulesEditor from '../rules/TenderRulesEditor'
+import { buildTenderRulePayload } from '../rules/tenderRuleUtils'
 
 const previewImage =
   'https://lh3.googleusercontent.com/aida-public/AB6AXuCEmI0z_YuP3x3BkXaINgNm4oQ4DHezF5XTTEjwh-70YPkKbgx1IYxq0koBKWQccZpreJLFFpkezKTdgTNXPtUqrgOOZKYT8ckcuXNQDwdeEtxj-jt-Geql1-IRNTpvgp35ZDgHl74pVzf5DjITuyboTLPceLctGcnbD84hh9THRfLtGsLfE3L0mGr4gvuKiHkanvdupB8_Ky44VsZ-lMtOfaC17lsVJBXbRLe2U9nd78B8OBiMbRtCAyzVnakb_FXHaf6Rh93fPlY'
@@ -48,6 +50,7 @@ const initialFormValues = {
   description: '',
   durationDays: '7',
   startDate: getTodayInputValue(),
+  rules: [],
 }
 
 function CreateAuctionPage({ navigate, onLogout }) {
@@ -184,7 +187,7 @@ function CreateAuctionPage({ navigate, onLogout }) {
       startDate: startDate.toISOString(),
       endDate: endDate.toISOString(),
       categoryId: formValues.categoryId,
-      rules: [],
+      rules: buildTenderRulePayload(formValues.rules),
     }
   }
 
@@ -250,6 +253,7 @@ function CreateAuctionPage({ navigate, onLogout }) {
       setFormValues({
         ...initialFormValues,
         mainCategoryId: categories[0]?.id || '',
+        rules: [],
       })
     } catch (error) {
       setSubmitError(
@@ -454,6 +458,17 @@ function CreateAuctionPage({ navigate, onLogout }) {
                   </div>
                 </div>
               </section>
+
+              <TenderRulesEditor
+                disabled={isSubmitting}
+                onChange={(rules) =>
+                  setFormValues((currentValues) => ({
+                    ...currentValues,
+                    rules,
+                  }))
+                }
+                rules={formValues.rules}
+              />
 
               <section className="rounded-xl bg-surface-container-low p-6 shadow-sm sm:p-8">
                 <h2 className="mb-6 flex items-center gap-2 text-xl font-bold text-white">

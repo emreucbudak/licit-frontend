@@ -75,7 +75,7 @@ function AppRoutes() {
 
     event?.preventDefault()
 
-    if (nextPath === location.pathname) {
+    if (nextPath === `${location.pathname}${location.search}`) {
       window.scrollTo({ top: 0, behavior: 'smooth' })
       return
     }

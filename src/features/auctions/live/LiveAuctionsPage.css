@@ -56,6 +56,8 @@
 .filter-pill-group {
   display: inline-flex;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
   padding: 4px;
   border-radius: 14px;
   background: var(--color-surface-container-low);
@@ -83,6 +85,12 @@
 .filter-pill--active {
   background: var(--color-surface-container-high);
   color: #fff;
+}
+
+.auction-filter-error {
+  color: var(--color-error);
+  font-size: 0.8rem;
+  font-weight: 700;
 }
 
 .auction-grid {

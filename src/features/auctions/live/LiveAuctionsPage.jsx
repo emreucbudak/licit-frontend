@@ -4,8 +4,7 @@ import './LiveAuctionsPage.css'
 import { AppSideNavbar, AppTopNavbar } from '../../../shared/components/navigation/AppNavigation'
 import { getApiErrorMessage } from '../../../shared/api/apiError'
 import { sendAuthorizedRequest } from '../../../shared/api/authorizedRequest'
-
-const categoryFilters = ['Tumu', 'Teknoloji', 'Sanat', 'Ev']
+import { normalizeCategoryTree } from '../create/categoryOptions'
 
 const imageFallbacks = [
   {
@@ -58,6 +57,26 @@ function readCollection(payload, ...keys) {
   }
 
   return []
+}
+
+function buildAuctionListPath(searchQuery, categoryId) {
+  if (!searchQuery && !categoryId) {
+    return '/api/v1/auctions'
+  }
+
+  const params = new URLSearchParams({
+    activeOnly: 'true',
+  })
+
+  if (searchQuery) {
+    params.set('search', searchQuery)
+  }
+
+  if (categoryId) {
+    params.set('categoryId', categoryId)
+  }
+
+  return `/api/tender?${params.toString()}`
 }
 
 function toNumber(value) {
@@ -184,6 +203,8 @@ function SkeletonCard() {
 function LiveAuctionsPage({ navigate, onLogout }) {
   const location = useLocation()
   const [auctions, setAuctions] = useState([])
+  const [categories, setCategories] = useState([])
+  const [categoryError, setCategoryError] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [auctionError, setAuctionError] = useState('')
   const searchQuery = useMemo(() => {
@@ -191,6 +212,40 @@ function LiveAuctionsPage({ navigate, onLogout }) {
 
     return query.trim()
   }, [location.search])
+  const selectedCategoryId = useMemo(
+    () => new URLSearchParams(location.search).get('categoryId') || '',
+    [location.search],
+  )
+
+  useEffect(() => {
+    let isCurrent = true
+
+    async function loadCategories() {
+      setCategoryError('')
+
+      try {
+        const { payload, response } = await sendAuthorizedRequest('/api/categories')
+
+        if (!response.ok) {
+          throw new Error(getApiErrorMessage(payload, 'Kategoriler yuklenemedi.'))
+        }
+
+        if (isCurrent) {
+          setCategories(normalizeCategoryTree(payload))
+        }
+      } catch (error) {
+        if (isCurrent) {
+          setCategoryError(error?.message || 'Kategoriler yuklenemedi.')
+        }
+      }
+    }
+
+    loadCategories()
+
+    return () => {
+      isCurrent = false
+    }
+  }, [])
 
   useEffect(() => {
     let isCurrent = true
@@ -200,9 +255,7 @@ function LiveAuctionsPage({ navigate, onLogout }) {
       setAuctionError('')
 
       try {
-        const auctionsPath = searchQuery
-          ? `/api/tender?search=${encodeURIComponent(searchQuery)}&activeOnly=true`
-          : '/api/v1/auctions'
+        const auctionsPath = buildAuctionListPath(searchQuery, selectedCategoryId)
         const { payload, response } = await sendAuthorizedRequest(auctionsPath)
 
         if (!response.ok) {
@@ -220,8 +273,10 @@ function LiveAuctionsPage({ navigate, onLogout }) {
           setAuctions(
             readCollection(
               payload,
-              searchQuery ? 'tenders' : 'auctions',
-              searchQuery ? 'Tenders' : 'Auctions',
+              'auctions',
+              'Auctions',
+              'tenders',
+              'Tenders',
               'items',
               'Items',
               'data',
@@ -245,17 +300,48 @@ function LiveAuctionsPage({ navigate, onLogout }) {
     return () => {
       isCurrent = false
     }
-  }, [searchQuery])
+  }, [searchQuery, selectedCategoryId])
 
   const renderedAuctions = useMemo(
     () => auctions.map((auction, index) => normalizeAuction(auction, index)),
     [auctions],
+  )
+  const categoryFilters = useMemo(
+    () => [
+      {
+        id: '',
+        label: 'Tumu',
+      },
+      ...categories.map((category) => ({
+        id: category.id,
+        label: category.name,
+      })),
+    ],
+    [categories],
   )
   const featuredAuction = renderedAuctions[0]
   const cardAuctions = renderedAuctions.slice(1)
   const emptyMessage = searchQuery
     ? `"${searchQuery}" icin sonuc bulunamadi.`
     : 'Henuz yayinda muzayede yok.'
+
+  const handleCategoryFilter = (categoryId) => (event) => {
+    const params = new URLSearchParams()
+
+    if (searchQuery) {
+      params.set('search', searchQuery)
+    }
+
+    if (categoryId) {
+      params.set('categoryId', categoryId)
+    }
+
+    const nextPath = params.toString()
+      ? `/auctions?${params.toString()}`
+      : '/auctions'
+
+    navigate(nextPath)(event)
+  }
 
   return (
     <div className="auctions-page">
@@ -285,17 +371,22 @@ function LiveAuctionsPage({ navigate, onLogout }) {
 
             <div className="auctions-filters">
               <div className="filter-pill-group">
-                {categoryFilters.map((filter, index) => (
+                {categoryFilters.map((filter) => (
                   <button
-                    key={filter}
-                    className={`filter-pill${index === 0 ? ' filter-pill--active' : ''}`}
+                    key={filter.id || 'all'}
+                    className={`filter-pill${
+                      filter.id === selectedCategoryId ? ' filter-pill--active' : ''
+                    }`}
+                    onClick={handleCategoryFilter(filter.id)}
                     type="button"
                   >
-                    {filter}
+                    {filter.label}
                   </button>
                 ))}
               </div>
-
+              {categoryError ? (
+                <span className="auction-filter-error">{categoryError}</span>
+              ) : null}
             </div>
           </div>
 

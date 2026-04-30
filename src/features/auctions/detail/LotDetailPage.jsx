@@ -186,6 +186,7 @@ function normalizeAuction(payload) {
       readField(auction, 'description', 'Description') || 'Aciklama henuz eklenmedi.',
     endsAt: readField(auction, 'ends_at', 'endsAt', 'EndsAt'),
     id: readField(auction, 'id', 'Id'),
+    imageUrl: readField(auction, 'imageUrl', 'ImageUrl', 'image_url') || '',
     minIncrement: toNumber(readField(auction, 'min_increment', 'minIncrement', 'MinIncrement')),
     startPrice: toNumber(readField(auction, 'start_price', 'startPrice', 'StartPrice')),
     status: readField(auction, 'status', 'Status') || 'unknown',
@@ -366,8 +367,8 @@ function LotDetailPage({ navigate }) {
         <section className="lot-gallery">
           <div className="lot-hero-media">
             <img
-              alt="Rare skeleton mechanical watch studio close-up"
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuBzqEMjOzvk6k5bT9kYm-Oukhhdq93JHRogJSjfE6rvpSJWZhqVINqDSKQ3hvIvdJsFQ7pItF3bykAfaJNrUAdvM6oPdUrKJKLIl-Q8QUKiizT75lqTazAne0JmQrz93_M5-RXfSLZcD6YwpEAyUpgGen7L-9b08EGam-r1wceiXjKQdCo-bhyKk_zLPOi9-uLLLtUhb4dp1elM1y37wktDAgVp31Ho4W_sF4Z0UNJFAim7reLX0-CuE0o-40YUMh0wVVW2YE050zw"
+              alt={auction?.title || 'Muzayede gorseli'}
+              src={auction?.imageUrl || 'https://lh3.googleusercontent.com/aida-public/AB6AXuBzqEMjOzvk6k5bT9kYm-Oukhhdq93JHRogJSjfE6rvpSJWZhqVINqDSKQ3hvIvdJsFQ7pItF3bykAfaJNrUAdvM6oPdUrKJKLIl-Q8QUKiizT75lqTazAne0JmQrz93_M5-RXfSLZcD6YwpEAyUpgGen7L-9b08EGam-r1wceiXjKQdCo-bhyKk_zLPOi9-uLLLtUhb4dp1elM1y37wktDAgVp31Ho4W_sF4Z0UNJFAim7reLX0-CuE0o-40YUMh0wVVW2YE050zw'}
             />
 
           </div>

@@ -12,6 +12,10 @@ import {
   buildTenderRulePayload,
   normalizeTenderRules,
 } from '../rules/tenderRuleUtils'
+import {
+  uploadTenderImage,
+  validateTenderImageFile,
+} from '../images/tenderImageUpload'
 
 const pageSizeOptions = [10, 20, 50]
 
@@ -38,6 +42,7 @@ function createEmptyEditValues() {
     endDate: '',
     mainCategoryId: '',
     categoryId: '',
+    imageUrl: '',
     rules: [],
   }
 }
@@ -167,6 +172,7 @@ function normalizeTender(tender) {
     categoryId: toId(readField(tender, 'categoryId', 'CategoryId')),
     categoryName: readField(tender, 'categoryName', 'CategoryName') || 'Kategori yok',
     createdAt: readField(tender, 'createdAt', 'CreatedAt'),
+    imageUrl: readField(tender, 'imageUrl', 'ImageUrl', 'image_url') || '',
     ruleCount: toNumber(readField(tender, 'ruleCount', 'RuleCount'), 0),
   }
 }
@@ -256,6 +262,9 @@ function TenderManagementPage({ navigate, onLogout }) {
   const [busyAction, setBusyAction] = useState('')
   const [editingTenderId, setEditingTenderId] = useState('')
   const [editValues, setEditValues] = useState(createEmptyEditValues)
+  const [editImageFile, setEditImageFile] = useState(null)
+  const [editImagePreviewUrl, setEditImagePreviewUrl] = useState('')
+  const [editImageError, setEditImageError] = useState('')
 
   const selectedMainCategory = categories.find(
     (category) => category.id === editValues.mainCategoryId,
@@ -272,6 +281,15 @@ function TenderManagementPage({ navigate, onLogout }) {
     (category) => category.id === editValues.categoryId,
   )
   const isSavingEdit = busyAction === `save:${editingTenderId}`
+
+  useEffect(
+    () => () => {
+      if (editImagePreviewUrl) {
+        URL.revokeObjectURL(editImagePreviewUrl)
+      }
+    },
+    [editImagePreviewUrl],
+  )
 
   useEffect(() => {
     let isCurrent = true
@@ -445,8 +463,10 @@ function TenderManagementPage({ navigate, onLogout }) {
         endDate: toDateTimeInputValue(detail.endDate),
         mainCategoryId: selection.mainCategoryId,
         categoryId: selection.categoryId || detail.categoryId,
+        imageUrl: detail.imageUrl,
         rules: normalizeTenderRules(payload),
       })
+      clearEditImageSelection()
     } catch (error) {
       setActionError(error?.message || 'Ihale detaylari alinamadi.')
     } finally {
@@ -457,7 +477,45 @@ function TenderManagementPage({ navigate, onLogout }) {
   const closeEditor = () => {
     setEditingTenderId('')
     setEditValues(createEmptyEditValues())
+    clearEditImageSelection()
     setActionError('')
+  }
+
+  const clearEditImageSelection = () => {
+    if (editImagePreviewUrl) {
+      URL.revokeObjectURL(editImagePreviewUrl)
+    }
+
+    setEditImageFile(null)
+    setEditImagePreviewUrl('')
+    setEditImageError('')
+  }
+
+  const handleEditImageChange = (event) => {
+    const file = event.target.files?.[0]
+    setActionError('')
+    setNotice('')
+
+    if (!file) {
+      clearEditImageSelection()
+      return
+    }
+
+    const validationError = validateTenderImageFile(file)
+    if (validationError) {
+      clearEditImageSelection()
+      setEditImageError(validationError)
+      event.target.value = ''
+      return
+    }
+
+    if (editImagePreviewUrl) {
+      URL.revokeObjectURL(editImagePreviewUrl)
+    }
+
+    setEditImageFile(file)
+    setEditImagePreviewUrl(URL.createObjectURL(file))
+    setEditImageError('')
   }
 
   const handleEditFieldChange = (event) => {
@@ -536,7 +594,23 @@ function TenderManagementPage({ navigate, onLogout }) {
         )
       }
 
-      setNotice('Ihale guncellendi.')
+      if (editImageFile) {
+        const {
+          payload: imagePayload,
+          response: imageResponse,
+        } = await uploadTenderImage(editingTenderId, editImageFile)
+
+        if (!imageResponse.ok) {
+          throw new Error(
+            getApiErrorMessage(
+              imagePayload,
+              'Ihale guncellendi ancak gorsel yuklenemedi.',
+            ),
+          )
+        }
+      }
+
+      setNotice(editImageFile ? 'Ihale ve gorsel guncellendi.' : 'Ihale guncellendi.')
       closeEditor()
       setReloadKey((currentKey) => currentKey + 1)
     } catch (error) {
@@ -926,6 +1000,53 @@ function TenderManagementPage({ navigate, onLogout }) {
                   ></textarea>
                 </div>
 
+                <div className="rounded-lg border border-outline-variant/20 bg-surface-container-lowest/60 p-4">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                    <div className="h-24 w-24 overflow-hidden rounded-lg bg-surface-container-high">
+                      {editImagePreviewUrl || editValues.imageUrl ? (
+                        <img
+                          alt="Ihale gorseli"
+                          className="h-full w-full object-cover"
+                          src={editImagePreviewUrl || editValues.imageUrl}
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center text-on-surface-variant">
+                          <span className="material-symbols-outlined">image</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 space-y-2">
+                      <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-primary-container/30 bg-primary-container/10 px-4 py-2 text-sm font-bold text-primary-container transition-colors hover:bg-primary-container/20">
+                        <span className="material-symbols-outlined text-base">upload_file</span>
+                        Gorsel Sec
+                        <input
+                          accept="image/jpeg,image/png,image/webp"
+                          className="sr-only"
+                          disabled={isSavingEdit}
+                          type="file"
+                          onChange={handleEditImageChange}
+                        />
+                      </label>
+                      {editImageFile ? (
+                        <button
+                          className="ml-2 text-xs font-bold text-error hover:underline"
+                          disabled={isSavingEdit}
+                          type="button"
+                          onClick={clearEditImageSelection}
+                        >
+                          Secimi kaldir
+                        </button>
+                      ) : null}
+                      <p className="text-xs text-on-surface-variant">
+                        JPG, PNG veya WEBP. En fazla 5 MB.
+                      </p>
+                      {editImageError ? (
+                        <p className="text-xs font-semibold text-error">{editImageError}</p>
+                      ) : null}
+                    </div>
+                  </div>
+                </div>
+
                 <TenderRulesEditor
                   disabled={isSavingEdit}
                   embedded
@@ -1002,14 +1123,29 @@ function TenderManagementPage({ navigate, onLogout }) {
                         return (
                           <tr key={tender.id} className="align-top">
                             <td className="max-w-md px-5 py-5">
-                              <div className="flex flex-col gap-1">
-                                <span className="font-bold text-white">{tender.title}</span>
-                                <span className="line-clamp-2 text-sm text-on-surface-variant">
-                                  {tender.description || 'Aciklama yok'}
-                                </span>
-                                <span className="text-sm font-semibold text-primary">
-                                  {formatMoney(tender.startingPrice)}
-                                </span>
+                              <div className="flex gap-3">
+                                <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-surface-container-high">
+                                  {tender.imageUrl ? (
+                                    <img
+                                      alt=""
+                                      className="h-full w-full object-cover"
+                                      src={tender.imageUrl}
+                                    />
+                                  ) : (
+                                    <div className="flex h-full w-full items-center justify-center text-on-surface-variant">
+                                      <span className="material-symbols-outlined text-base">image</span>
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="flex flex-col gap-1">
+                                  <span className="font-bold text-white">{tender.title}</span>
+                                  <span className="line-clamp-2 text-sm text-on-surface-variant">
+                                    {tender.description || 'Aciklama yok'}
+                                  </span>
+                                  <span className="text-sm font-semibold text-primary">
+                                    {formatMoney(tender.startingPrice)}
+                                  </span>
+                                </div>
                               </div>
                             </td>
                             <td className="px-5 py-5">

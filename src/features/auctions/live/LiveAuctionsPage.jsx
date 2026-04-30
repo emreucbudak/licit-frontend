@@ -124,6 +124,7 @@ function normalizeAuction(auction, index) {
   const endTime = readField(auction, 'ends_at', 'endsAt', 'EndsAt', 'endDate', 'EndDate')
   const title = readField(auction, 'title', 'Title') || 'Isimsiz muzayede'
   const endsLabel = formatEndsAt(endTime)
+  const imageUrl = readField(auction, 'imageUrl', 'ImageUrl', 'image_url')
   const startingPrice = readField(
     auction,
     'startingPrice',
@@ -140,7 +141,7 @@ function normalizeAuction(auction, index) {
       readField(auction, 'description', 'Description') || 'Aciklama henuz eklenmedi.',
     endsAt: endTime,
     endsIn: endsLabel,
-    image: fallback.image,
+    image: imageUrl || fallback.image,
     price: formatMoney(currentPrice ?? startingPrice),
     title,
     urgency: endsLabel !== 'Bitti' && new Date(endTime).getTime() - Date.now() < 60 * 60 * 1000,

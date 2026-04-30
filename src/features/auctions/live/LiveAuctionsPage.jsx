@@ -6,7 +6,6 @@ import { getApiErrorMessage } from '../../../shared/api/apiError'
 import { sendAuthorizedRequest } from '../../../shared/api/authorizedRequest'
 
 const categoryFilters = ['Tumu', 'Teknoloji', 'Sanat', 'Ev']
-const statusFilters = ['Canli', 'Yakinda Bitiyor']
 
 const imageFallbacks = [
   {
@@ -105,7 +104,6 @@ function normalizeAuction(auction, index) {
   const currentPrice = readField(auction, 'current_price', 'currentPrice', 'CurrentPrice')
   const endTime = readField(auction, 'ends_at', 'endsAt', 'EndsAt', 'endDate', 'EndDate')
   const title = readField(auction, 'title', 'Title') || 'Isimsiz muzayede'
-  const status = readField(auction, 'status', 'Status') || 'unknown'
   const endsLabel = formatEndsAt(endTime)
   const startingPrice = readField(
     auction,
@@ -119,14 +117,12 @@ function normalizeAuction(auction, index) {
   return {
     id,
     alt: fallback.alt,
-    bids: status,
     description:
       readField(auction, 'description', 'Description') || 'Aciklama henuz eklenmedi.',
     endsAt: endTime,
     endsIn: endsLabel,
     image: fallback.image,
     price: formatMoney(currentPrice ?? startingPrice),
-    status,
     title,
     urgency: endsLabel !== 'Bitti' && new Date(endTime).getTime() - Date.now() < 60 * 60 * 1000,
   }
@@ -139,7 +135,6 @@ function AuctionCard({ card, navigate }) {
     <a className="auction-card" href={detailPath} onClick={navigate(detailPath)}>
       <div className="auction-card__media">
         <img alt={card.alt} src={card.image} />
-        <div className="auction-card__badge">{card.status}</div>
       </div>
 
       <div className="auction-card__body">
@@ -301,19 +296,6 @@ function LiveAuctionsPage({ navigate, onLogout }) {
                 ))}
               </div>
 
-              <div className="auctions-filters__divider"></div>
-
-              <div className="filter-pill-group">
-                {statusFilters.map((filter, index) => (
-                  <button
-                    key={filter}
-                    className={`filter-pill${index === 0 ? ' filter-pill--accent' : ''}`}
-                    type="button"
-                  >
-                    {filter}
-                  </button>
-                ))}
-              </div>
             </div>
           </div>
 
@@ -342,10 +324,6 @@ function LiveAuctionsPage({ navigate, onLogout }) {
                   <img alt={featuredAuction.alt} src={featuredAuction.image} />
 
                   <div className="auction-feature__badges">
-                    <span className="auction-badge auction-badge--live">
-                      <span className="auction-badge__pulse" aria-hidden="true"></span>
-                      {featuredAuction.status}
-                    </span>
                     <span className="auction-badge auction-badge--timer">
                       {featuredAuction.endsIn} kaldi
                     </span>
@@ -369,7 +347,7 @@ function LiveAuctionsPage({ navigate, onLogout }) {
                     <div className="auction-feature__avatars" aria-hidden="true">
                       <span></span>
                       <span></span>
-                      <span>{featuredAuction.status}</span>
+                      <span>+12</span>
                     </div>
 
                     <a

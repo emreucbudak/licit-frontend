@@ -70,16 +70,22 @@ export async function sendAuthorizedRequest(
     throw new Error('Oturum bulunamadi. Lutfen tekrar giris yap.')
   }
 
+  const isFormData = body instanceof FormData
+
   const sendRequest = (token) =>
     fetch(buildApiUrl(path), {
       method,
       headers: {
         Accept: 'application/json',
         Authorization: `Bearer ${token}`,
-        ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
+        ...(body === undefined || isFormData
+          ? {}
+          : { 'Content-Type': 'application/json' }),
         ...headers,
       },
-      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+      ...(body === undefined
+        ? {}
+        : { body: isFormData ? body : JSON.stringify(body) }),
     })
 
   let response = await sendRequest(accessToken)

@@ -8,6 +8,10 @@ import {
 } from './categoryOptions'
 import TenderRulesEditor from '../rules/TenderRulesEditor'
 import { buildTenderRulePayload } from '../rules/tenderRuleUtils'
+import {
+  uploadTenderImage,
+  validateTenderImageFile,
+} from '../images/tenderImageUpload'
 
 const previewImage =
   'https://lh3.googleusercontent.com/aida-public/AB6AXuCEmI0z_YuP3x3BkXaINgNm4oQ4DHezF5XTTEjwh-70YPkKbgx1IYxq0koBKWQccZpreJLFFpkezKTdgTNXPtUqrgOOZKYT8ckcuXNQDwdeEtxj-jt-Geql1-IRNTpvgp35ZDgHl74pVzf5DjITuyboTLPceLctGcnbD84hh9THRfLtGsLfE3L0mGr4gvuKiHkanvdupB8_Ky44VsZ-lMtOfaC17lsVJBXbRLe2U9nd78B8OBiMbRtCAyzVnakb_FXHaf6Rh93fPlY'
@@ -62,6 +66,9 @@ function CreateAuctionPage({ navigate, onLogout }) {
   const [submitSuccess, setSubmitSuccess] = useState('')
   const [createdTenderId, setCreatedTenderId] = useState('')
   const [submitMode, setSubmitMode] = useState('')
+  const [imageFile, setImageFile] = useState(null)
+  const [imagePreviewUrl, setImagePreviewUrl] = useState('')
+  const [imageError, setImageError] = useState('')
   const isSubmitting = Boolean(submitMode)
   const isSavingDraft = submitMode === 'draft'
   const isPublishing = submitMode === 'publish'
@@ -144,6 +151,15 @@ function CreateAuctionPage({ navigate, onLogout }) {
     }
   }, [])
 
+  useEffect(
+    () => () => {
+      if (imagePreviewUrl) {
+        URL.revokeObjectURL(imagePreviewUrl)
+      }
+    },
+    [imagePreviewUrl],
+  )
+
   const handleFieldChange = (event) => {
     const { name, value } = event.target
 
@@ -154,6 +170,43 @@ function CreateAuctionPage({ navigate, onLogout }) {
     }))
     setSubmitError('')
     setSubmitSuccess('')
+  }
+
+  const clearImageSelection = () => {
+    if (imagePreviewUrl) {
+      URL.revokeObjectURL(imagePreviewUrl)
+    }
+
+    setImageFile(null)
+    setImagePreviewUrl('')
+    setImageError('')
+  }
+
+  const handleImageChange = (event) => {
+    const file = event.target.files?.[0]
+    setSubmitError('')
+    setSubmitSuccess('')
+
+    if (!file) {
+      clearImageSelection()
+      return
+    }
+
+    const validationError = validateTenderImageFile(file)
+    if (validationError) {
+      clearImageSelection()
+      setImageError(validationError)
+      event.target.value = ''
+      return
+    }
+
+    if (imagePreviewUrl) {
+      URL.revokeObjectURL(imagePreviewUrl)
+    }
+
+    setImageFile(file)
+    setImagePreviewUrl(URL.createObjectURL(file))
+    setImageError('')
   }
 
   const buildPayload = () => {
@@ -224,6 +277,22 @@ function CreateAuctionPage({ navigate, onLogout }) {
 
       setCreatedTenderId(payload.id)
 
+      if (imageFile) {
+        const {
+          payload: imagePayload,
+          response: imageResponse,
+        } = await uploadTenderImage(payload.id, imageFile)
+
+        if (!imageResponse.ok) {
+          throw new Error(
+            getApiErrorMessage(
+              imagePayload,
+              'Taslak olustu ancak gorsel yuklenemedi.',
+            ),
+          )
+        }
+      }
+
       if (shouldPublish) {
         const {
           payload: statusPayload,
@@ -255,6 +324,7 @@ function CreateAuctionPage({ navigate, onLogout }) {
         mainCategoryId: categories[0]?.id || '',
         rules: [],
       })
+      clearImageSelection()
     } catch (error) {
       setSubmitError(
         error?.message || 'Muzayede olusturulamadi. Lutfen tekrar dene.',
@@ -521,10 +591,18 @@ function CreateAuctionPage({ navigate, onLogout }) {
                   </span>
                   Ürün Resimleri
                 </h2>
-                <button
+                <label
                   className="group flex w-full cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-outline-variant/30 bg-surface-container-lowest/50 p-8 transition-colors hover:border-primary-container/50"
-                  type="button"
+                  htmlFor="tender-image"
                 >
+                  <input
+                    accept="image/jpeg,image/png,image/webp"
+                    className="sr-only"
+                    disabled={isSubmitting}
+                    id="tender-image"
+                    type="file"
+                    onChange={handleImageChange}
+                  />
                   <span className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary-container/10 transition-transform group-hover:scale-110">
                     <span className="material-symbols-outlined text-3xl text-primary-container">
                       upload_file
@@ -534,31 +612,45 @@ function CreateAuctionPage({ navigate, onLogout }) {
                     Yüksek çözünürlüklü görselleri sürükle ve bırak
                   </span>
                   <span className="mb-6 text-center text-sm text-on-surface-variant">
-                    PNG, JPG veya WEBP desteklenir. En fazla 20MB. Önerilen oran 4:3.
+                    PNG, JPG veya WEBP desteklenir. En fazla 5MB. Onerilen oran 4:3.
                   </span>
                   <span className="rounded-lg border border-primary-container/20 bg-primary-container/10 px-4 py-2 text-sm font-bold text-primary-container transition-colors group-hover:bg-primary-container/20">
                     Dosya Seç
                   </span>
-                </button>
+                </label>
+
+                {imageError ? (
+                  <p className="mt-3 rounded-lg border border-error/20 bg-error/10 px-3 py-2 text-sm font-semibold text-error">
+                    {imageError}
+                  </p>
+                ) : null}
 
                 <div className="mt-6 grid grid-cols-3 gap-3">
                   <div className="group relative aspect-square overflow-hidden rounded-lg bg-surface-container-high">
                     <img
-                      alt="Koyu taş yüzey üzerinde beyaz kadranlı minimalist gümüş kol saati"
-                      className="h-full w-full object-cover opacity-60 transition-opacity group-hover:opacity-100"
-                      src={previewImage}
+                      alt={imageFile ? 'Secilen ihale gorseli' : 'Ornek ihale gorseli'}
+                      className="h-full w-full object-cover opacity-80 transition-opacity group-hover:opacity-100"
+                      src={imagePreviewUrl || previewImage}
                     />
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
-                      <span className="material-symbols-outlined text-sm text-white">
-                        delete
-                      </span>
-                    </div>
+                    {imageFile ? (
+                      <button
+                        aria-label="Secilen gorseli kaldir"
+                        className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity group-hover:opacity-100"
+                        disabled={isSubmitting}
+                        type="button"
+                        onClick={clearImageSelection}
+                      >
+                        <span className="material-symbols-outlined text-sm text-white">
+                          delete
+                        </span>
+                      </button>
+                    ) : null}
                   </div>
-                  <div className="flex aspect-square items-center justify-center rounded-lg border border-dashed border-outline-variant/20 bg-surface-container-lowest">
+                  <div className="col-span-2 flex aspect-[2/1] items-center justify-center rounded-lg border border-dashed border-outline-variant/20 bg-surface-container-lowest px-3 text-center text-xs text-on-surface-variant">
                     <span className="material-symbols-outlined text-slate-700">add</span>
-                  </div>
-                  <div className="flex aspect-square items-center justify-center rounded-lg border border-dashed border-outline-variant/20 bg-surface-container-lowest">
-                    <span className="material-symbols-outlined text-slate-700">add</span>
+                    <span className="ml-2">
+                      MVP icin tek ana gorsel yuklenir.
+                    </span>
                   </div>
                 </div>
               </section>

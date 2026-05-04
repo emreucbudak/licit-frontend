@@ -59,24 +59,8 @@ function readCollection(payload, ...keys) {
   return []
 }
 
-function buildAuctionListPath(searchQuery, categoryId) {
-  if (!searchQuery && !categoryId) {
-    return '/api/v1/auctions'
-  }
-
-  const params = new URLSearchParams({
-    activeOnly: 'true',
-  })
-
-  if (searchQuery) {
-    params.set('search', searchQuery)
-  }
-
-  if (categoryId) {
-    params.set('categoryId', categoryId)
-  }
-
-  return `/api/tender?${params.toString()}`
+function buildAuctionListPath() {
+  return '/api/auction/active?pageNumber=1&pageSize=20'
 }
 
 function toNumber(value) {
@@ -117,14 +101,55 @@ function formatEndsAt(value) {
   return `${minutes}dk`
 }
 
+function readImageUrl(auction) {
+  const imageUrls = readField(auction, 'imgUrls', 'ImgUrls', 'imageUrls', 'ImageUrls')
+
+  if (Array.isArray(imageUrls) && imageUrls.length > 0) {
+    return imageUrls[0]
+  }
+
+  return readField(auction, 'imageUrl', 'ImageUrl', 'image_url')
+}
+
+function matchesAuctionFilters(auction, searchQuery, categoryId) {
+  const categoryValue = readField(auction, 'categoryId', 'CategoryId')
+  const normalizedCategoryId = String(categoryId || '')
+
+  if (normalizedCategoryId && String(categoryValue || '') !== normalizedCategoryId) {
+    return false
+  }
+
+  const normalizedSearch = searchQuery.trim().toLowerCase()
+
+  if (!normalizedSearch) {
+    return true
+  }
+
+  return [
+    readField(auction, 'auctionName', 'AuctionName', 'title', 'Title'),
+    readField(auction, 'description', 'Description'),
+    readField(auction, 'rules', 'Rules'),
+  ]
+    .filter(Boolean)
+    .some((value) => String(value).toLowerCase().includes(normalizedSearch))
+}
+
 function normalizeAuction(auction, index) {
   const fallback = imageFallbacks[index % imageFallbacks.length]
-  const id = readField(auction, 'id', 'Id')
-  const currentPrice = readField(auction, 'current_price', 'currentPrice', 'CurrentPrice')
+  const id = readField(auction, 'id', 'Id', 'auctionId', 'AuctionId')
+  const currentPrice = readField(
+    auction,
+    'current_price',
+    'currentPrice',
+    'CurrentPrice',
+    'highestBid',
+    'HighestBid',
+  )
   const endTime = readField(auction, 'ends_at', 'endsAt', 'EndsAt', 'endDate', 'EndDate')
-  const title = readField(auction, 'title', 'Title') || 'Isimsiz muzayede'
+  const title =
+    readField(auction, 'auctionName', 'AuctionName', 'title', 'Title') || 'Isimsiz muzayede'
   const endsLabel = formatEndsAt(endTime)
-  const imageUrl = readField(auction, 'imageUrl', 'ImageUrl', 'image_url')
+  const imageUrl = readImageUrl(auction)
   const startingPrice = readField(
     auction,
     'startingPrice',
@@ -136,7 +161,8 @@ function normalizeAuction(auction, index) {
 
   return {
     id,
-    alt: fallback.alt,
+    key: String(id || `${title}-${index}`),
+    alt: title || fallback.alt,
     description:
       readField(auction, 'description', 'Description') || 'Aciklama henuz eklenmedi.',
     endsAt: endTime,
@@ -150,9 +176,8 @@ function normalizeAuction(auction, index) {
 
 function AuctionCard({ card, navigate }) {
   const detailPath = `/auctions/${card.id}`
-
-  return (
-    <a className="auction-card" href={detailPath} onClick={navigate(detailPath)}>
+  const cardContent = (
+    <>
       <div className="auction-card__media">
         <img alt={card.alt} src={card.image} />
       </div>
@@ -175,6 +200,16 @@ function AuctionCard({ card, navigate }) {
           </div>
         </div>
       </div>
+    </>
+  )
+
+  if (!card.id) {
+    return <article className="auction-card">{cardContent}</article>
+  }
+
+  return (
+    <a className="auction-card" href={detailPath} onClick={navigate(detailPath)}>
+      {cardContent}
     </a>
   )
 }
@@ -256,7 +291,7 @@ function LiveAuctionsPage({ navigate, onLogout }) {
       setAuctionError('')
 
       try {
-        const auctionsPath = buildAuctionListPath(searchQuery, selectedCategoryId)
+        const auctionsPath = buildAuctionListPath()
         const { payload, response } = await sendAuthorizedRequest(auctionsPath)
 
         if (!response.ok) {
@@ -271,19 +306,21 @@ function LiveAuctionsPage({ navigate, onLogout }) {
         }
 
         if (isCurrent) {
-          setAuctions(
-            readCollection(
-              payload,
-              'auctions',
-              'Auctions',
-              'tenders',
-              'Tenders',
-              'items',
-              'Items',
-              'data',
-              'Data',
-            ),
+          const nextAuctions = readCollection(
+            payload,
+            'auctions',
+            'Auctions',
+            'activeAuctions',
+            'ActiveAuctions',
+            'items',
+            'Items',
+            'data',
+            'Data',
+          ).filter((auction) =>
+            matchesAuctionFilters(auction, searchQuery, selectedCategoryId),
           )
+
+          setAuctions(nextAuctions)
         }
       } catch (error) {
         if (isCurrent) {
@@ -442,13 +479,19 @@ function LiveAuctionsPage({ navigate, onLogout }) {
                       <span>+12</span>
                     </div>
 
-                    <a
-                      className="auction-feature__button"
-                      href={`/auctions/${featuredAuction.id}`}
-                      onClick={navigate(`/auctions/${featuredAuction.id}`)}
-                    >
-                      Teklif Ver
-                    </a>
+                    {featuredAuction.id ? (
+                      <a
+                        className="auction-feature__button"
+                        href={`/auctions/${featuredAuction.id}`}
+                        onClick={navigate(`/auctions/${featuredAuction.id}`)}
+                      >
+                        Teklif Ver
+                      </a>
+                    ) : (
+                      <button className="auction-feature__button" disabled type="button">
+                        Teklif Ver
+                      </button>
+                    )}
                   </div>
                 </div>
               </article>
@@ -456,7 +499,7 @@ function LiveAuctionsPage({ navigate, onLogout }) {
 
             {!isLoading
               ? cardAuctions.map((card) => (
-                  <AuctionCard card={card} key={card.id} navigate={navigate} />
+                  <AuctionCard card={card} key={card.key} navigate={navigate} />
                 ))
               : null}
           </section>

@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import './LotDetailPage.css'
 import { AppTopNavbar } from '../../../shared/components/navigation/AppNavigation'
 import { getApiErrorMessage } from '../../../shared/api/apiError'
 import { sendAuthorizedRequest } from '../../../shared/api/authorizedRequest'
 import { getStoredAuthTokens } from '../../../shared/auth/authStorage'
+import { buildSignalRHubUrl } from '../../../shared/config/runtimeConfig'
 
 const galleryImages = [
   {
@@ -177,30 +178,72 @@ async function loadCurrentUserId() {
   return readCurrentUserIdFromToken()
 }
 
-function normalizeAuction(payload) {
+function readImageUrl(auction) {
+  const imageUrls = readField(auction, 'imgUrls', 'ImgUrls', 'imageUrls', 'ImageUrls')
+
+  if (Array.isArray(imageUrls) && imageUrls.length > 0) {
+    return imageUrls[0]
+  }
+
+  return readField(auction, 'imageUrl', 'ImageUrl', 'image_url')
+}
+
+function isAuctionActive(status) {
+  const normalizedStatus = String(status || '').trim().toLowerCase()
+
+  return status === 1 || normalizedStatus === '1' || normalizedStatus === 'active' || normalizedStatus === 'aktif'
+}
+
+function normalizeAuction(payload, fallbackId = '') {
   const auction = payload?.auction || payload?.Auction || payload
+  const startPrice = toNumber(readField(auction, 'start_price', 'startPrice', 'StartPrice'))
+  const currentPrice = readField(
+    auction,
+    'current_price',
+    'currentPrice',
+    'CurrentPrice',
+    'highestBid',
+    'HighestBid',
+    'currentHighestBid',
+    'CurrentHighestBid',
+  )
+  const minIncrement =
+    toNumber(readField(auction, 'min_increment', 'minIncrement', 'MinIncrement', 'increaseAmount', 'IncreaseAmount')) || 1
 
   return {
-    currentPrice: toNumber(readField(auction, 'current_price', 'currentPrice', 'CurrentPrice')),
+    currentPrice: toNumber(currentPrice ?? startPrice),
     description:
       readField(auction, 'description', 'Description') || 'Aciklama henuz eklenmedi.',
-    endsAt: readField(auction, 'ends_at', 'endsAt', 'EndsAt'),
-    id: readField(auction, 'id', 'Id'),
-    imageUrl: readField(auction, 'imageUrl', 'ImageUrl', 'image_url') || '',
-    minIncrement: toNumber(readField(auction, 'min_increment', 'minIncrement', 'MinIncrement')),
-    startPrice: toNumber(readField(auction, 'start_price', 'startPrice', 'StartPrice')),
+    endsAt: readField(auction, 'ends_at', 'endsAt', 'EndsAt', 'endDate', 'EndDate'),
+    id: readField(auction, 'id', 'Id', 'auctionId', 'AuctionId') || fallbackId,
+    imageUrl: readImageUrl(auction) || '',
+    minIncrement,
+    startPrice,
     status: readField(auction, 'status', 'Status') || 'unknown',
-    title: readField(auction, 'title', 'Title') || 'Isimsiz muzayede',
+    title:
+      readField(auction, 'auctionName', 'AuctionName', 'title', 'Title') || 'Isimsiz muzayede',
   }
 }
 
 function normalizeBid(bid) {
-  const userId = readField(bid, 'user_id', 'userId', 'UserId') || 'Kullanici'
+  const userId =
+    readField(
+      bid,
+      'bidderUserId',
+      'BidderUserId',
+      'biddingByUserId',
+      'BiddingByUserId',
+      'user_id',
+      'userId',
+      'UserId',
+    ) || 'Kullanici'
 
   return {
     amount: toNumber(readField(bid, 'amount', 'Amount')),
-    createdAt: readField(bid, 'created_at', 'createdAt', 'CreatedAt'),
-    id: readField(bid, 'id', 'Id'),
+    createdAt:
+      readField(bid, 'placedAt', 'PlacedAt', 'bidTime', 'BidTime', 'created_at', 'createdAt', 'CreatedAt') ||
+      new Date().toISOString(),
+    id: readField(bid, 'bidId', 'BidId', 'id', 'Id'),
     initials: String(userId).slice(0, 2).toUpperCase(),
     status: readField(bid, 'status', 'Status') || '',
     user: String(userId),
@@ -217,6 +260,9 @@ function LotDetailPage({ navigate }) {
   const [loadError, setLoadError] = useState('')
   const [bidMessage, setBidMessage] = useState('')
   const [bidError, setBidError] = useState('')
+  const biddingConnectionRef = useRef(null)
+  const joinedAuctionIdRef = useRef('')
+  const minIncrementRef = useRef(1)
 
   const loadAuction = useCallback(async () => {
     if (!auctionId) {
@@ -225,10 +271,7 @@ function LotDetailPage({ navigate }) {
 
     setLoadError('')
 
-    const [auctionResult, bidsResult] = await Promise.all([
-      sendAuthorizedRequest(`/api/v1/auctions/${auctionId}`),
-      sendAuthorizedRequest(`/api/v1/auctions/${auctionId}/bids`),
-    ])
+    const auctionResult = await sendAuthorizedRequest(`/api/auction/${auctionId}`)
 
     if (!auctionResult.response.ok) {
       throw new Error(
@@ -236,14 +279,8 @@ function LotDetailPage({ navigate }) {
       )
     }
 
-    if (!bidsResult.response.ok) {
-      throw new Error(
-        getApiErrorMessage(bidsResult.payload, 'Teklif gecmisi alinamadi.'),
-      )
-    }
-
-    setAuction(normalizeAuction(auctionResult.payload))
-    setBids(Array.isArray(bidsResult.payload) ? bidsResult.payload.map(normalizeBid) : [])
+    setAuction(normalizeAuction(auctionResult.payload, auctionId))
+    setBids([])
   }, [auctionId])
 
   useEffect(() => {
@@ -275,6 +312,116 @@ function LotDetailPage({ navigate }) {
     }
   }, [loadAuction])
 
+  useEffect(() => {
+    minIncrementRef.current = auction?.minIncrement || 1
+  }, [auction?.minIncrement])
+
+  const handleRealtimeBid = useCallback(
+    (message) => {
+      const eventAuctionId = readField(message, 'auctionId', 'AuctionId')
+
+      if (
+        eventAuctionId &&
+        String(eventAuctionId).toLowerCase() !== String(auctionId).toLowerCase()
+      ) {
+        return
+      }
+
+      const bid = normalizeBid(message)
+
+      if (!bid.id && !bid.amount) {
+        return
+      }
+
+      setAuction((currentAuction) =>
+        currentAuction
+          ? {
+              ...currentAuction,
+              currentPrice: Math.max(currentAuction.currentPrice, bid.amount),
+            }
+          : currentAuction,
+      )
+      setBids((currentBids) => [
+        bid,
+        ...currentBids.filter((item) => item.id !== bid.id),
+      ])
+      setBidAmount((currentAmount) => {
+        const nextMinimumBid = bid.amount + minIncrementRef.current
+        const currentNumber = Number(currentAmount)
+
+        return !Number.isFinite(currentNumber) || currentNumber <= bid.amount
+          ? String(Math.ceil(nextMinimumBid))
+          : currentAmount
+      })
+    },
+    [auctionId],
+  )
+
+  const ensureBiddingRoomJoined = useCallback(async () => {
+    if (!auctionId) {
+      return
+    }
+
+    try {
+      const { HubConnectionBuilder, HubConnectionState } = await import('@microsoft/signalr')
+      let connection = biddingConnectionRef.current
+
+      if (!connection) {
+        connection = new HubConnectionBuilder()
+          .withUrl(buildSignalRHubUrl('/hubs/bidding'), {
+            accessTokenFactory: () => getStoredAuthTokens().accessToken || '',
+          })
+          .withAutomaticReconnect()
+          .build()
+
+        connection.on('BidPlaced', handleRealtimeBid)
+        connection.on('AuctionLatestBidChanged', handleRealtimeBid)
+        biddingConnectionRef.current = connection
+      }
+
+      if (connection.state === HubConnectionState.Disconnected) {
+        await connection.start()
+      }
+
+      if (joinedAuctionIdRef.current !== auctionId) {
+        await connection.invoke('JoinAuction', auctionId)
+        joinedAuctionIdRef.current = auctionId
+      }
+    } catch {
+      // The bid has already succeeded through REST; realtime can recover on a later bid.
+    }
+  }, [auctionId, handleRealtimeBid])
+
+  useEffect(() => {
+    return () => {
+      const connection = biddingConnectionRef.current
+      const joinedAuctionId = joinedAuctionIdRef.current
+
+      if (!connection) {
+        return
+      }
+
+      biddingConnectionRef.current = null
+      joinedAuctionIdRef.current = ''
+      connection.off('BidPlaced', handleRealtimeBid)
+      connection.off('AuctionLatestBidChanged', handleRealtimeBid)
+
+      const leaveAndStop = async () => {
+        try {
+          if (joinedAuctionId) {
+            await connection.invoke('LeaveAuction', joinedAuctionId)
+          }
+        } catch {
+          // Ignore realtime cleanup failures while navigating away.
+        } finally {
+          connection.stop().catch(() => {})
+        }
+      }
+
+      leaveAndStop()
+    }
+  }, [auctionId, handleRealtimeBid])
+
   const minimumBid = useMemo(() => {
     if (!auction) {
       return 0
@@ -285,7 +432,7 @@ function LotDetailPage({ navigate }) {
 
   useEffect(() => {
     if (auction) {
-      setBidAmount(minimumBid.toFixed(2))
+      setBidAmount(String(Math.ceil(minimumBid)))
     }
   }, [auction, minimumBid])
 
@@ -300,7 +447,7 @@ function LotDetailPage({ navigate }) {
     setBidError('')
     setBidMessage('')
 
-    if (!Number.isFinite(amount) || amount < minimumBid) {
+    if (!Number.isInteger(amount) || amount < minimumBid) {
       setBidError(`Teklif en az ${formatMoney(minimumBid)} olmali.`)
       return
     }
@@ -309,29 +456,53 @@ function LotDetailPage({ navigate }) {
 
     try {
       const userId = await loadCurrentUserId()
+
+      if (!userId) {
+        throw new Error('Kullanici bilgisi alinamadi.')
+      }
+
       const idempotencyKey = createIdempotencyKey()
-      const { payload, response } = await sendAuthorizedRequest(
-        `/api/v1/auctions/${auctionId}/bids`,
-        {
-          body: {
-            amount,
-            auction_id: auctionId,
-            idempotency_key: idempotencyKey,
-          },
-          headers: {
-            'Idempotency-Key': idempotencyKey,
-            ...(userId ? { 'X-User-ID': userId } : {}),
-          },
-          method: 'POST',
+      const { payload, response } = await sendAuthorizedRequest('/api/bids', {
+        body: {
+          auctionId,
+          bidderUserId: userId,
+          amount,
+          idempotencyKey,
         },
-      )
+        headers: {
+          'Idempotency-Key': idempotencyKey,
+        },
+        method: 'POST',
+      })
 
       if (!response.ok) {
         throw new Error(getApiErrorMessage(payload, 'Teklif verilemedi.'))
       }
 
+      const currentHighestBid =
+        toNumber(readField(payload, 'currentHighestBid', 'CurrentHighestBid')) || amount
+      const nextBid = normalizeBid({
+        ...payload,
+        amount,
+        auctionId,
+        bidderUserId: userId,
+      })
+
+      setAuction((currentAuction) =>
+        currentAuction
+          ? {
+              ...currentAuction,
+              currentPrice: currentHighestBid,
+            }
+          : currentAuction,
+      )
+      setBids((currentBids) => [
+        nextBid,
+        ...currentBids.filter((item) => item.id !== nextBid.id),
+      ])
+      setBidAmount(String(Math.ceil(currentHighestBid + minIncrementRef.current)))
+      await ensureBiddingRoomJoined()
       setBidMessage('Teklif basariyla verildi.')
-      await loadAuction()
     } catch (error) {
       setBidError(error?.message || 'Teklif verilemedi. Lutfen tekrar dene.')
     } finally {
@@ -339,8 +510,10 @@ function LotDetailPage({ navigate }) {
     }
   }
 
-  const auctionStatus = String(auction?.status || '').toLowerCase()
-  const canBid = auction && auctionStatus !== 'ended' && auctionStatus !== 'closed'
+  const canBid =
+    auction &&
+    isAuctionActive(auction.status) &&
+    new Date(auction.endsAt).getTime() > Date.now()
 
   return (
     <div className="lot-page">
@@ -432,7 +605,7 @@ function LotDetailPage({ navigate }) {
                   disabled={!canBid || isSubmittingBid || isLoading}
                   min={minimumBid}
                   onChange={(event) => setBidAmount(event.target.value)}
-                  step="0.01"
+                  step="1"
                   type="number"
                   value={bidAmount}
                 />

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { getApiErrorMessage } from '../../api/apiError'
 import { sendAuthorizedRequest } from '../../api/authorizedRequest'
 import { getStoredAuthTokens } from '../../auth/authStorage'
-import { buildWsUrl } from '../../config/runtimeConfig'
+import { buildSignalRHubUrl } from '../../config/runtimeConfig'
 import './AppNavigation.css'
 
 const notificationHubPath = '/notification-hub'
@@ -219,20 +219,6 @@ function normalizeNotification(notification, index) {
     time: formatNotificationTime(createdAt),
     title,
   }
-}
-
-function buildSignalRHubUrl(path) {
-  const url = buildWsUrl(path)
-
-  if (url.startsWith('wss://')) {
-    return `https://${url.slice(6)}`
-  }
-
-  if (url.startsWith('ws://')) {
-    return `http://${url.slice(5)}`
-  }
-
-  return url
 }
 
 export function AppTopNavbar({

@@ -146,15 +146,16 @@ function normalizeBidHistoryPage(payload, requestedPage, requestedPageSize) {
 }
 
 async function fetchBidHistory(page, pageSize) {
-  const { payload, response } = await sendAuthorizedRequest(
-    `/api/v1/bids/me?page=${page}&pageSize=${pageSize}`,
+  return normalizeBidHistoryPage(
+    {
+      bids: [],
+      page,
+      pageSize,
+      totalCount: 0,
+    },
+    page,
+    pageSize,
   )
-
-  if (!response.ok) {
-    throw new Error(getApiErrorMessage(payload, 'Teklif gecmisi alinamadi.'))
-  }
-
-  return normalizeBidHistoryPage(payload, page, pageSize)
 }
 
 function getErrorMessage(errors, ...keys) {

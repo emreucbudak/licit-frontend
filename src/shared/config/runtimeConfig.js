@@ -26,3 +26,17 @@ export function buildWsUrl(path) {
 
   return `${runtimeConfig.wsBaseUrl}${cleanPath.startsWith('/') ? cleanPath : `/${cleanPath}`}`
 }
+
+export function buildSignalRHubUrl(path) {
+  const url = buildWsUrl(path)
+
+  if (url.startsWith('wss://')) {
+    return `https://${url.slice(6)}`
+  }
+
+  if (url.startsWith('ws://')) {
+    return `http://${url.slice(5)}`
+  }
+
+  return url
+}

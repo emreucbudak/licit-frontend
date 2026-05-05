@@ -10,32 +10,32 @@ const imageFallbacks = [
   {
     image:
       'https://lh3.googleusercontent.com/aida-public/AB6AXuBj8KFbP6P_e_F-eKJJN0yxsB3gtrT06H9IX1BosthXFCHeq0dFdgaZrUTKZydbDXPF24Qsir99du0nYRfdpGFTxQEqLgh5NX2v6A-B5lJPDA6x0O1ppBw3pYJ1E17i99GdPzdCtlh0r6i3q_TgccUql40i84-bPRz0GdGgKf0sYECjPcDVHlbcI0rW9FUWw8Ms0EQd2wvwxmajQEX7UEVi3Tf2ZwMQECpDqErL0Fr7f5cyUm9tP6A1OCTSnaQEHMGf3ZA1pLL7ma4',
-    alt: 'Premium vintage film camera close-up',
+    alt: 'Premium eski film kamerası yakın plan',
   },
   {
     image:
       'https://lh3.googleusercontent.com/aida-public/AB6AXuAsHzSaWZ0OXBlXmW_7Ha-tVCmjujcrqkhRso8ovrJ2zB7CMMoNsseTyFdjNuHKQx6hMV732c-qQwEUS08vb-DsVSDoKPTfjd1NdO9WFbi5K3tiRPFC9bayoBg1mA4nvb7Eb5zJPGyUudeJ-a5voz4E0T-UFJ1DAmdkh_4B8nowfpmsp4hK1jAOPkwXTh7iaFvFcifxGbcx11UUb1SCv2z8wLm1nB9cztiTnv421B3G3cbpiG9avq-DNWbcjk_isEJ07oac3JhyXnI',
-    alt: 'Custom mechanical keyboard with RGB lighting',
+    alt: 'RGB aydınlatmalı özel mekanik klavye',
   },
   {
     image:
       'https://lh3.googleusercontent.com/aida-public/AB6AXuBZQ0RpmYnG1Y3o1gNWD_szQmQWy2-FAs58JeRiZ2cWt7gnQA9xMx6ot5IgBUY7FVkAxAj32dCIJJbPrA71auYYDZKLs6aeIDZkj1fRuGXqZkc--h2IjTCvMVvs2FqZGOq4zVmwA29rPfZvD02SlVtAqvT1OPnRw6gde_KrTFboMibFCfsU-QmGLF33DAa0m06SdKgkDZUNQ2QiUOlzpWkMc0GKwloKmwR3ugaTipFTVBRcf3jis9LyJ7hfEhIj2h8zlIF7pr-mAuU',
-    alt: 'Professional studio headphones on an audio interface',
+    alt: 'Ses arabirimi üzerinde profesyonel stüdyo kulaklığı',
   },
   {
     image:
       'https://lh3.googleusercontent.com/aida-public/AB6AXuCDNXwBOc4ojx8HqKSdYr_5tIw_mlCGmkAzyvrgQK_KVWLSjGg2z2a5QJ0U-MqPMzYYsOKsMNYwkeWo--5h_shiDe3YYZHYCzegr9Py-CViSm3Sm3itisnpKIZLXFHsaDi74hvc7rfRuO59hOFNqGc73z7zluiNtXsUb-9Q6ALSC-SPckrmOuwFlX4ruhm3WGwzoeKekH_qQApUHcGMt-oEzGiCAdK4r6P8PjE9Xi84ISSyUdcOhwHI2VxaK-UvDHiKggnhs2JJUuY',
-    alt: 'Luxury watch mechanism macro detail',
+    alt: 'Lüks saat mekanizması makro detayı',
   },
   {
     image:
       'https://lh3.googleusercontent.com/aida-public/AB6AXuA238dzWrTBBTGSS6pyGgVkyOq440JGLxTuHW_MnNhgMrF5t6iDdb1i76iiG7F-FnmBGDR1lp0o1gpN7LND-5oJHBLzhJfhe_EIZUY8h5JKKFryW6gi4nf17WeV7FPevgwVLu0i3qESr5W236Tuum4sBJZvZ6fURkGo72oUIp2xlebm_2YNVD9ogak2X3L0h-MeJLWtm9dB27g4nXLDrEnqWmAC9I-JsPwtiFilVZGnU3_gZ0Ai8x5Ku3NB7JFkQd7KRJnprP-W76s',
-    alt: 'Modular synthesizer with patch cables',
+    alt: 'Patch kablolu modüler synthesizer',
   },
 ]
 
-const moneyFormatter = new Intl.NumberFormat('en-US', {
-  currency: 'USD',
+const moneyFormatter = new Intl.NumberFormat('tr-TR', {
+  currency: 'TRY',
   style: 'currency',
 })
 
@@ -147,7 +147,7 @@ function normalizeAuction(auction, index) {
   )
   const endTime = readField(auction, 'ends_at', 'endsAt', 'EndsAt', 'endDate', 'EndDate')
   const title =
-    readField(auction, 'auctionName', 'AuctionName', 'title', 'Title') || 'Isimsiz muzayede'
+    readField(auction, 'auctionName', 'AuctionName', 'title', 'Title') || 'İsimsiz müzayede'
   const endsLabel = formatEndsAt(endTime)
   const imageUrl = readImageUrl(auction)
   const startingPrice = readField(
@@ -164,7 +164,7 @@ function normalizeAuction(auction, index) {
     key: String(id || `${title}-${index}`),
     alt: title || fallback.alt,
     description:
-      readField(auction, 'description', 'Description') || 'Aciklama henuz eklenmedi.',
+      readField(auction, 'description', 'Description') || 'Açıklama henüz eklenmedi.',
     endsAt: endTime,
     endsIn: endsLabel,
     image: imageUrl || fallback.image,
@@ -188,13 +188,13 @@ function AuctionCard({ card, navigate }) {
 
         <div className="auction-card__meta">
           <div>
-            <span>Guncel</span>
+            <span>Güncel</span>
             <strong>{card.price}</strong>
           </div>
 
           <div className="auction-card__meta-right">
             <span className={card.urgency ? 'auction-card__urgent' : ''}>
-              Kalan sure
+              Kalan süre
             </span>
             <strong>{card.endsIn}</strong>
           </div>
@@ -263,7 +263,7 @@ function LiveAuctionsPage({ navigate, onLogout }) {
         const { payload, response } = await sendAuthorizedRequest('/api/categories')
 
         if (!response.ok) {
-          throw new Error(getApiErrorMessage(payload, 'Kategoriler yuklenemedi.'))
+          throw new Error(getApiErrorMessage(payload, 'Kategoriler yüklenemedi.'))
         }
 
         if (isCurrent) {
@@ -271,7 +271,7 @@ function LiveAuctionsPage({ navigate, onLogout }) {
         }
       } catch (error) {
         if (isCurrent) {
-          setCategoryError(error?.message || 'Kategoriler yuklenemedi.')
+          setCategoryError(error?.message || 'Kategoriler yüklenemedi.')
         }
       }
     }
@@ -299,8 +299,8 @@ function LiveAuctionsPage({ navigate, onLogout }) {
             getApiErrorMessage(
               payload,
               searchQuery
-                ? 'Arama sonuclari yuklenemedi. Lutfen tekrar dene.'
-                : 'Muzayedeler yuklenemedi. Lutfen tekrar dene.',
+                ? 'Arama sonuçları yüklenemedi. Lütfen tekrar dene.'
+                : 'Müzayedeler yüklenemedi. Lütfen tekrar dene.',
             ),
           )
         }
@@ -324,7 +324,7 @@ function LiveAuctionsPage({ navigate, onLogout }) {
         }
       } catch (error) {
         if (isCurrent) {
-          setAuctionError(error?.message || 'Muzayedeler yuklenemedi.')
+          setAuctionError(error?.message || 'Müzayedeler yüklenemedi.')
         }
       } finally {
         if (isCurrent) {
@@ -348,7 +348,7 @@ function LiveAuctionsPage({ navigate, onLogout }) {
     () => [
       {
         id: '',
-        label: 'Tumu',
+        label: 'Kategori seç',
       },
       ...categories.map((category) => ({
         id: category.id,
@@ -360,10 +360,10 @@ function LiveAuctionsPage({ navigate, onLogout }) {
   const featuredAuction = renderedAuctions[0]
   const cardAuctions = renderedAuctions.slice(1)
   const emptyMessage = searchQuery
-    ? `"${searchQuery}" icin sonuc bulunamadi.`
-    : 'Henuz yayinda muzayede yok.'
+    ? `"${searchQuery}" için sonuç bulunamadı.`
+    : 'Henüz yayında müzayede yok.'
 
-  const handleCategoryFilter = (categoryId) => (event) => {
+  const handleCategoryFilter = (categoryId) => {
     const params = new URLSearchParams()
 
     if (searchQuery) {
@@ -378,7 +378,11 @@ function LiveAuctionsPage({ navigate, onLogout }) {
       ? `/auctions?${params.toString()}`
       : '/auctions'
 
-    navigate(nextPath)(event)
+    navigate(nextPath)()
+  }
+
+  const handleCategoryFilterChange = (event) => {
+    handleCategoryFilter(event.target.value)
   }
 
   return (
@@ -399,29 +403,27 @@ function LiveAuctionsPage({ navigate, onLogout }) {
         <main className="auctions-main">
           <div className="auctions-main__header">
             <div>
-              <h1>Canli Muzayedeler</h1>
+              <h1>Canlı müzayedeler</h1>
               <p>
                 {searchQuery
-                  ? `"${searchQuery}" arama sonuclari.`
-                  : 'Seckin koleksiyonerler icin kuratorlu dijital ve fiziksel varliklar.'}
+                  ? `"${searchQuery}" arama sonuçları.`
+                  : 'Seçkin koleksiyonerler için küratörlü dijital ve fiziksel varlıklar.'}
               </p>
             </div>
 
             <div className="auctions-filters">
-              <div className="filter-pill-group">
+              <select
+                aria-label="Kategori filtresi"
+                className="auction-category-select"
+                value={selectedCategoryId}
+                onChange={handleCategoryFilterChange}
+              >
                 {categoryFilters.map((filter) => (
-                  <button
-                    key={filter.id || 'all'}
-                    className={`filter-pill${
-                      filter.id === selectedCategoryId ? ' filter-pill--active' : ''
-                    }`}
-                    onClick={handleCategoryFilter(filter.id)}
-                    type="button"
-                  >
+                  <option key={filter.id || 'all'} value={filter.id}>
                     {filter.label}
-                  </button>
+                  </option>
                 ))}
-              </div>
+              </select>
               {categoryError ? (
                 <span className="auction-filter-error">{categoryError}</span>
               ) : null}
@@ -434,7 +436,7 @@ function LiveAuctionsPage({ navigate, onLogout }) {
             </div>
           ) : null}
 
-          <section className="auction-grid" aria-label="Muzayede listesi">
+          <section className="auction-grid" aria-label="Müzayede listesi">
             {isLoading ? (
               <>
                 <SkeletonCard />
@@ -454,7 +456,7 @@ function LiveAuctionsPage({ navigate, onLogout }) {
 
                   <div className="auction-feature__badges">
                     <span className="auction-badge auction-badge--timer">
-                      {featuredAuction.endsIn} kaldi
+                      {featuredAuction.endsIn} kaldı
                     </span>
                   </div>
                 </div>
@@ -467,7 +469,7 @@ function LiveAuctionsPage({ navigate, onLogout }) {
                     </div>
 
                     <div className="auction-feature__price">
-                      <span>Guncel Teklif</span>
+                      <span>Güncel teklif</span>
                       <strong>{featuredAuction.price}</strong>
                     </div>
                   </div>
@@ -509,7 +511,7 @@ function LiveAuctionsPage({ navigate, onLogout }) {
       <nav className="auctions-mobile-dock" aria-label="Mobil navigasyon">
         <button className="auctions-mobile-dock__item auctions-mobile-dock__item--active" type="button">
           <span className="material-symbols-outlined">gavel</span>
-          <span>Canli</span>
+          <span>Canlı</span>
         </button>
         <button className="auctions-mobile-dock__item" type="button">
           <span className="material-symbols-outlined">dashboard</span>
@@ -517,11 +519,11 @@ function LiveAuctionsPage({ navigate, onLogout }) {
         </button>
         <button className="auctions-mobile-dock__item" type="button">
           <span className="material-symbols-outlined">category</span>
-          <span>Urunler</span>
+          <span>Ürünler</span>
         </button>
         <a className="auctions-mobile-dock__item" href="/wallet" onClick={navigate('/wallet')}>
           <span className="material-symbols-outlined">account_balance_wallet</span>
-          <span>Cuzdan</span>
+          <span>Cüzdan</span>
         </a>
       </nav>
     </div>

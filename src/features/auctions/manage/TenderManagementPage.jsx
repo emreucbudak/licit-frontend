@@ -17,8 +17,6 @@ import {
   validateTenderImageFile,
 } from '../images/tenderImageUpload'
 
-const pageSizeOptions = [10, 20, 50]
-
 const statusLabels = {
   active: 'Açık',
   cancelled: 'İptal edildi',
@@ -32,6 +30,8 @@ const nextStatusesByStatus = {
   closed: ['Completed'],
   draft: ['Active', 'Cancelled'],
 }
+
+const defaultPageSize = 10
 
 function createEmptyEditValues() {
   return {
@@ -157,7 +157,7 @@ function toDateTimeInputValue(value) {
 function normalizeTender(tender) {
   return {
     id: toId(readField(tender, 'id', 'Id')),
-    title: readField(tender, 'title', 'Title') || 'Basliksiz ihale',
+    title: readField(tender, 'title', 'Title') || 'Başlıksız ihale',
     description: readField(tender, 'description', 'Description') || '',
     startingPrice: readField(
       tender,
@@ -245,12 +245,11 @@ function TenderManagementPage({ navigate, onLogout }) {
   const [tenders, setTenders] = useState([])
   const [filterCategoryId, setFilterCategoryId] = useState('')
   const [page, setPage] = useState(1)
-  const [pageSize, setPageSize] = useState(10)
   const [pagination, setPagination] = useState({
     totalCount: 0,
     totalPages: 1,
     page: 1,
-    pageSize: 10,
+    pageSize: defaultPageSize,
     hasNextPage: false,
     hasPreviousPage: false,
   })
@@ -305,7 +304,7 @@ function TenderManagementPage({ navigate, onLogout }) {
           throw new Error(
             getApiErrorMessage(
               payload,
-              'Kategoriler yuklenemedi. Lutfen tekrar dene.',
+              'Kategoriler yüklenemedi. Lütfen tekrar dene.',
             ),
           )
         }
@@ -316,7 +315,7 @@ function TenderManagementPage({ navigate, onLogout }) {
       } catch (error) {
         if (isCurrent) {
           setCategoryError(
-            error?.message || 'Kategoriler yuklenemedi. Lutfen tekrar dene.',
+            error?.message || 'Kategoriler yüklenemedi. Lütfen tekrar dene.',
           )
         }
       } finally {
@@ -343,7 +342,7 @@ function TenderManagementPage({ navigate, onLogout }) {
       try {
         const tenderParams = new URLSearchParams({
           page: String(page),
-          pageSize: String(pageSize),
+          pageSize: String(defaultPageSize),
         })
 
         if (filterCategoryId) {
@@ -357,7 +356,7 @@ function TenderManagementPage({ navigate, onLogout }) {
           throw new Error(
             getApiErrorMessage(
               payload,
-              'Ihaleler yuklenemedi. Lutfen tekrar dene.',
+              'İhaleler yüklenemedi. Lütfen tekrar dene.',
             ),
           )
         }
@@ -366,7 +365,7 @@ function TenderManagementPage({ navigate, onLogout }) {
         const nextPagination = buildPagination(
           payload,
           page,
-          pageSize,
+          defaultPageSize,
           nextTenders.length,
         )
 
@@ -384,7 +383,7 @@ function TenderManagementPage({ navigate, onLogout }) {
       } catch (error) {
         if (isCurrent) {
           setTenders([])
-          setListError(error?.message || 'Ihaleler yuklenemedi.')
+          setListError(error?.message || 'İhaleler yüklenemedi.')
         }
       } finally {
         if (isCurrent) {
@@ -398,7 +397,7 @@ function TenderManagementPage({ navigate, onLogout }) {
     return () => {
       isCurrent = false
     }
-  }, [filterCategoryId, page, pageSize, reloadKey])
+  }, [filterCategoryId, page, reloadKey])
 
   useEffect(() => {
     if (
@@ -444,7 +443,7 @@ function TenderManagementPage({ navigate, onLogout }) {
 
       if (!response.ok) {
         throw new Error(
-          getApiErrorMessage(payload, 'Ihale detaylari alinamadi.'),
+          getApiErrorMessage(payload, 'İhale detayları alınamadı.'),
         )
       }
 
@@ -468,7 +467,7 @@ function TenderManagementPage({ navigate, onLogout }) {
       })
       clearEditImageSelection()
     } catch (error) {
-      setActionError(error?.message || 'Ihale detaylari alinamadi.')
+      setActionError(error?.message || 'İhale detayları alınamadı.')
     } finally {
       setBusyAction('')
     }
@@ -538,15 +537,15 @@ function TenderManagementPage({ navigate, onLogout }) {
     const endDate = new Date(editValues.endDate)
 
     if (!title || !description || !editValues.startDate || !editValues.endDate) {
-      throw new Error('Lutfen ihale detaylarini eksiksiz doldur.')
+      throw new Error('Lütfen ihale detaylarını eksiksiz doldur.')
     }
 
     if (!editValues.categoryId) {
-      throw new Error('Lutfen alt kategori sec.')
+      throw new Error('Lütfen alt kategori seç.')
     }
 
     if (!Number.isFinite(startingPrice) || startingPrice < 0) {
-      throw new Error('Baslangic fiyati 0 veya daha buyuk olmali.')
+      throw new Error('Başlangıç fiyatı 0 veya daha büyük olmalı.')
     }
 
     if (
@@ -554,7 +553,7 @@ function TenderManagementPage({ navigate, onLogout }) {
       Number.isNaN(endDate.getTime()) ||
       endDate <= startDate
     ) {
-      throw new Error('Bitis tarihi baslangic tarihinden sonra olmali.')
+      throw new Error('Bitiş tarihi başlangıç tarihinden sonra olmalı.')
     }
 
     return {
@@ -590,7 +589,7 @@ function TenderManagementPage({ navigate, onLogout }) {
 
       if (!response.ok) {
         throw new Error(
-          getApiErrorMessage(payload, 'Ihale guncellenemedi. Lutfen tekrar dene.'),
+          getApiErrorMessage(payload, 'İhale güncellenemedi. Lütfen tekrar dene.'),
         )
       }
 
@@ -604,17 +603,17 @@ function TenderManagementPage({ navigate, onLogout }) {
           throw new Error(
             getApiErrorMessage(
               imagePayload,
-              'Ihale guncellendi ancak gorsel yuklenemedi.',
+              'İhale güncellendi ancak görsel yüklenemedi.',
             ),
           )
         }
       }
 
-      setNotice(editImageFile ? 'Ihale ve gorsel guncellendi.' : 'Ihale guncellendi.')
+      setNotice(editImageFile ? 'İhale ve görsel güncellendi.' : 'İhale güncellendi.')
       closeEditor()
       setReloadKey((currentKey) => currentKey + 1)
     } catch (error) {
-      setActionError(error?.message || 'Ihale guncellenemedi.')
+      setActionError(error?.message || 'İhale güncellenemedi.')
     } finally {
       setBusyAction('')
     }
@@ -647,7 +646,7 @@ function TenderManagementPage({ navigate, onLogout }) {
 
       if (!response.ok) {
         throw new Error(
-          getApiErrorMessage(payload, 'Ihale silinemedi. Lutfen tekrar dene.'),
+          getApiErrorMessage(payload, 'İhale silinemedi. Lütfen tekrar dene.'),
         )
       }
 
@@ -655,13 +654,13 @@ function TenderManagementPage({ navigate, onLogout }) {
         closeEditor()
       }
 
-      setNotice('Ihale silindi.')
+      setNotice('İhale silindi.')
       setTenders((currentTenders) =>
         currentTenders.filter((currentTender) => currentTender.id !== tender.id),
       )
       setReloadKey((currentKey) => currentKey + 1)
     } catch (error) {
-      setActionError(error?.message || 'Ihale silinemedi.')
+      setActionError(error?.message || 'İhale silinemedi.')
     } finally {
       setBusyAction('')
     }
@@ -691,14 +690,14 @@ function TenderManagementPage({ navigate, onLogout }) {
         throw new Error(
           getApiErrorMessage(
             payload,
-            'Ihale durumu guncellenemedi. Lutfen tekrar dene.',
+            'İhale durumu güncellenemedi. Lütfen tekrar dene.',
           ),
         )
       }
 
       const updatedStatus = readField(payload, 'status', 'Status') || nextStatus
 
-      setNotice('Ihale durumu guncellendi.')
+      setNotice('İhale durumu güncellendi.')
       setTenders((currentTenders) =>
         currentTenders.map((currentTender) =>
           currentTender.id === tender.id
@@ -711,7 +710,7 @@ function TenderManagementPage({ navigate, onLogout }) {
       )
       setReloadKey((currentKey) => currentKey + 1)
     } catch (error) {
-      setActionError(error?.message || 'Ihale durumu guncellenemedi.')
+      setActionError(error?.message || 'İhale durumu güncellenemedi.')
     } finally {
       setBusyAction('')
     }
@@ -719,11 +718,6 @@ function TenderManagementPage({ navigate, onLogout }) {
 
   const handleRefresh = () => {
     setReloadKey((currentKey) => currentKey + 1)
-  }
-
-  const handlePageSizeChange = (event) => {
-    setPageSize(Number(event.target.value))
-    setPage(1)
   }
 
   const handleFilterCategoryChange = (event) => {
@@ -745,14 +739,14 @@ function TenderManagementPage({ navigate, onLogout }) {
           <header className="mb-8 flex flex-col justify-between gap-5 md:flex-row md:items-end">
             <div>
               <span className="mb-2 block text-sm font-bold uppercase tracking-widest text-primary">
-                Tender Operations
+                İhale işlemleri
               </span>
               <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-white sm:text-4xl">
-                Ihale Yonetimi
+                İhale yönetimi
               </h1>
               <p className="mt-2 max-w-2xl text-on-surface-variant">
-                Kayitli ihaleleri listele, taslaklari duzenle, durum akisini
-                ilerlet veya silinebilir kayitlari kaldir.
+                Kayıtlı ihaleleri listele, taslakları düzenle, durum akışını
+                ilerlet veya silinebilecek kayıtları kaldır.
               </p>
             </div>
 
@@ -763,7 +757,7 @@ function TenderManagementPage({ navigate, onLogout }) {
                 onClick={navigate('/auctions/create')}
               >
                 <span className="material-symbols-outlined text-base">add_circle</span>
-                Yeni Ihale
+                Yeni ihale
               </a>
               <button
                 className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-on-primary transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
@@ -777,38 +771,14 @@ function TenderManagementPage({ navigate, onLogout }) {
             </div>
           </header>
 
-          <section className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-4">
+          <section className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="rounded-lg bg-surface-container-low p-5">
               <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                Toplam Ihale
+                Toplam ihale
               </p>
               <strong className="mt-2 block text-3xl font-extrabold text-white">
                 {pagination.totalCount}
               </strong>
-            </div>
-            <div className="rounded-lg bg-surface-container-low p-5">
-              <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                Sayfa
-              </p>
-              <strong className="mt-2 block text-3xl font-extrabold text-white">
-                {pagination.page} / {pagination.totalPages}
-              </strong>
-            </div>
-            <div className="rounded-lg bg-surface-container-low p-5">
-              <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                Sayfa Boyutu
-              </label>
-              <select
-                className="mt-2 w-full rounded-lg border-none bg-surface-container-lowest px-4 py-3 text-on-surface focus:ring-2 focus:ring-primary-container"
-                value={pageSize}
-                onChange={handlePageSizeChange}
-              >
-                {pageSizeOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {option} kayit
-                  </option>
-                ))}
-              </select>
             </div>
             <div className="rounded-lg bg-surface-container-low p-5">
               <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
@@ -820,7 +790,7 @@ function TenderManagementPage({ navigate, onLogout }) {
                 value={filterCategoryId}
                 onChange={handleFilterCategoryChange}
               >
-                <option value="">Tum kategoriler</option>
+                <option value="">Tüm kategoriler</option>
                 {categoryFilterOptions.map((category) => (
                   <option key={category.id} value={category.id}>
                     {category.label}
@@ -852,9 +822,9 @@ function TenderManagementPage({ navigate, onLogout }) {
             <section className="mb-8 rounded-xl bg-surface-container-low p-5 shadow-sm sm:p-6">
               <div className="mb-5 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
                 <div>
-                  <h2 className="text-xl font-bold text-white">Ihaleyi Duzenle</h2>
+                  <h2 className="text-xl font-bold text-white">İhaleyi düzenle</h2>
                   <p className="text-sm text-on-surface-variant">
-                    PUT /api/tender/{editingTenderId}
+                    İhale bilgilerini güncelle
                   </p>
                 </div>
                 <button
@@ -871,7 +841,7 @@ function TenderManagementPage({ navigate, onLogout }) {
                 <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                   <div>
                     <label className="mb-2 ml-1 block text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                      Baslik
+                      Başlık
                     </label>
                     <input
                       className="w-full rounded-lg border-none bg-surface-container-lowest px-4 py-3 text-on-surface focus:ring-2 focus:ring-primary-container"
@@ -885,7 +855,7 @@ function TenderManagementPage({ navigate, onLogout }) {
                   </div>
                   <div>
                     <label className="mb-2 ml-1 block text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                      Baslangic Fiyati
+                      Başlangıç fiyatı
                     </label>
                     <input
                       className="w-full rounded-lg border-none bg-surface-container-lowest px-4 py-3 text-on-surface focus:ring-2 focus:ring-primary-container"
@@ -913,7 +883,7 @@ function TenderManagementPage({ navigate, onLogout }) {
                       onChange={handleEditFieldChange}
                     >
                       <option value="">
-                        {isLoadingCategories ? 'Kategoriler yukleniyor' : 'Ana kategori sec'}
+                        {isLoadingCategories ? 'Kategoriler yükleniyor' : 'Ana kategori seç'}
                       </option>
                       {categories.map((category) => (
                         <option key={category.id} value={category.id}>
@@ -941,8 +911,8 @@ function TenderManagementPage({ navigate, onLogout }) {
                     >
                       <option value="">
                         {editValues.mainCategoryId
-                          ? 'Alt kategori sec'
-                          : 'Once ana kategori sec'}
+                          ? 'Alt kategori seç'
+                          : 'Önce ana kategori seç'}
                       </option>
                       {editValues.categoryId && !isSelectedCategoryVisible ? (
                         <option value={editValues.categoryId}>Mevcut kategori</option>
@@ -959,7 +929,7 @@ function TenderManagementPage({ navigate, onLogout }) {
                 <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                   <div>
                     <label className="mb-2 ml-1 block text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                      Baslangic Tarihi
+                      Başlangıç tarihi
                     </label>
                     <input
                       className="w-full rounded-lg border-none bg-surface-container-lowest px-4 py-3 text-on-surface focus:ring-2 focus:ring-primary-container"
@@ -972,7 +942,7 @@ function TenderManagementPage({ navigate, onLogout }) {
                   </div>
                   <div>
                     <label className="mb-2 ml-1 block text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                      Bitis Tarihi
+                      Bitiş tarihi
                     </label>
                     <input
                       className="w-full rounded-lg border-none bg-surface-container-lowest px-4 py-3 text-on-surface focus:ring-2 focus:ring-primary-container"
@@ -987,7 +957,7 @@ function TenderManagementPage({ navigate, onLogout }) {
 
                 <div>
                   <label className="mb-2 ml-1 block text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                    Aciklama
+                    Açıklama
                   </label>
                   <textarea
                     className="w-full rounded-lg border-none bg-surface-container-lowest px-4 py-3 text-on-surface focus:ring-2 focus:ring-primary-container"
@@ -1005,7 +975,7 @@ function TenderManagementPage({ navigate, onLogout }) {
                     <div className="h-24 w-24 overflow-hidden rounded-lg bg-surface-container-high">
                       {editImagePreviewUrl || editValues.imageUrl ? (
                         <img
-                          alt="Ihale gorseli"
+                          alt="İhale görseli"
                           className="h-full w-full object-cover"
                           src={editImagePreviewUrl || editValues.imageUrl}
                         />
@@ -1018,7 +988,7 @@ function TenderManagementPage({ navigate, onLogout }) {
                     <div className="flex-1 space-y-2">
                       <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-primary-container/30 bg-primary-container/10 px-4 py-2 text-sm font-bold text-primary-container transition-colors hover:bg-primary-container/20">
                         <span className="material-symbols-outlined text-base">upload_file</span>
-                        Gorsel Sec
+                        Görsel seç
                         <input
                           accept="image/jpeg,image/png,image/webp"
                           className="sr-only"
@@ -1034,7 +1004,7 @@ function TenderManagementPage({ navigate, onLogout }) {
                           type="button"
                           onClick={clearEditImageSelection}
                         >
-                          Secimi kaldir
+                          Seçimi kaldır
                         </button>
                       ) : null}
                       <p className="text-xs text-on-surface-variant">
@@ -1057,7 +1027,7 @@ function TenderManagementPage({ navigate, onLogout }) {
                     }))
                   }
                   rules={editValues.rules}
-                  subtitle="Kaydedince ihale kurallari bu listeyle guncellenir."
+                  subtitle="Kaydedince ihale kuralları bu listeyle güncellenir."
                 />
 
                 <div className="flex flex-wrap justify-end gap-3">
@@ -1066,7 +1036,7 @@ function TenderManagementPage({ navigate, onLogout }) {
                     type="button"
                     onClick={closeEditor}
                   >
-                    Vazgec
+                    Vazgeç
                   </button>
                   <button
                     className="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-on-primary transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
@@ -1081,28 +1051,22 @@ function TenderManagementPage({ navigate, onLogout }) {
           ) : null}
 
           <section className="overflow-hidden rounded-xl bg-surface-container-low shadow-sm">
-            {listError ? (
-              <p className="m-4 rounded-lg border border-error/20 bg-error/10 px-4 py-3 text-sm font-semibold text-error">
-                {listError}
-              </p>
-            ) : null}
-
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-outline-variant/20 text-left">
                 <thead className="bg-surface-container-high text-xs uppercase tracking-wider text-on-surface-variant">
                   <tr>
-                    <th className="px-5 py-4 font-bold">Ihale</th>
+                    <th className="px-5 py-4 font-bold">İhale</th>
                     <th className="px-5 py-4 font-bold">Kategori</th>
                     <th className="px-5 py-4 font-bold">Tarih</th>
                     <th className="px-5 py-4 font-bold">Durum</th>
-                    <th className="px-5 py-4 text-right font-bold">Islem</th>
+                    <th className="px-5 py-4 text-right font-bold">İşlem</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-outline-variant/10">
                   {isLoading ? (
                     <tr>
                       <td className="px-5 py-8 text-center text-on-surface-variant" colSpan="5">
-                        Ihaleler yukleniyor...
+                        İhaleler yükleniyor...
                       </td>
                     </tr>
                   ) : null}
@@ -1110,7 +1074,7 @@ function TenderManagementPage({ navigate, onLogout }) {
                   {!isLoading && !listError && tenders.length === 0 ? (
                     <tr>
                       <td className="px-5 py-8 text-center text-on-surface-variant" colSpan="5">
-                        Gosterilecek ihale bulunamadi.
+                        Gösterilecek ihale bulunamadı.
                       </td>
                     </tr>
                   ) : null}
@@ -1140,7 +1104,7 @@ function TenderManagementPage({ navigate, onLogout }) {
                                 <div className="flex flex-col gap-1">
                                   <span className="font-bold text-white">{tender.title}</span>
                                   <span className="line-clamp-2 text-sm text-on-surface-variant">
-                                    {tender.description || 'Aciklama yok'}
+                                    {tender.description || 'Açıklama yok'}
                                   </span>
                                   <span className="text-sm font-semibold text-primary">
                                     {formatMoney(tender.startingPrice)}
@@ -1157,8 +1121,8 @@ function TenderManagementPage({ navigate, onLogout }) {
                               </span>
                             </td>
                             <td className="px-5 py-5 text-sm text-on-surface-variant">
-                              <span className="block">Baslangic: {formatDateTime(tender.startDate)}</span>
-                              <span className="mt-1 block">Bitis: {formatDateTime(tender.endDate)}</span>
+                              <span className="block">Başlangıç: {formatDateTime(tender.startDate)}</span>
+                              <span className="mt-1 block">Bitiş: {formatDateTime(tender.endDate)}</span>
                             </td>
                             <td className="px-5 py-5">
                               <span
@@ -1167,7 +1131,7 @@ function TenderManagementPage({ navigate, onLogout }) {
                                 {getStatusLabel(tender.status)}
                               </span>
                               <select
-                                aria-label={`${tender.title} durumunu degistir`}
+                                aria-label={`${tender.title} durumunu değiştir`}
                                 className="mt-3 block w-full min-w-36 rounded-lg border-none bg-surface-container-lowest px-3 py-2 text-sm text-on-surface focus:ring-2 focus:ring-primary-container disabled:cursor-not-allowed disabled:opacity-50"
                                 disabled={isRowBusy || nextStatuses.length === 0}
                                 value=""
@@ -1176,7 +1140,7 @@ function TenderManagementPage({ navigate, onLogout }) {
                                 }}
                               >
                                 <option value="">
-                                  {nextStatuses.length === 0 ? 'Son durum' : 'Durum degistir'}
+                                  {nextStatuses.length === 0 ? 'Son durum' : 'Durum değiştir'}
                                 </option>
                                 {nextStatuses.map((status) => (
                                   <option key={status} value={status}>
@@ -1190,7 +1154,7 @@ function TenderManagementPage({ navigate, onLogout }) {
                                 <button
                                   className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-outline-variant/30 text-on-surface-variant transition-colors hover:bg-surface-container-high hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
                                   disabled={isRowBusy}
-                                  title="Duzenle"
+                                  title="Düzenle"
                                   type="button"
                                   onClick={() => startEditingTender(tender)}
                                 >
@@ -1215,10 +1179,13 @@ function TenderManagementPage({ navigate, onLogout }) {
               </table>
             </div>
 
-            <div className="flex flex-col justify-between gap-3 border-t border-outline-variant/10 px-5 py-4 text-sm text-on-surface-variant sm:flex-row sm:items-center">
-              <span>
-                {pagination.totalCount} kayit icinden sayfa {pagination.page}
-              </span>
+            {listError ? (
+              <p className="m-4 rounded-lg border border-error/20 bg-error/10 px-4 py-3 text-sm font-semibold text-error">
+                {listError}
+              </p>
+            ) : null}
+
+            <div className="flex justify-end border-t border-outline-variant/10 px-5 py-4 text-sm text-on-surface-variant">
               <div className="flex items-center gap-2">
                 <button
                   className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-outline-variant/30 transition-colors hover:bg-surface-container-high disabled:cursor-not-allowed disabled:opacity-50"
@@ -1228,9 +1195,6 @@ function TenderManagementPage({ navigate, onLogout }) {
                 >
                   <span className="material-symbols-outlined text-base">chevron_left</span>
                 </button>
-                <span className="min-w-24 text-center font-semibold text-white">
-                  {pagination.page} / {pagination.totalPages}
-                </span>
                 <button
                   className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-outline-variant/30 transition-colors hover:bg-surface-container-high disabled:cursor-not-allowed disabled:opacity-50"
                   disabled={isLoading || !pagination.hasNextPage}

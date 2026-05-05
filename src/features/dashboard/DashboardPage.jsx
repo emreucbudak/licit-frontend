@@ -8,12 +8,12 @@ const fallbackAuctionImages = [
   {
     image:
       'https://lh3.googleusercontent.com/aida-public/AB6AXuCBkI3FqStyasHTMFE8FS1K3VLwUo8Ge5kGEWA3G3oDKdWq1SgYZzk23bwpGo9TV9VhBmkk2li5FsqrPb47027MXVaosR0BdO73v7ZtPotCPTyxpfyS1DpGQvzPFMaTZrSZZOVQwnCeml1iQm964tjxJM8XhEO_Nr5RGo9KEpebYMJMemEGAL390KGbHPqXXlqCLm7WTEvXl0Xb21NtycUiPcHGch7WiFPH6lluE1d71a3q4Ok2g-RtXTXbCGZ7aMWaB7dF3fbakA4',
-    alt: 'Soyut dijital koleksiyon gorseli',
+    alt: 'Soyut dijital koleksiyon görseli',
   },
   {
     image:
       'https://lh3.googleusercontent.com/aida-public/AB6AXuCdetb6oFJ3ij7DLDy4CGPi9RCLv3Wi5d_fBPOFt4naQ9o2YHzKKgIoYPq-73erRvIMDtsTlDi8m42nWV0JYynhKRth_9BqLFI7sQ-0GX-8gNMEbXi6XFyOfz8zfYVyT-ET0SCBfhqSSeS7xj96_ZaJ2D6JNp80PnPI4x5h-HODG_dSkGU_ns5z5H1ZKUaFptb2PCyibb7cgZP7hL7fOkgFdVjKqUXbrifBfa1BWO94Lsnpkz9ok-GZbp2KYvRlvYAGVKw12pehB5A',
-    alt: 'Koleksiyon urunu gorseli',
+    alt: 'Koleksiyon ürünü görseli',
   },
 ]
 
@@ -119,7 +119,7 @@ async function fetchDashboardSummary() {
   const { payload, response } = await sendAuthorizedRequest('/api/dashboard/summary')
 
   if (!response.ok) {
-    throw new Error(getApiErrorMessage(payload, 'Dashboard ozeti alinamadi.'))
+    throw new Error(getApiErrorMessage(payload, 'Dashboard özeti alınamadı.'))
   }
 
   return payload
@@ -165,7 +165,7 @@ function getErrorMessage(errors, ...keys) {
     return ''
   }
 
-  return typeof value === 'string' ? value : 'Ozet verisinin bu bolumu alinamadi.'
+  return typeof value === 'string' ? value : 'Özet verisinin bu bölümü alınamadı.'
 }
 
 function getBidAuctionId(bid) {
@@ -251,7 +251,7 @@ function DashboardPage({ navigate, onLogout }) {
         }
 
         setBidHistory([])
-        setBidHistoryError(error.message || 'Teklif gecmisi yuklenemedi.')
+        setBidHistoryError(error.message || 'Teklif geçmişi yüklenemedi.')
       } finally {
         if (isCurrent) {
           setIsBidsLoading(false)
@@ -326,8 +326,8 @@ function DashboardPage({ navigate, onLogout }) {
 
       return {
         id: tender.id,
-        title: tender.title || 'Basliksiz ilan',
-        priceLabel: isAuction ? 'Guncel Fiyat' : 'Baslangic Fiyati',
+        title: tender.title || 'Başlıksız ilan',
+        priceLabel: isAuction ? 'Güncel Fiyat' : 'Başlangıç Fiyatı',
         displayPrice: formatCurrency(displayPrice),
         endsAt: formatEndDate(endDate),
         image: fallbackImage.image,
@@ -345,7 +345,7 @@ function DashboardPage({ navigate, onLogout }) {
         const auctionId = getBidAuctionId(bid)
         const isWinning = Boolean(getField(bid, 'isWinning', 'is_winning'))
         const status =
-          getField(bid, 'status', 'Status') || (isWinning ? 'Kazaniyor' : 'Teklif')
+          getField(bid, 'status', 'Status') || (isWinning ? 'Kazanıyor' : 'Teklif')
 
         return {
           id: getField(bid, 'id', 'Id') || `${auctionId || 'bid'}-${index}`,
@@ -354,7 +354,7 @@ function DashboardPage({ navigate, onLogout }) {
           item:
             getField(bid, 'auctionTitle', 'auction_title', 'AuctionTitle') ||
             getField(auction, 'title', 'Title') ||
-            'Basliksiz muzayede',
+            'Başlıksız müzayede',
           bid: formatCurrency(getField(bid, 'amount', 'Amount', 'bidAmount', 'bid_amount')),
           status,
           tone: isWinning || normalizeStatus(status) === 'accepted' ? 'secondary' : 'tertiary',
@@ -365,9 +365,6 @@ function DashboardPage({ navigate, onLogout }) {
   )
 
   const bidTotalPages = Math.max(1, Math.ceil(bidTotalCount / bidPageSize))
-  const bidRangeStart =
-    bidTotalCount === 0 ? 0 : (bidPage - 1) * bidPageSize + 1
-  const bidRangeEnd = Math.min(bidPage * bidPageSize, bidTotalCount)
   const bidPageNumbers = useMemo(() => {
     const firstPage = Math.max(1, Math.min(bidPage - 1, bidTotalPages - 2))
 
@@ -392,29 +389,29 @@ function DashboardPage({ navigate, onLogout }) {
 
     return [
       {
-        label: 'Toplam Ilan',
+        label: 'Toplam İlan',
         value: isDashboardLoading && !dashboardData ? '...' : formatNumber(tenderTotal),
-        note: listingsError || 'Ozet endpointi toplam sayisi',
+        note: listingsError || 'Özet endpointi toplam sayısı',
         tone: listingsError ? 'neutral' : 'secondary',
         icon: 'inventory_2',
         noteIcon: listingsError ? 'error' : 'dns',
       },
       {
-        label: 'Aktif Muzayede',
+        label: 'Aktif Müzayede',
         value:
           isDashboardLoading && !dashboardData
             ? '...'
             : formatNumber(activeAuctionTotal),
         note:
           activeAuctions.length > 0
-            ? 'Canli ozet verisi'
-            : 'Ilanlardan yedekleniyor',
+            ? 'Canlı özet verisi'
+            : 'İlanlardan yedekleniyor',
         tone: 'primary',
         icon: 'visibility',
         noteIcon: 'schedule',
       },
       {
-        label: 'Cuzdan Bakiyesi',
+        label: 'Cüzdan Bakiyesi',
         value:
           isDashboardLoading && !dashboardData
             ? '...'
@@ -423,8 +420,8 @@ function DashboardPage({ navigate, onLogout }) {
           walletError ||
           transactionsError ||
           (Number.isFinite(Number(transactionTotal))
-            ? `${formatNumber(transactionTotal)} cuzdan hareketi`
-            : 'Ozet endpointi cuzdan verisi'),
+            ? `${formatNumber(transactionTotal)} cüzdan hareketi`
+            : 'Özet endpointi cüzdan verisi'),
         tone: walletError ? 'neutral' : 'secondary',
         icon: 'account_balance_wallet',
         noteIcon: walletError ? 'error' : 'payments',
@@ -447,8 +444,8 @@ function DashboardPage({ navigate, onLogout }) {
   const feedItems = useMemo(
     () =>
       tenders.slice(0, 4).map((tender) => [
-        tender.title || 'Basliksiz ilan',
-        tender.categoryName || 'Ilan',
+        tender.title || 'Başlıksız ilan',
+        tender.categoryName || 'İlan',
         'primary',
       ]),
     [tenders],
@@ -475,8 +472,8 @@ function DashboardPage({ navigate, onLogout }) {
         <div className="dashboard-shell">
           <header className="dashboard-header">
             <div>
-              <h1>Hesap Ozeti</h1>
-              <p>Aktif ilanlari ve cuzdan hareketlerini takip et.</p>
+              <h1>Hesap Özeti</h1>
+              <p>Aktif ilanları ve cüzdan hareketlerini takip et.</p>
             </div>
           </header>
 
@@ -499,15 +496,15 @@ function DashboardPage({ navigate, onLogout }) {
           <div className="dashboard-grid">
             <section className="dashboard-active">
               <div className="dashboard-section-head">
-                <h3>{activeAuctions.length > 0 ? 'Aktif Muzayedeler' : 'Son Ilanlar'}</h3>
-                <button type="button" onClick={navigate('/auctions')}>Tumunu Gor</button>
+                <h3>{activeAuctions.length > 0 ? 'Aktif Müzayedeler' : 'Son İlanlar'}</h3>
+                <button type="button" onClick={navigate('/auctions')}>Tümünü Gör</button>
               </div>
               <div className="dashboard-active__list">
                 {isDashboardLoading && visibleTenders.length === 0 ? (
                   <article className="dashboard-auction-card">
                     <div className="dashboard-auction-card__body">
                       <div className="dashboard-auction-card__title">
-                        <h4>Yukleniyor...</h4>
+                        <h4>Yükleniyor...</h4>
                       </div>
                     </div>
                   </article>
@@ -529,7 +526,7 @@ function DashboardPage({ navigate, onLogout }) {
                   <article className="dashboard-auction-card">
                     <div className="dashboard-auction-card__body">
                       <div className="dashboard-auction-card__title">
-                        <h4>Gosterilecek ilan bulunamadi.</h4>
+                        <h4>Gösterilecek ilan bulunamadı.</h4>
                       </div>
                     </div>
                   </article>
@@ -546,7 +543,7 @@ function DashboardPage({ navigate, onLogout }) {
                       </div>
                       <div className="dashboard-auction-card__meta">
                         <div><span>{auction.priceLabel}</span><strong>{auction.displayPrice}</strong></div>
-                        <div className="dashboard-auction-card__meta-right"><span>Bitis</span><strong>{auction.endsAt}</strong></div>
+                        <div className="dashboard-auction-card__meta-right"><span>Bitiş</span><strong>{auction.endsAt}</strong></div>
                       </div>
                     </div>
                   </article>
@@ -556,17 +553,17 @@ function DashboardPage({ navigate, onLogout }) {
 
             <section className="dashboard-history">
               <div className="dashboard-section-head">
-                <h3>Teklif Gecmisi</h3>
+                <h3>Teklif Geçmişi</h3>
               </div>
               <div className="dashboard-table-shell">
                 <table className="dashboard-table">
                   <thead>
-                    <tr><th>Tarih</th><th>Urun</th><th>Teklifin</th><th>Durum</th><th className="dashboard-table__right">Islem</th></tr>
+                    <tr><th>Tarih</th><th>Ürün</th><th>Teklifin</th><th>Durum</th><th className="dashboard-table__right">İşlem</th></tr>
                   </thead>
                   <tbody>
                     {isBidsLoading && bidRows.length === 0 ? (
                       <tr>
-                        <td colSpan="5">Yukleniyor...</td>
+                        <td colSpan="5">Yükleniyor...</td>
                       </tr>
                     ) : null}
 
@@ -578,7 +575,7 @@ function DashboardPage({ navigate, onLogout }) {
 
                     {!isBidsLoading && !bidsError && bidRows.length === 0 ? (
                       <tr>
-                        <td colSpan="5">Teklif gecmisi bulunamadi.</td>
+                        <td colSpan="5">Teklif geçmişi bulunamadı.</td>
                       </tr>
                     ) : null}
 
@@ -590,7 +587,7 @@ function DashboardPage({ navigate, onLogout }) {
                         <td><span className={`dashboard-table__status dashboard-table__status--${row.tone}`}><span></span>{row.status}</span></td>
                         <td className="dashboard-table__right">
                           <button
-                            aria-label="Muzayedeyi ac"
+                            aria-label="Müzayedeyi aç"
                             className="dashboard-table__open"
                             disabled={!row.auctionId}
                             onClick={
@@ -608,15 +605,9 @@ function DashboardPage({ navigate, onLogout }) {
                   </tbody>
                 </table>
                 <div className="dashboard-table__footer">
-                  <p>
-                    {isBidsLoading
-                      ? 'Teklifler yukleniyor.'
-                      : bidsError ||
-                        `${formatNumber(bidRangeStart)}-${formatNumber(bidRangeEnd)} / ${formatNumber(bidTotalCount)} teklif gosteriliyor.`}
-                  </p>
                   <div className="dashboard-pagination">
                     <button
-                      aria-label="Onceki sayfa"
+                      aria-label="Önceki sayfa"
                       disabled={isBidsLoading || bidPage <= 1}
                       onClick={() => handleBidPageChange(bidPage - 1)}
                       type="button"
@@ -653,7 +644,7 @@ function DashboardPage({ navigate, onLogout }) {
           </div>
 
           <section className="dashboard-feed">
-            <div className="dashboard-feed__label"><span>Son Ilanlar</span><div></div></div>
+            <div className="dashboard-feed__label"><span>Son İlanlar</span><div></div></div>
             <div className="dashboard-feed__items">
               {feedItems.length > 0 ? (
                 feedItems.map(([title, value, tone]) => (
@@ -665,7 +656,7 @@ function DashboardPage({ navigate, onLogout }) {
               ) : (
                 <div className="dashboard-feed__item">
                   <span className="dashboard-feed__title">
-                    {isDashboardLoading ? 'Yukleniyor...' : 'Ilan verisi yok'}
+                    {isDashboardLoading ? 'Yükleniyor...' : 'İlan verisi yok'}
                   </span>
                   <span className="dashboard-feed__value dashboard-feed__value--primary">API</span>
                 </div>
@@ -676,10 +667,10 @@ function DashboardPage({ navigate, onLogout }) {
       </main>
 
       <nav className="dashboard-mobile-nav">
-        <button type="button" onClick={navigate('/auctions')}><span className="material-symbols-outlined">gavel</span><span>Canli</span></button>
+        <button type="button" onClick={navigate('/auctions')}><span className="material-symbols-outlined">gavel</span><span>Canlı</span></button>
         <button className="dashboard-mobile-nav__active" type="button"><span className="material-symbols-outlined">dashboard</span><span>Panel</span></button>
         <a href="/auctions/create" onClick={navigate('/auctions/create')}><span className="material-symbols-outlined">add_circle</span><span>Sat</span></a>
-        <a href="/wallet" onClick={navigate('/wallet')}><span className="material-symbols-outlined">account_balance_wallet</span><span>Cuzdan</span></a>
+        <a href="/wallet" onClick={navigate('/wallet')}><span className="material-symbols-outlined">account_balance_wallet</span><span>Cüzdan</span></a>
         <button type="button"><span className="material-symbols-outlined">person</span><span>Profil</span></button>
       </nav>
     </div>

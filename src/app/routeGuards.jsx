@@ -38,7 +38,16 @@ export function EmailVerificationRoute({ emailVerificationFlow, children }) {
   return children
 }
 
-export function LoginVerificationRoute({ loginVerificationFlow, children }) {
+export function LoginVerificationRoute({
+  loginVerificationFlow,
+  isAuthenticated,
+  redirectTo = '/dashboard',
+  children,
+}) {
+  if (isAuthenticated) {
+    return <Navigate to={redirectTo || '/dashboard'} replace />
+  }
+
   if (!loginVerificationFlow.email || !loginVerificationFlow.temporaryToken) {
     return <Navigate to="/login" replace />
   }

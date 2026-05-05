@@ -37,6 +37,27 @@ import {
 } from '../shared/auth/authStorage'
 import { revokeStoredRefreshToken } from '../shared/api/authorizedRequest'
 
+const AUTH_FLOW_PATHS = new Set([
+  '/login',
+  '/verify-login',
+  '/register',
+  '/verify-email',
+  '/forgot-password',
+  '/forgot',
+  '/verify-identity',
+  '/verify-code',
+  '/reset-password',
+  '/create-new-password',
+])
+
+function getPostLoginPath(fromPath) {
+  if (!fromPath || AUTH_FLOW_PATHS.has(fromPath)) {
+    return '/dashboard'
+  }
+
+  return fromPath
+}
+
 function AppRoutes() {
   const routerNavigate = useNavigate()
   const location = useLocation()
@@ -95,15 +116,17 @@ function AppRoutes() {
       expiresAt: '',
       fromPath: '',
     })
-    routerNavigate(fromPath || '/dashboard', { replace: true })
+    routerNavigate(getPostLoginPath(fromPath), { replace: true })
   }
 
   const handleLoginChallengeRequested = (result) => {
+    const fromPath = location.state?.from?.pathname || ''
+
     setLoginVerificationFlow({
       email: result?.email || '',
       temporaryToken: result?.temporaryToken || '',
       expiresAt: result?.expiresAt || '',
-      fromPath: location.state?.from?.pathname || '',
+      fromPath: getPostLoginPath(fromPath),
     })
     routerNavigate('/verify-login')
   }

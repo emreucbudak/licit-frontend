@@ -53,38 +53,17 @@
   gap: 14px;
 }
 
-.filter-pill-group {
-  display: inline-flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 4px;
-  padding: 4px;
-  border-radius: 14px;
+.auction-category-select {
+  min-height: 44px;
+  min-width: 190px;
+  padding: 0 42px 0 14px;
+  border: 1px solid rgba(70, 69, 84, 0.28);
+  border-radius: 12px;
   background: var(--color-surface-container-low);
-}
-
-.filter-pill {
-  min-height: 38px;
-  padding: 10px 16px;
-  border: 0;
-  border-radius: 10px;
-  background: transparent;
-  color: var(--color-on-surface-variant);
-  font-size: 0.85rem;
+  color: #fff;
+  font-size: 0.88rem;
   font-weight: 700;
   cursor: pointer;
-  transition:
-    background-color 0.2s ease,
-    color 0.2s ease;
-}
-
-.filter-pill:hover {
-  color: #fff;
-}
-
-.filter-pill--active {
-  background: var(--color-surface-container-high);
-  color: #fff;
 }
 
 .auction-filter-error {

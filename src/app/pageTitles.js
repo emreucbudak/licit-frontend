@@ -1,11 +1,11 @@
 export function titleForPath(pathname) {
   return (
     {
-      '/auctions': 'Licit | Premium Auction Exchange',
+      '/auctions': 'Canlı Müzayedeler | Licit',
       '/auctions/lot-4429': 'Licit | Lot Detayı',
       '/auctions/create': 'Müzayede Oluştur | Licit',
-      '/auctions/manage': 'Ihale Yonetimi | Licit',
-      '/dashboard': 'Licit Panel - Koleksiyoner',
+      '/auctions/manage': 'İhale Yönetimi | Licit',
+      '/dashboard': 'Licit Paneli | Licit',
       '/settings': 'Hesap Ayarları | Licit',
       '/wallet': 'Cüzdan | Licit',
       '/login': 'Giriş Yap - Licit',
@@ -15,6 +15,6 @@ export function titleForPath(pathname) {
       '/verify-email': 'E-postanı Doğrula | Licit',
       '/reset-password': 'Yeni Şifre Oluştur | Licit',
       '/register': 'Kaydol - Licit',
-    }[pathname] || 'Licit - Real-time Bidding Platform'
+    }[pathname] || 'Licit - Canlı Müzayede Platformu'
   )
 }

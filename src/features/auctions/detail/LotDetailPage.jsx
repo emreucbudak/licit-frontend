@@ -41,8 +41,8 @@ const quickInfo = [
   },
 ]
 
-const moneyFormatter = new Intl.NumberFormat('en-US', {
-  currency: 'USD',
+const moneyFormatter = new Intl.NumberFormat('tr-TR', {
+  currency: 'TRY',
   style: 'currency',
 })
 
@@ -221,7 +221,7 @@ function normalizeAuction(payload, fallbackId = '') {
     startPrice,
     status: readField(auction, 'status', 'Status') || 'unknown',
     title:
-      readField(auction, 'auctionName', 'AuctionName', 'title', 'Title') || 'Isimsiz muzayede',
+      readField(auction, 'auctionName', 'AuctionName', 'title', 'Title') || 'İsimsiz müzayede',
   }
 }
 

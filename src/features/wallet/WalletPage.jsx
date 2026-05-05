@@ -28,29 +28,26 @@ const reservedTransactionTypes = new Set(['Freeze'])
 const RECENT_TRANSACTION_PAGE_SIZE = 5
 const EXPANDED_TRANSACTION_PAGE_SIZE = 10
 
-const moneyFormatter = new Intl.NumberFormat('en-US', {
-  currency: 'USD',
+const moneyFormatter = new Intl.NumberFormat('tr-TR', {
+  currency: 'TRY',
   style: 'currency',
 })
 
-const ethFormatter = new Intl.NumberFormat('en-US', {
-  maximumFractionDigits: 2,
-  minimumFractionDigits: 2,
-})
-
 const walletActions = {
-  deposit: {
+  load: {
     endpoint: '/api/wallet/deposit',
     icon: 'arrow_downward',
-    label: 'Deposit',
-    successMessage: 'Deposit completed.',
+    label: 'Yükle',
+    successMessage: 'Yükleme tamamlandı.',
   },
-  withdraw: {
-    endpoint: '/api/wallet/withdraw',
-    icon: 'arrow_upward',
-    label: 'Withdraw',
-    successMessage: 'Withdraw completed.',
-  },
+}
+
+const transactionDescriptionByType = {
+  Deduct: 'Kesinti',
+  Deposit: 'Yükleme',
+  Freeze: 'Bloke',
+  Unfreeze: 'Bloke kaldırma',
+  Withdraw: 'Para çekme',
 }
 
 function readField(source, camelCaseKey, pascalCaseKey) {
@@ -66,8 +63,8 @@ function formatMoney(value) {
   return moneyFormatter.format(toNumber(value))
 }
 
-function formatEthEquivalent(value) {
-  return `≈ ${ethFormatter.format(toNumber(value) / 3380)} ETH`
+function formatBalanceNote(value) {
+  return `${formatMoney(value)} kullanılabilir TL bakiyesi`
 }
 
 function formatTransactionId(id) {
@@ -98,16 +95,22 @@ function formatDateParts(value) {
   }
 
   return {
-    date: new Intl.DateTimeFormat('en-US', {
+    date: new Intl.DateTimeFormat('tr-TR', {
       day: '2-digit',
       month: 'short',
       year: 'numeric',
     }).format(date),
-    time: new Intl.DateTimeFormat('en-US', {
+    time: new Intl.DateTimeFormat('tr-TR', {
       hour: '2-digit',
       minute: '2-digit',
     }).format(date),
   }
+}
+
+function formatTransactionDescription(description, type) {
+  return description === type
+    ? transactionDescriptionByType[type] || 'İşlem'
+    : description
 }
 
 function normalizeBalance(payload) {
@@ -145,7 +148,7 @@ function normalizeTransactionPage(payload, requestedPage, requestedPageSize) {
 
 function mapTransaction(transaction) {
   const id = readField(transaction, 'id', 'Id')
-  const type = readField(transaction, 'type', 'Type') || 'Transaction'
+  const type = readField(transaction, 'type', 'Type') || 'İşlem'
   const amount = toNumber(readField(transaction, 'amount', 'Amount'))
   const description = readField(transaction, 'description', 'Description') || type
   const createdAt = readField(transaction, 'createdAt', 'CreatedAt')
@@ -158,9 +161,9 @@ function mapTransaction(transaction) {
     amount: `${isPositive ? '+' : '-'}${formatMoney(Math.abs(amount))}`,
     amountTone: isPositive ? 'text-secondary' : 'text-on-surface',
     date: dateParts.date,
-    description,
+    description: formatTransactionDescription(description, type),
     icon: transactionIconByType[type] || 'currency_exchange',
-    status: isReserved ? 'Reserved' : 'Completed',
+    status: isReserved ? 'Ayrıldı' : 'Tamamlandı',
     statusTone: isReserved ? 'outline' : 'secondary',
     time: dateParts.time,
   }
@@ -214,7 +217,7 @@ function WalletPage({ navigate, onLogout }) {
           throw new Error(
             getApiErrorMessage(
               balanceResult.payload,
-              'Cuzdan bakiyesi alinamadi.',
+              'Cüzdan bakiyesi alınamadı.',
             ),
           )
         }
@@ -223,7 +226,7 @@ function WalletPage({ navigate, onLogout }) {
           throw new Error(
             getApiErrorMessage(
               transactionsResult.payload,
-              'Cuzdan hareketleri alinamadi.',
+              'Cüzdan hareketleri alınamadı.',
             ),
           )
         }
@@ -244,7 +247,7 @@ function WalletPage({ navigate, onLogout }) {
         setTransactionTotalCount(transactionData.totalCount)
       } catch (error) {
         if (isMountedRef.current) {
-          setWalletError(error.message || 'Cuzdan bilgileri yuklenemedi.')
+          setWalletError(error.message || 'Cüzdan bilgileri yüklenemedi.')
         }
       } finally {
         if (isMountedRef.current) {
@@ -323,12 +326,7 @@ function WalletPage({ navigate, onLogout }) {
     setActionMessage('')
 
     if (!Number.isFinite(amount) || amount <= 0) {
-      setActionError('Amount must be greater than 0.')
-      return
-    }
-
-    if (selectedAction === 'withdraw' && amount > balance.balance) {
-      setActionError('Amount cannot exceed available balance.')
+      setActionError('Tutar 0’dan büyük olmalı.')
       return
     }
 
@@ -337,16 +335,13 @@ function WalletPage({ navigate, onLogout }) {
     try {
       const result = await sendAuthorizedRequest(activeAction.endpoint, {
         body: { amount },
-        headers:
-          selectedAction === 'deposit'
-            ? { 'Idempotency-Key': createIdempotencyKey() }
-            : {},
+        headers: { 'Idempotency-Key': createIdempotencyKey() },
         method: 'POST',
       })
 
       if (!result.response.ok) {
         throw new Error(
-          getApiErrorMessage(result.payload, `${activeAction.label} failed.`),
+          getApiErrorMessage(result.payload, 'Yükleme başarısız oldu.'),
         )
       }
 
@@ -354,7 +349,7 @@ function WalletPage({ navigate, onLogout }) {
       setActionMessage(activeAction.successMessage)
       await loadWallet({ page: transactionPage, pageSize: transactionPageSize, silent: true })
     } catch (error) {
-      setActionError(error.message || `${activeAction.label} failed.`)
+      setActionError(error.message || 'Yükleme başarısız oldu.')
     } finally {
       setIsActionSubmitting(false)
     }
@@ -404,10 +399,10 @@ function WalletPage({ navigate, onLogout }) {
         <div className="mx-auto max-w-6xl space-y-10">
           <header>
             <h1 className="mb-2 text-4xl font-extrabold tracking-tight text-on-surface md:text-5xl">
-              Financial Hub
+              Cüzdan
             </h1>
             <p className="text-lg text-on-surface-variant">
-              Manage your liquidity and portfolio assets.
+              TL bakiyeni ve cüzdan hareketlerini yönet.
             </p>
           </header>
 
@@ -426,29 +421,29 @@ function WalletPage({ navigate, onLogout }) {
                     account_balance
                   </span>
                   <h2 className="text-sm font-bold uppercase tracking-widest text-on-surface-variant">
-                    Available Liquidity
+                    Kullanılabilir Bakiye
                   </h2>
                 </div>
                 <div className="mt-2 flex flex-wrap items-baseline gap-4">
                   <span className="text-5xl font-black tracking-tight text-on-surface md:text-6xl">
-                    {isLoading ? 'Loading...' : formatMoney(balance.balance)}
+                    {isLoading ? 'Yükleniyor...' : formatMoney(balance.balance)}
                   </span>
                   <span className="flex items-center rounded bg-secondary/10 px-2 py-1 text-sm font-medium text-secondary">
                     <span className="material-symbols-outlined mr-1 text-[16px]">
                       sync
                     </span>
-                    Live
+                    Güncel
                   </span>
                 </div>
                 <p className="mt-2 font-mono text-sm tracking-wide text-on-surface-variant">
-                  {isLoading ? 'Syncing wallet...' : formatEthEquivalent(balance.balance)}
+                  {isLoading ? 'Cüzdan eşitleniyor...' : formatBalanceNote(balance.balance)}
                 </p>
                 <div className="mt-6 flex flex-wrap gap-3 text-sm text-on-surface-variant">
                   <span className="rounded bg-surface-container-high px-3 py-1">
-                    Frozen: {formatMoney(balance.frozenBalance)}
+                    Bloke: {formatMoney(balance.frozenBalance)}
                   </span>
                   <span className="rounded bg-surface-container-high px-3 py-1">
-                    Total: {formatMoney(balance.totalBalance)}
+                    Toplam: {formatMoney(balance.totalBalance)}
                   </span>
                 </div>
               </div>
@@ -456,39 +451,14 @@ function WalletPage({ navigate, onLogout }) {
               <div className="relative z-10 mt-10 flex flex-wrap gap-4 border-t border-outline-variant/10 pt-6">
                 <button
                   className="flex min-w-36 flex-1 items-center justify-center gap-2 rounded-lg border border-outline-variant/20 bg-surface-container-highest py-3 text-sm font-medium text-on-surface transition-colors hover:bg-surface-bright"
-                  onClick={() => handleActionSelect('deposit')}
+                  onClick={() => handleActionSelect('load')}
                   type="button"
                 >
                   <span className="material-symbols-outlined text-[18px]">
                     arrow_downward
                   </span>
-                  Deposit
+                  Yükle
                 </button>
-                <button
-                  className="flex min-w-36 flex-1 items-center justify-center gap-2 rounded-lg border border-outline-variant/20 bg-surface-container-highest py-3 text-sm font-medium text-on-surface transition-colors hover:bg-surface-bright"
-                  onClick={() => handleActionSelect('withdraw')}
-                  type="button"
-                >
-                  <span className="material-symbols-outlined text-[18px]">
-                    arrow_upward
-                  </span>
-                  Withdraw
-                </button>
-                <button
-                  className="flex min-w-36 flex-1 cursor-not-allowed items-center justify-center gap-2 rounded-lg border border-outline-variant/20 bg-surface-container-highest py-3 text-sm font-medium text-on-surface-variant opacity-70"
-                  disabled
-                  title="Transfer API yok / not available yet"
-                  type="button"
-                >
-                  <span className="material-symbols-outlined text-[18px]">
-                    swap_horiz
-                  </span>
-                  Transfer
-                </button>
-              </div>
-
-              <div className="relative z-10 mt-3 text-xs text-on-surface-variant">
-                Transfer API yok / not available yet.
               </div>
 
               {activeAction ? (
@@ -505,7 +475,7 @@ function WalletPage({ navigate, onLogout }) {
                         <span className="material-symbols-outlined text-[18px] text-on-surface-variant">
                           {activeAction.icon}
                         </span>
-                        {activeAction.label} amount
+                        Yüklenecek tutar
                       </label>
                       <input
                         className="w-full rounded-lg border border-outline-variant/30 bg-surface px-3 py-2 text-sm text-on-surface outline-none transition-colors placeholder:text-on-surface-variant focus:border-primary"
@@ -526,7 +496,7 @@ function WalletPage({ navigate, onLogout }) {
                         disabled={isActionSubmitting}
                         type="submit"
                       >
-                        {isActionSubmitting ? 'Submitting...' : 'Submit'}
+                        {isActionSubmitting ? 'Yükleniyor...' : 'Yükle'}
                       </button>
                       <button
                         className="rounded-lg border border-outline-variant/20 px-4 py-2 text-sm font-medium text-on-surface transition-colors hover:bg-surface-bright disabled:cursor-wait disabled:opacity-60"
@@ -534,7 +504,7 @@ function WalletPage({ navigate, onLogout }) {
                         onClick={handleActionCancel}
                         type="button"
                       >
-                        Cancel
+                        Vazgeç
                       </button>
                     </div>
                   </div>
@@ -554,13 +524,13 @@ function WalletPage({ navigate, onLogout }) {
 
           <section className="overflow-hidden rounded-xl bg-surface-container-low">
             <div className="flex items-center justify-between border-b border-outline-variant/10 p-6">
-              <h2 className="text-xl font-bold text-on-surface">Recent Activity</h2>
+              <h2 className="text-xl font-bold text-on-surface">Son Hareketler</h2>
               <button
                 className="flex items-center gap-1 text-sm font-medium text-primary transition-colors hover:text-primary-container"
                 onClick={handleHistoryToggle}
                 type="button"
               >
-                {isHistoryExpanded ? 'Show Recent' : 'View All'}
+                {isHistoryExpanded ? 'Son Hareketler' : 'Tümünü Gör'}
                 <span className="material-symbols-outlined text-[18px]">
                   {isHistoryExpanded ? 'history' : 'arrow_forward'}
                 </span>
@@ -571,18 +541,18 @@ function WalletPage({ navigate, onLogout }) {
               <table className="w-full border-collapse text-left">
                 <thead>
                   <tr className="bg-surface-container-lowest/50 text-xs uppercase tracking-wider text-on-surface-variant">
-                    <th className="p-4 pl-6 font-medium">Transaction ID</th>
-                    <th className="p-4 font-medium">Description</th>
-                    <th className="p-4 font-medium">Date</th>
-                    <th className="p-4 text-right font-medium">Amount</th>
-                    <th className="p-4 pr-6 text-center font-medium">Status</th>
+                    <th className="p-4 pl-6 font-medium">İşlem No</th>
+                    <th className="p-4 font-medium">Açıklama</th>
+                    <th className="p-4 font-medium">Tarih</th>
+                    <th className="p-4 text-right font-medium">Tutar</th>
+                    <th className="p-4 pr-6 text-center font-medium">Durum</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-outline-variant/10 text-sm">
                   {isLoading ? (
                     <tr>
                       <td className="p-6 text-on-surface-variant" colSpan="5">
-                        Wallet activity is loading...
+                        Cüzdan hareketleri yükleniyor...
                       </td>
                     </tr>
                   ) : null}
@@ -590,7 +560,7 @@ function WalletPage({ navigate, onLogout }) {
                   {!isLoading && renderedTransactions.length === 0 ? (
                     <tr>
                       <td className="p-6 text-on-surface-variant" colSpan="5">
-                        No wallet activity yet.
+                        Henüz cüzdan hareketi yok.
                       </td>
                     </tr>
                   ) : null}
@@ -640,13 +610,13 @@ function WalletPage({ navigate, onLogout }) {
               <div className="flex flex-col gap-3 border-t border-outline-variant/10 px-6 py-4 text-sm text-on-surface-variant sm:flex-row sm:items-center sm:justify-between">
                 <p>
                   {isLoading
-                    ? 'Wallet activity is loading.'
-                    : `Showing ${transactionRangeStart}-${transactionRangeEnd} of ${transactionTotalCount} transactions.`}
+                    ? 'Cüzdan hareketleri yükleniyor.'
+                    : `${transactionTotalCount} işlemden ${transactionRangeStart}-${transactionRangeEnd} arası gösteriliyor.`}
                 </p>
                 {showTransactionPagination ? (
                   <div className="flex items-center gap-2">
                     <button
-                      aria-label="Previous transaction page"
+                      aria-label="Önceki işlem sayfası"
                       className="grid h-9 w-9 place-items-center rounded-lg bg-surface-container-high text-on-surface-variant transition-colors hover:bg-surface-bright disabled:cursor-not-allowed disabled:opacity-50"
                       disabled={isLoading || transactionPage <= 1}
                       onClick={() => handleTransactionPageChange(transactionPage - 1)}
@@ -672,7 +642,7 @@ function WalletPage({ navigate, onLogout }) {
                       </button>
                     ))}
                     <button
-                      aria-label="Next transaction page"
+                      aria-label="Sonraki işlem sayfası"
                       className="grid h-9 w-9 place-items-center rounded-lg bg-surface-container-high text-on-surface-variant transition-colors hover:bg-surface-bright disabled:cursor-not-allowed disabled:opacity-50"
                       disabled={isLoading || transactionPage >= transactionTotalPages}
                       onClick={() => handleTransactionPageChange(transactionPage + 1)}

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { AppSideNavbar, AppTopNavbar } from '../../shared/components/navigation/AppNavigation'
 import { getApiErrorMessage } from '../../shared/api/apiError'
 import { sendAuthorizedRequest } from '../../shared/api/authorizedRequest'
@@ -10,22 +10,6 @@ const settingsTabs = [
   ['person', 'Profil'],
   ['shield', 'Güvenlik'],
 ]
-
-function getFullName(profile) {
-  return [profile?.firstName, profile?.lastName].filter(Boolean).join(' ').trim()
-}
-
-function getUsernameFallback(profile) {
-  const fullName = getFullName(profile)
-  const emailPrefix = profile?.email?.split('@')[0]
-  const source = fullName || emailPrefix || 'licit_user'
-  const username = source
-    .toLocaleLowerCase('tr-TR')
-    .replace(/[^a-z0-9]+/g, '_')
-    .replace(/^_+|_+$/g, '')
-
-  return username || emailPrefix || 'licit_user'
-}
 
 function SettingsPage({ navigate, onLogout }) {
   const [profile, setProfile] = useState(null)
@@ -62,7 +46,7 @@ function SettingsPage({ navigate, onLogout }) {
 
         if (!response.ok) {
           throw new Error(
-            getApiErrorMessage(payload, 'Profil bilgileri yuklenemedi.'),
+            getApiErrorMessage(payload, 'Profil bilgileri yüklenemedi.'),
           )
         }
 
@@ -75,7 +59,7 @@ function SettingsPage({ navigate, onLogout }) {
         }
       } catch (error) {
         if (isCurrent) {
-          setProfileError(error.message || 'Profil bilgileri yuklenemedi.')
+          setProfileError(error.message || 'Profil bilgileri yüklenemedi.')
         }
       } finally {
         if (isCurrent) {
@@ -91,21 +75,14 @@ function SettingsPage({ navigate, onLogout }) {
     }
   }, [])
 
-  const profileValues = useMemo(
-    () => ({
-      email: profile?.email || '',
-      username: getUsernameFallback(profile),
-    }),
-    [profile],
-  )
+  const profileValues = {
+    email: profile?.email || '',
+  }
 
-  const normalizedProfileForm = useMemo(
-    () => ({
-      firstName: profileForm.firstName.trim(),
-      lastName: profileForm.lastName.trim(),
-    }),
-    [profileForm],
-  )
+  const normalizedProfileForm = {
+    firstName: profileForm.firstName.trim(),
+    lastName: profileForm.lastName.trim(),
+  }
 
   const isProfileDirty =
     normalizedProfileForm.firstName !== (profile?.firstName || '').trim() ||
@@ -153,7 +130,7 @@ function SettingsPage({ navigate, onLogout }) {
       })
 
       if (!response.ok) {
-        throw new Error(getApiErrorMessage(payload, 'Profil guncellenemedi.'))
+        throw new Error(getApiErrorMessage(payload, 'Profil güncellenemedi.'))
       }
 
       setProfile(payload)
@@ -162,12 +139,12 @@ function SettingsPage({ navigate, onLogout }) {
         lastName: payload?.lastName || '',
       })
       setProfileStatus({
-        message: 'Profil basariyla guncellendi.',
+        message: 'Profil başarıyla güncellendi.',
         type: 'success',
       })
     } catch (error) {
       setProfileStatus({
-        message: error.message || 'Profil guncellenemedi.',
+        message: error.message || 'Profil güncellenemedi.',
         type: 'error',
       })
     } finally {
@@ -190,7 +167,7 @@ function SettingsPage({ navigate, onLogout }) {
 
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
       setPasswordStatus({
-        message: 'Yeni sifreler eslesmiyor.',
+        message: 'Yeni şifreler eşleşmiyor.',
         type: 'error',
       })
       return
@@ -212,7 +189,7 @@ function SettingsPage({ navigate, onLogout }) {
       )
 
       if (!response.ok) {
-        throw new Error(getApiErrorMessage(payload, 'Sifre guncellenemedi.'))
+        throw new Error(getApiErrorMessage(payload, 'Şifre güncellenemedi.'))
       }
 
       setPasswordForm({
@@ -221,12 +198,12 @@ function SettingsPage({ navigate, onLogout }) {
         newPassword: '',
       })
       setPasswordStatus({
-        message: 'Sifre basariyla guncellendi.',
+        message: 'Şifre başarıyla güncellendi.',
         type: 'success',
       })
     } catch (error) {
       setPasswordStatus({
-        message: error.message || 'Sifre guncellenemedi.',
+        message: error.message || 'Şifre güncellenemedi.',
         type: 'error',
       })
     } finally {
@@ -281,7 +258,7 @@ function SettingsPage({ navigate, onLogout }) {
                 type="submit"
                 title={
                   isProfileDirty && !isProfileValid
-                    ? 'Ad ve soyad alanlari zorunludur.'
+                    ? 'Ad ve soyad alanları zorunludur.'
                     : undefined
                 }
               >
@@ -337,11 +314,11 @@ function SettingsPage({ navigate, onLogout }) {
                       />
                     </div>
                     <button
-                      className="absolute -bottom-2 -right-2 cursor-not-allowed rounded-lg bg-primary p-2 text-on-primary opacity-60 shadow-xl"
+                      className="absolute -bottom-2 -right-2 cursor-not-allowed rounded-lg bg-primary p-2 text-on-primary shadow-xl"
                       disabled
                       type="button"
                       aria-label="Avatarı düzenle"
-                      title="Avatar guncelleme API'si henuz yok."
+                      title="Avatar güncelleme API'si henüz yok."
                     >
                       <span className="material-symbols-outlined text-sm">edit</span>
                     </button>
@@ -379,7 +356,7 @@ function SettingsPage({ navigate, onLogout }) {
                       onChange={updateProfileField}
                       placeholder="Ad"
                       type="text"
-                      value={isProfileLoading ? 'Yukleniyor...' : profileForm.firstName}
+                      value={isProfileLoading ? 'Yükleniyor...' : profileForm.firstName}
                     />
                   </label>
 
@@ -394,25 +371,8 @@ function SettingsPage({ navigate, onLogout }) {
                       onChange={updateProfileField}
                       placeholder="Soyad"
                       type="text"
-                      value={isProfileLoading ? 'Yukleniyor...' : profileForm.lastName}
+                      value={isProfileLoading ? 'Yükleniyor...' : profileForm.lastName}
                     />
-                  </label>
-
-                  <label className="space-y-2">
-                    <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                      Kullanıcı Adı
-                    </span>
-                    <span className="relative block">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-on-surface-variant/50">
-                        @
-                      </span>
-                      <input
-                        className="w-full rounded-lg border-none bg-surface-container-lowest py-2.5 pl-8 pr-4 text-sm focus:ring-1 focus:ring-primary"
-                        readOnly
-                        type="text"
-                        value={isProfileLoading ? '...' : profileValues.username}
-                      />
-                    </span>
                   </label>
 
                   <label className="space-y-2 md:col-span-2">
@@ -423,7 +383,7 @@ function SettingsPage({ navigate, onLogout }) {
                       className="w-full rounded-lg border-none bg-surface-container-lowest px-4 py-2.5 text-sm focus:ring-1 focus:ring-primary"
                       readOnly
                       type="email"
-                      value={isProfileLoading ? 'Yukleniyor...' : profileValues.email}
+                      value={isProfileLoading ? 'Yükleniyor...' : profileValues.email}
                     />
                   </label>
 
@@ -488,10 +448,7 @@ function SettingsPage({ navigate, onLogout }) {
                       disabled={isPasswordSubmitDisabled}
                       type="submit"
                     >
-                      {isPasswordSaving ? 'Kaydediliyor...' : 'Sifreyi Guncelle'}
-                    </button>
-                    <button className="text-sm font-bold text-primary hover:underline" type="button">
-                      Şifreni mi unuttun?
+                      {isPasswordSaving ? 'Kaydediliyor...' : 'Şifreyi Güncelle'}
                     </button>
                   </div>
                 </form>

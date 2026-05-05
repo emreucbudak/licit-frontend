@@ -256,7 +256,7 @@ export function AppTopNavbar({
         throw new Error(
           getApiErrorMessage(
             payload,
-            'Bildirim sayisi alinamadi.',
+            'Bildirim sayısı alınamadı.',
           ),
         )
       }
@@ -265,7 +265,7 @@ export function AppTopNavbar({
     } catch (error) {
       if (showError || isNotificationsOpenRef.current) {
         setNotificationsError(
-          error.message || 'Bildirim sayisi alinamadi.',
+          error.message || 'Bildirim sayısı alınamadı.',
         )
       }
     }
@@ -285,7 +285,7 @@ export function AppTopNavbar({
 
       if (!response.ok) {
         throw new Error(
-          getApiErrorMessage(payload, 'Bildirimler yuklenemedi.'),
+          getApiErrorMessage(payload, 'Bildirimler yüklenemedi.'),
         )
       }
 
@@ -293,7 +293,7 @@ export function AppTopNavbar({
         normalizeNotificationCollection(payload).map(normalizeNotification),
       )
     } catch (error) {
-      setNotificationsError(error.message || 'Bildirimler yuklenemedi.')
+      setNotificationsError(error.message || 'Bildirimler yüklenemedi.')
     } finally {
       if (!silent) {
         setIsNotificationsLoading(false)
@@ -435,7 +435,7 @@ export function AppTopNavbar({
 
       if (!response.ok) {
         throw new Error(
-          getApiErrorMessage(payload, 'Bildirim okundu yapilamadi.'),
+          getApiErrorMessage(payload, 'Bildirim okundu olarak işaretlenemedi.'),
         )
       }
 
@@ -449,7 +449,7 @@ export function AppTopNavbar({
       setUnreadCount((currentCount) => Math.max(currentCount - 1, 0))
       loadUnreadCount()
     } catch (error) {
-      setNotificationsError(error.message || 'Bildirim okundu yapilamadi.')
+      setNotificationsError(error.message || 'Bildirim okundu olarak işaretlenemedi.')
     } finally {
       setReadActionId('')
     }
@@ -471,7 +471,7 @@ export function AppTopNavbar({
 
       if (!response.ok) {
         throw new Error(
-          getApiErrorMessage(payload, 'Bildirimler okundu yapilamadi.'),
+          getApiErrorMessage(payload, 'Bildirimler okundu olarak işaretlenemedi.'),
         )
       }
 
@@ -484,7 +484,7 @@ export function AppTopNavbar({
       setUnreadCount(0)
       loadUnreadCount()
     } catch (error) {
-      setNotificationsError(error.message || 'Bildirimler okundu yapilamadi.')
+      setNotificationsError(error.message || 'Bildirimler okundu olarak işaretlenemedi.')
     } finally {
       setIsMarkingAllRead(false)
     }
@@ -519,7 +519,7 @@ export function AppTopNavbar({
             aria-expanded={isNotificationsOpen}
             aria-label={
               unreadCount > 0
-                ? `${unreadCount} okunmamis bildirim`
+                ? `${unreadCount} okunmamış bildirim`
                 : 'Bildirimler'
             }
             onClick={handleNotificationToggle}
@@ -544,8 +544,8 @@ export function AppTopNavbar({
                   <h2>Bildirimler</h2>
                   <p>
                     {unreadCount > 0
-                      ? `${unreadCount} okunmamis`
-                      : 'Tumu okundu'}
+                      ? `${unreadCount} okunmamış`
+                      : 'Tümü okundu'}
                   </p>
                 </div>
                 <button
@@ -557,7 +557,7 @@ export function AppTopNavbar({
                   onClick={handleMarkAllNotificationsRead}
                   type="button"
                 >
-                  {isMarkingAllRead ? 'Isleniyor...' : 'Tumunu okundu yap'}
+                  {isMarkingAllRead ? 'İşleniyor...' : 'Tümünü okundu olarak işaretle'}
                 </button>
               </div>
 
@@ -565,7 +565,7 @@ export function AppTopNavbar({
                 {isNotificationsLoading ? (
                   <div className="app-notifications__state">
                     <span className="material-symbols-outlined">progress_activity</span>
-                    <p>Bildirimler yukleniyor...</p>
+                    <p>Bildirimler yükleniyor...</p>
                   </div>
                 ) : null}
 
@@ -626,7 +626,7 @@ export function AppTopNavbar({
                               handleMarkNotificationRead(notification)
                             }
                             type="button"
-                            aria-label={`${notification.title} bildirimini okundu yap`}
+                            aria-label={`${notification.title} bildirimini okundu olarak işaretle`}
                           >
                             <span className="material-symbols-outlined">
                               {readActionId === notification.key
@@ -657,16 +657,6 @@ export function AppSideNavbar({ currentPath, navigate, onLogout }) {
 
   return (
     <aside className="app-sidebar">
-      <div className="app-sidebar__profile">
-        <div className="app-sidebar__avatar">
-          <span className="material-symbols-outlined">person</span>
-        </div>
-        <div>
-          <p>Koleksiyoner</p>
-          <span>{'Do\u011frulanm\u0131\u015f \u00dcye'}</span>
-        </div>
-      </div>
-
       <nav className="app-sidebar__nav" aria-label="Yan navigasyon">
         {sideNavLinks.map((link) => (
           <a

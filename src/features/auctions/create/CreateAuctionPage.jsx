@@ -17,10 +17,10 @@ const previewImage =
   'https://lh3.googleusercontent.com/aida-public/AB6AXuCEmI0z_YuP3x3BkXaINgNm4oQ4DHezF5XTTEjwh-70YPkKbgx1IYxq0koBKWQccZpreJLFFpkezKTdgTNXPtUqrgOOZKYT8ckcuXNQDwdeEtxj-jt-Geql1-IRNTpvgp35ZDgHl74pVzf5DjITuyboTLPceLctGcnbD84hh9THRfLtGsLfE3L0mGr4gvuKiHkanvdupB8_Ky44VsZ-lMtOfaC17lsVJBXbRLe2U9nd78B8OBiMbRtCAyzVnakb_FXHaf6Rh93fPlY'
 
 const durationOptions = [
-  { days: 3, label: '3 Gun' },
-  { days: 5, label: '5 Gun' },
-  { days: 7, label: '7 Gun' },
-  { days: 14, label: '14 Gun' },
+  { days: 3, label: '3 Gün' },
+  { days: 5, label: '5 Gün' },
+  { days: 7, label: '7 Gün' },
+  { days: 14, label: '14 Gün' },
 ]
 
 function getTodayInputValue() {
@@ -93,7 +93,7 @@ function CreateAuctionPage({ navigate, onLogout }) {
           throw new Error(
             getApiErrorMessage(
               payload,
-              'Kategoriler yuklenemedi. Lutfen tekrar dene.',
+              'Kategoriler yüklenemedi. Lütfen tekrar dene.',
             ),
           )
         }
@@ -134,7 +134,7 @@ function CreateAuctionPage({ navigate, onLogout }) {
       } catch (error) {
         if (isMounted) {
           setCategoryError(
-            error?.message || 'Kategoriler yuklenemedi. Lutfen tekrar dene.',
+            error?.message || 'Kategoriler yüklenemedi. Lütfen tekrar dene.',
           )
         }
       } finally {
@@ -215,19 +215,19 @@ function CreateAuctionPage({ navigate, onLogout }) {
     const startingPrice = Number(formValues.startingPrice)
 
     if (!title || !description || !formValues.startDate) {
-      throw new Error('Lutfen urun detaylarini eksiksiz doldur.')
+      throw new Error('Lütfen ürün detaylarını eksiksiz doldur.')
     }
 
     if (!formValues.mainCategoryId) {
-      throw new Error('Lutfen once ana kategori sec.')
+      throw new Error('Lütfen önce ana kategori seç.')
     }
 
     if (!formValues.categoryId) {
-      throw new Error('Lutfen alt kategori sec. Ihaleler alt kategoriye gore filtrelenecek.')
+      throw new Error('Lütfen alt kategori seç. İhaleler alt kategoriye göre filtrelenecek.')
     }
 
     if (!Number.isFinite(startingPrice) || startingPrice < 0) {
-      throw new Error('Baslangic fiyati 0 veya daha buyuk olmali.')
+      throw new Error('Başlangıç fiyatı 0 veya daha büyük olmalı.')
     }
 
     const startDate = createStartDate(formValues.startDate)
@@ -266,13 +266,13 @@ function CreateAuctionPage({ navigate, onLogout }) {
         throw new Error(
           getApiErrorMessage(
             payload,
-            'Muzayede olusturulamadi. Lutfen tekrar dene.',
+            'Müzayede oluşturulamadı. Lütfen tekrar dene.',
           ),
         )
       }
 
       if (!payload?.id) {
-        throw new Error('Muzayede olusturuldu ama sonuc kimligi alinamadi.')
+        throw new Error('Müzayede oluşturuldu ama sonuç kimliği alınamadı.')
       }
 
       setCreatedTenderId(payload.id)
@@ -287,7 +287,7 @@ function CreateAuctionPage({ navigate, onLogout }) {
           throw new Error(
             getApiErrorMessage(
               imagePayload,
-              'Taslak olustu ancak gorsel yuklenemedi.',
+              'Taslak oluştu ancak görsel yüklenemedi.',
             ),
           )
         }
@@ -308,7 +308,7 @@ function CreateAuctionPage({ navigate, onLogout }) {
           throw new Error(
             getApiErrorMessage(
               statusPayload,
-              'Taslak olustu ancak muzayede yayina alinamadi.',
+              'Taslak oluştu ancak müzayede yayına alınamadı.',
             ),
           )
         }
@@ -316,8 +316,8 @@ function CreateAuctionPage({ navigate, onLogout }) {
 
       setSubmitSuccess(
         shouldPublish
-          ? 'Muzayede olusturuldu ve yayina alindi.'
-          : 'Muzayede taslak olarak kaydedildi.',
+          ? 'Müzayede oluşturuldu ve yayına alındı.'
+          : 'Müzayede taslak olarak kaydedildi.',
       )
       setFormValues({
         ...initialFormValues,
@@ -327,7 +327,7 @@ function CreateAuctionPage({ navigate, onLogout }) {
       clearImageSelection()
     } catch (error) {
       setSubmitError(
-        error?.message || 'Muzayede olusturulamadi. Lutfen tekrar dene.',
+        error?.message || 'Müzayede oluşturulamadı. Lütfen tekrar dene.',
       )
     } finally {
       setSubmitMode('')
@@ -374,7 +374,7 @@ function CreateAuctionPage({ navigate, onLogout }) {
                 type="button"
                 onClick={(event) => handleSubmit(event, true)}
               >
-                {isPublishing ? 'Yayina aliniyor' : 'Muzayedeyi Yayina Al'}
+                {isPublishing ? 'Yayına alınıyor' : 'Müzayedeyi yayına al'}
               </button>
             </div>
           </header>
@@ -711,7 +711,7 @@ function CreateAuctionPage({ navigate, onLogout }) {
           type="button"
           onClick={(event) => handleSubmit(event, true)}
         >
-          {isPublishing ? 'Yayina aliniyor' : 'Yayina Al'}
+          {isPublishing ? 'Yayına alınıyor' : 'Yayına al'}
         </button>
       </div>
     </div>

@@ -217,7 +217,11 @@ function AppRoutes() {
       <Route
         path="/verify-login"
         element={
-          <LoginVerificationRoute loginVerificationFlow={loginVerificationFlow}>
+          <LoginVerificationRoute
+            isAuthenticated={isAuthenticated}
+            loginVerificationFlow={loginVerificationFlow}
+            redirectTo={getPostLoginPath(loginVerificationFlow.fromPath)}
+          >
             <VerifyLoginPage
               email={loginVerificationFlow.email}
               navigate={navigate}

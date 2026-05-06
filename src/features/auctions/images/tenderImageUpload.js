@@ -9,11 +9,11 @@ export function validateTenderImageFile(file) {
   }
 
   if (!allowedImageTypes.has(file.type)) {
-    return 'Yalnizca JPG, PNG veya WEBP gorsel yukleyebilirsin.'
+    return 'Yalnızca JPG, PNG veya WEBP görsel yükleyebilirsin.'
   }
 
   if (file.size > maxImageSizeBytes) {
-    return 'Gorsel en fazla 5 MB olabilir.'
+    return 'Görsel en fazla 5 MB olabilir.'
   }
 
   return ''

@@ -225,7 +225,6 @@ function normalizeNotification(notification, index) {
 }
 
 export function AppTopNavbar({
-  currentPath,
   navigate,
   searchPlaceholder = 'M\u00fczayede ara...',
   searchValue = '',

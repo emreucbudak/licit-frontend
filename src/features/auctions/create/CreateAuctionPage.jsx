@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { AppSideNavbar, AppTopNavbar } from '../../../shared/components/navigation/AppNavigation'
 import { sendAuthorizedRequest } from '../../../shared/api/authorizedRequest'
 import {
@@ -16,8 +16,7 @@ import {
   validateTenderImageFile,
 } from '../images/tenderImageUpload'
 
-const previewImage =
-  'https://lh3.googleusercontent.com/aida-public/AB6AXuCEmI0z_YuP3x3BkXaINgNm4oQ4DHezF5XTTEjwh-70YPkKbgx1IYxq0koBKWQccZpreJLFFpkezKTdgTNXPtUqrgOOZKYT8ckcuXNQDwdeEtxj-jt-Geql1-IRNTpvgp35ZDgHl74pVzf5DjITuyboTLPceLctGcnbD84hh9THRfLtGsLfE3L0mGr4gvuKiHkanvdupB8_Ky44VsZ-lMtOfaC17lsVJBXbRLe2U9nd78B8OBiMbRtCAyzVnakb_FXHaf6Rh93fPlY'
+const tenderImageSlotCount = 3
 
 const durationOptions = [
   { days: 3, label: '3 Gün' },
@@ -60,6 +59,13 @@ const initialFormValues = {
   rules: [],
 }
 
+function createEmptyImageSlots() {
+  return Array.from({ length: tenderImageSlotCount }, () => ({
+    file: null,
+    previewUrl: '',
+  }))
+}
+
 function CreateAuctionPage({ navigate, onLogout }) {
   const [formValues, setFormValues] = useState(initialFormValues)
   const [categories, setCategories] = useState([])
@@ -69,9 +75,9 @@ function CreateAuctionPage({ navigate, onLogout }) {
   const [submitSuccess, setSubmitSuccess] = useState('')
   const [createdTenderId, setCreatedTenderId] = useState('')
   const [submitMode, setSubmitMode] = useState('')
-  const [imageFile, setImageFile] = useState(null)
-  const [imagePreviewUrl, setImagePreviewUrl] = useState('')
+  const [imageSlots, setImageSlots] = useState(createEmptyImageSlots)
   const [imageError, setImageError] = useState('')
+  const imageSlotsRef = useRef(imageSlots)
   const isSubmitting = Boolean(submitMode)
   const isSavingDraft = submitMode === 'draft'
   const isPublishing = submitMode === 'publish'
@@ -158,13 +164,21 @@ function CreateAuctionPage({ navigate, onLogout }) {
   }, [])
 
   useEffect(
-    () => () => {
-      if (imagePreviewUrl) {
-        URL.revokeObjectURL(imagePreviewUrl)
-      }
+    () => {
+      imageSlotsRef.current = imageSlots
     },
-    [imagePreviewUrl],
+    [imageSlots],
   )
+
+  useEffect(() => {
+    return () => {
+      imageSlotsRef.current.forEach((slot) => {
+        if (slot.previewUrl) {
+          URL.revokeObjectURL(slot.previewUrl)
+        }
+      })
+    }
+  }, [])
 
   const handleFieldChange = (event) => {
     const { name, value } = event.target
@@ -178,40 +192,64 @@ function CreateAuctionPage({ navigate, onLogout }) {
     setSubmitSuccess('')
   }
 
-  const clearImageSelection = () => {
-    if (imagePreviewUrl) {
-      URL.revokeObjectURL(imagePreviewUrl)
-    }
-
-    setImageFile(null)
-    setImagePreviewUrl('')
+  const clearImageSelections = () => {
+    imageSlotsRef.current.forEach((slot) => {
+      if (slot.previewUrl) {
+        URL.revokeObjectURL(slot.previewUrl)
+      }
+    })
+    setImageSlots(createEmptyImageSlots())
     setImageError('')
   }
 
-  const handleImageChange = (event) => {
+  const clearImageSlot = (slotIndex) => {
+    const currentSlot = imageSlots[slotIndex]
+
+    if (currentSlot?.previewUrl) {
+      URL.revokeObjectURL(currentSlot.previewUrl)
+    }
+
+    setImageSlots(
+      imageSlots.map((slot, index) =>
+        index === slotIndex ? { file: null, previewUrl: '' } : slot,
+      ),
+    )
+    setImageError('')
+  }
+
+  const handleImageChange = (slotIndex, event) => {
     const file = event.target.files?.[0]
     setSubmitError('')
     setSubmitSuccess('')
 
     if (!file) {
-      clearImageSelection()
+      event.target.value = ''
       return
     }
 
     const validationError = validateTenderImageFile(file)
     if (validationError) {
-      clearImageSelection()
-      setImageError(validationError)
+      setImageError(`Görsel ${slotIndex + 1}: ${validationError}`)
       event.target.value = ''
       return
     }
 
-    if (imagePreviewUrl) {
-      URL.revokeObjectURL(imagePreviewUrl)
+    const currentSlot = imageSlots[slotIndex]
+
+    if (currentSlot?.previewUrl) {
+      URL.revokeObjectURL(currentSlot.previewUrl)
     }
 
-    setImageFile(file)
-    setImagePreviewUrl(URL.createObjectURL(file))
+    setImageSlots(
+      imageSlots.map((slot, index) =>
+        index === slotIndex
+          ? {
+              file,
+              previewUrl: URL.createObjectURL(file),
+            }
+          : slot,
+      ),
+    )
     setImageError('')
   }
 
@@ -283,17 +321,21 @@ function CreateAuctionPage({ navigate, onLogout }) {
 
       setCreatedTenderId(payload.id)
 
-      if (imageFile) {
+      const selectedImageFiles = imageSlots
+        .map((slot) => slot.file)
+        .filter(Boolean)
+
+      for (const [imageIndex, file] of selectedImageFiles.entries()) {
         const {
           payload: imagePayload,
           response: imageResponse,
-        } = await uploadTenderImage(payload.id, imageFile)
+        } = await uploadTenderImage(payload.id, file)
 
         if (!imageResponse.ok) {
           throw new Error(
             getApiErrorMessage(
               imagePayload,
-              'Taslak oluştu ancak görsel yüklenemedi.',
+              `Taslak oluştu ancak ${imageIndex + 1}. görsel yüklenemedi.`,
             ),
           )
         }
@@ -330,7 +372,7 @@ function CreateAuctionPage({ navigate, onLogout }) {
         mainCategoryId: categories[0]?.id || '',
         rules: [],
       })
-      clearImageSelection()
+      clearImageSelections()
     } catch (error) {
       setSubmitError(
         getUserFacingErrorMessage(
@@ -456,7 +498,7 @@ function CreateAuctionPage({ navigate, onLogout }) {
                         onChange={handleFieldChange}
                       >
                         <option value="">
-                          {isLoadingCategories ? 'Kategoriler yukleniyor' : 'Ana kategori sec'}
+                          {isLoadingCategories ? 'Kategoriler yükleniyor' : 'Ana kategori seç'}
                         </option>
                         {categories.map((category) => (
                           <option key={category.id} value={category.id}>
@@ -484,8 +526,8 @@ function CreateAuctionPage({ navigate, onLogout }) {
                       >
                         <option value="">
                           {formValues.mainCategoryId
-                            ? 'Alt kategori sec'
-                            : 'Once ana kategori sec'}
+                            ? 'Alt kategori seç'
+                            : 'Önce ana kategori seç'}
                         </option>
                         {subCategoryOptions.map((category) => (
                           <option key={category.id} value={category.id}>
@@ -495,7 +537,7 @@ function CreateAuctionPage({ navigate, onLogout }) {
                       </select>
                       {formValues.mainCategoryId && subCategoryOptions.length === 0 ? (
                         <p className="mt-2 text-xs font-medium text-error">
-                          Bu ana kategori icin alt kategori bulunmuyor.
+                          Bu ana kategori için alt kategori bulunmuyor.
                         </p>
                       ) : null}
                     </div>
@@ -525,7 +567,7 @@ function CreateAuctionPage({ navigate, onLogout }) {
                       Açıklama
                     </label>
                     <textarea
-                      className="w-full rounded-lg border-none bg-surface-container-lowest px-4 py-3.5 text-on-surface placeholder:text-slate-600 transition-all focus:ring-2 focus:ring-primary-container"
+                      className="w-full resize-none rounded-lg border-none bg-surface-container-lowest px-4 py-3.5 text-on-surface placeholder:text-slate-600 transition-all focus:ring-2 focus:ring-primary-container"
                       maxLength="2000"
                       name="description"
                       placeholder="Ürünün geçmişini, durumunu ve öne çıkan özelliklerini anlat..."
@@ -600,33 +642,10 @@ function CreateAuctionPage({ navigate, onLogout }) {
                   </span>
                   Ürün Resimleri
                 </h2>
-                <label
-                  className="group flex w-full cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-outline-variant/30 bg-surface-container-lowest/50 p-8 transition-colors hover:border-primary-container/50"
-                  htmlFor="tender-image"
-                >
-                  <input
-                    accept="image/jpeg,image/png,image/webp"
-                    className="sr-only"
-                    disabled={isSubmitting}
-                    id="tender-image"
-                    type="file"
-                    onChange={handleImageChange}
-                  />
-                  <span className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary-container/10 transition-transform group-hover:scale-110">
-                    <span className="material-symbols-outlined text-3xl text-primary-container">
-                      upload_file
-                    </span>
-                  </span>
-                  <span className="mb-1 font-medium text-white">
-                    Yüksek çözünürlüklü görselleri sürükle ve bırak
-                  </span>
-                  <span className="mb-6 text-center text-sm text-on-surface-variant">
-                    PNG, JPG veya WEBP desteklenir. En fazla 5MB. Onerilen oran 4:3.
-                  </span>
-                  <span className="rounded-lg border border-primary-container/20 bg-primary-container/10 px-4 py-2 text-sm font-bold text-primary-container transition-colors group-hover:bg-primary-container/20">
-                    Dosya Seç
-                  </span>
-                </label>
+                <p className="text-sm text-on-surface-variant">
+                  3 adede kadar görsel yükleyebilirsin. PNG, JPG veya WEBP
+                  desteklenir. Görsel başına en fazla 5 MB. Önerilen oran 4:3.
+                </p>
 
                 {imageError ? (
                   <p className="mt-3 rounded-lg border border-error/20 bg-error/10 px-3 py-2 text-sm font-semibold text-error">
@@ -634,33 +653,71 @@ function CreateAuctionPage({ navigate, onLogout }) {
                   </p>
                 ) : null}
 
-                <div className="mt-6 grid grid-cols-3 gap-3">
-                  <div className="group relative aspect-square overflow-hidden rounded-lg bg-surface-container-high">
-                    <img
-                      alt={imageFile ? 'Secilen ihale gorseli' : 'Ornek ihale gorseli'}
-                      className="h-full w-full object-cover opacity-80 transition-opacity group-hover:opacity-100"
-                      src={imagePreviewUrl || previewImage}
-                    />
-                    {imageFile ? (
-                      <button
-                        aria-label="Secilen gorseli kaldir"
-                        className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity group-hover:opacity-100"
-                        disabled={isSubmitting}
-                        type="button"
-                        onClick={clearImageSelection}
+                <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                  {imageSlots.map((slot, index) => {
+                    const inputId = `tender-image-${index}`
+
+                    return (
+                      <div
+                        className="relative aspect-[4/3] overflow-hidden rounded-xl border border-dashed border-outline-variant/30 bg-surface-container-lowest"
+                        key={inputId}
                       >
-                        <span className="material-symbols-outlined text-sm text-white">
-                          delete
-                        </span>
-                      </button>
-                    ) : null}
-                  </div>
-                  <div className="col-span-2 flex aspect-[2/1] items-center justify-center rounded-lg border border-dashed border-outline-variant/20 bg-surface-container-lowest px-3 text-center text-xs text-on-surface-variant">
-                    <span className="material-symbols-outlined text-slate-700">add</span>
-                    <span className="ml-2">
-                      MVP icin tek ana gorsel yuklenir.
-                    </span>
-                  </div>
+                        <input
+                          accept="image/jpeg,image/png,image/webp"
+                          className="sr-only"
+                          disabled={isSubmitting}
+                          id={inputId}
+                          key={slot.previewUrl || `${inputId}-empty`}
+                          type="file"
+                          onChange={(event) => handleImageChange(index, event)}
+                        />
+                        <label
+                          className={`group flex h-full w-full items-center justify-center ${
+                            isSubmitting
+                              ? 'cursor-not-allowed opacity-60'
+                              : 'cursor-pointer'
+                          }`}
+                          htmlFor={inputId}
+                        >
+                          {slot.previewUrl ? (
+                            <>
+                              <img
+                                alt={`Seçilen ihale görseli ${index + 1}`}
+                                className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
+                                src={slot.previewUrl}
+                              />
+                              <span className="absolute inset-x-0 bottom-0 bg-black/55 px-3 py-2 text-center text-xs font-semibold text-white opacity-0 transition-opacity group-hover:opacity-100">
+                                Görseli değiştir
+                              </span>
+                            </>
+                          ) : (
+                            <span className="flex flex-col items-center gap-2 px-4 text-center text-sm text-on-surface-variant">
+                              <span className="material-symbols-outlined text-3xl text-primary-container">
+                                add_photo_alternate
+                              </span>
+                              <span className="font-semibold text-white">
+                                Görsel {index + 1}
+                              </span>
+                              <span>Dosya seç</span>
+                            </span>
+                          )}
+                        </label>
+                        {slot.file ? (
+                          <button
+                            aria-label={`${index + 1}. görseli kaldır`}
+                            className="absolute right-2 top-2 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-black/60 text-white transition-colors hover:bg-error disabled:cursor-not-allowed disabled:opacity-60"
+                            disabled={isSubmitting}
+                            type="button"
+                            onClick={() => clearImageSlot(index)}
+                          >
+                            <span className="material-symbols-outlined text-base">
+                              delete
+                            </span>
+                          </button>
+                        ) : null}
+                      </div>
+                    )
+                  })}
                 </div>
               </section>
 

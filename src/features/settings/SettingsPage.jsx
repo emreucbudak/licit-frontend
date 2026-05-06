@@ -6,11 +6,6 @@ import {
 } from '../../shared/api/apiError'
 import { sendAuthorizedRequest } from '../../shared/api/authorizedRequest'
 
-const settingsTabs = [
-  ['person', 'Profil'],
-  ['shield', 'Güvenlik'],
-]
-
 function SettingsPage({ navigate, onLogout }) {
   const [profile, setProfile] = useState(null)
   const [profileForm, setProfileForm] = useState({
@@ -268,26 +263,6 @@ function SettingsPage({ navigate, onLogout }) {
               </button>
             </div>
           </header>
-
-          <nav
-            className="grid grid-cols-1 gap-2 rounded-xl border border-outline-variant/10 bg-surface-container/50 p-2 sm:grid-cols-2"
-            aria-label="Hesap ayarları bölümleri"
-          >
-            {settingsTabs.map(([icon, label], index) => (
-              <a
-                key={label}
-                className={`flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors ${
-                  index === 0
-                    ? 'bg-slate-800/70 text-white'
-                    : 'text-slate-400 hover:bg-slate-800/60 hover:text-white'
-                }`}
-                href={`#${label.toLocaleLowerCase('tr-TR')}`}
-              >
-                <span className="material-symbols-outlined text-lg">{icon}</span>
-                {label}
-              </a>
-            ))}
-          </nav>
 
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
             <section

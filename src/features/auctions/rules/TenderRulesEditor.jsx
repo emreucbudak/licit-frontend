@@ -5,8 +5,8 @@ function TenderRulesEditor({
   embedded = false,
   onChange,
   rules,
-  subtitle = 'Alicinin uymasi gereken sartlari ekle.',
-  title = 'Ihale Kurallari',
+  subtitle = 'Alıcının uyması gereken şartları ekle.',
+  title = 'İhale Kuralları',
 }) {
   function addRule() {
     onChange([...rules, createTenderRuleDraft()])
@@ -58,7 +58,7 @@ function TenderRulesEditor({
 
       {rules.length === 0 ? (
         <div className="rounded-lg border border-dashed border-outline-variant/30 bg-surface-container-lowest/40 px-4 py-5 text-sm text-on-surface-variant">
-          Henuz kural eklenmedi.
+          Henüz kural eklenmedi.
         </div>
       ) : (
         <div className="space-y-4">
@@ -72,7 +72,7 @@ function TenderRulesEditor({
                   Kural {index + 1}
                 </span>
                 <button
-                  aria-label={`${index + 1}. kurali sil`}
+                  aria-label={`${index + 1}. kuralı sil`}
                   className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-error/30 text-error transition-colors hover:bg-error/10 disabled:cursor-not-allowed disabled:opacity-60"
                   disabled={disabled}
                   onClick={() => removeRule(rule.localId)}
@@ -87,7 +87,7 @@ function TenderRulesEditor({
               <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                 <label className="space-y-2">
                   <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                    Baslik
+                    Başlık
                   </span>
                   <input
                     className="w-full rounded-lg border-none bg-surface px-4 py-3 text-on-surface focus:ring-2 focus:ring-primary-container disabled:cursor-not-allowed disabled:opacity-60"
@@ -96,7 +96,7 @@ function TenderRulesEditor({
                     onChange={(event) =>
                       updateRule(rule.localId, 'title', event.target.value)
                     }
-                    placeholder="Orn. Odeme kosulu"
+                    placeholder="Örn. Ödeme koşulu"
                     type="text"
                     value={rule.title}
                   />
@@ -120,16 +120,16 @@ function TenderRulesEditor({
 
               <label className="mt-4 block space-y-2">
                 <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                  Aciklama
+                  Açıklama
                 </span>
                 <textarea
-                  className="w-full rounded-lg border-none bg-surface px-4 py-3 text-on-surface focus:ring-2 focus:ring-primary-container disabled:cursor-not-allowed disabled:opacity-60"
+                  className="w-full resize-none rounded-lg border-none bg-surface px-4 py-3 text-on-surface focus:ring-2 focus:ring-primary-container disabled:cursor-not-allowed disabled:opacity-60"
                   disabled={disabled}
                   maxLength="500"
                   onChange={(event) =>
                     updateRule(rule.localId, 'description', event.target.value)
                   }
-                  placeholder="Kurali net ve kisa anlat."
+                  placeholder="Kuralı net ve kısa anlat."
                   rows="3"
                   value={rule.description}
                 ></textarea>

@@ -41,7 +41,7 @@ export function buildTenderRulePayload(rules) {
     const description = rule.description.trim()
 
     if (!title || !description) {
-      throw new Error(`${index + 1}. kural icin baslik ve aciklama gir.`)
+      throw new Error(`${index + 1}. kural için başlık ve açıklama gir.`)
     }
 
     return {

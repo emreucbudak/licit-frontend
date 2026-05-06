@@ -1,7 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import './DashboardPage.css'
 import { sendAuthorizedRequest } from '../../shared/api/authorizedRequest'
-import { getApiErrorMessage } from '../../shared/api/apiError'
+import {
+  getApiErrorMessage,
+  getUserFacingErrorMessage,
+  normalizeApiErrorMessage,
+} from '../../shared/api/apiError'
 import { AppSideNavbar, AppTopNavbar } from '../../shared/components/navigation/AppNavigation'
 
 const fallbackAuctionImages = [
@@ -165,7 +169,9 @@ function getErrorMessage(errors, ...keys) {
     return ''
   }
 
-  return typeof value === 'string' ? value : 'Özet verisinin bu bölümü alınamadı.'
+  return typeof value === 'string'
+    ? normalizeApiErrorMessage(value, 'Özet verisinin bu bölümü alınamadı.')
+    : 'Özet verisinin bu bölümü alınamadı.'
 }
 
 function getBidAuctionId(bid) {
@@ -211,7 +217,7 @@ function DashboardPage({ navigate, onLogout }) {
 
         setDashboardData(null)
         setDashboardErrors({
-          summary: error.message,
+          summary: getUserFacingErrorMessage(error, 'Dashboard özeti alınamadı.'),
         })
       } finally {
         if (isCurrent) {
@@ -251,7 +257,9 @@ function DashboardPage({ navigate, onLogout }) {
         }
 
         setBidHistory([])
-        setBidHistoryError(error.message || 'Teklif geçmişi yüklenemedi.')
+        setBidHistoryError(
+          getUserFacingErrorMessage(error, 'Teklif geçmişi yüklenemedi.'),
+        )
       } finally {
         if (isCurrent) {
           setIsBidsLoading(false)
@@ -313,24 +321,33 @@ function DashboardPage({ navigate, onLogout }) {
       const fallbackImage =
         fallbackAuctionImages[index % fallbackAuctionImages.length]
       const isAuction = activeAuctions.length > 0
+      const imageUrls = getField(tender, 'imgUrls', 'ImgUrls', 'imageUrls', 'ImageUrls')
       const displayPrice = getField(
         tender,
+        'currentBid',
+        'current_bid',
         'currentPrice',
         'current_price',
+        'highestBid',
+        'HighestBid',
         'startingPrice',
         'starting_price',
         'startPrice',
         'start_price',
+        'StartPrice',
       )
       const endDate = getField(tender, 'endsAt', 'ends_at', 'endDate', 'end_date')
 
       return {
-        id: tender.id,
-        title: tender.title || 'Başlıksız ilan',
+        id: getField(tender, 'id', 'Id', 'auctionId', 'AuctionId'),
+        title: getField(tender, 'auctionName', 'AuctionName', 'title', 'Title') || 'Başlıksız ilan',
         priceLabel: isAuction ? 'Güncel Fiyat' : 'Başlangıç Fiyatı',
         displayPrice: formatCurrency(displayPrice),
         endsAt: formatEndDate(endDate),
-        image: fallbackImage.image,
+        image:
+          (Array.isArray(imageUrls) && imageUrls.length > 0
+            ? imageUrls[0]
+            : getField(tender, 'imageUrl', 'ImageUrl', 'image_url')) || fallbackImage.image,
         alt: fallbackImage.alt,
       }
     })

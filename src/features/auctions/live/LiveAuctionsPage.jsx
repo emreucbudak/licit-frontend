@@ -2,7 +2,10 @@ import { useEffect, useMemo, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import './LiveAuctionsPage.css'
 import { AppSideNavbar, AppTopNavbar } from '../../../shared/components/navigation/AppNavigation'
-import { getApiErrorMessage } from '../../../shared/api/apiError'
+import {
+  getApiErrorMessage,
+  getUserFacingErrorMessage,
+} from '../../../shared/api/apiError'
 import { sendAuthorizedRequest } from '../../../shared/api/authorizedRequest'
 import { normalizeCategoryTree } from '../create/categoryOptions'
 
@@ -271,7 +274,9 @@ function LiveAuctionsPage({ navigate, onLogout }) {
         }
       } catch (error) {
         if (isCurrent) {
-          setCategoryError(error?.message || 'Kategoriler yüklenemedi.')
+          setCategoryError(
+            getUserFacingErrorMessage(error, 'Kategoriler yüklenemedi.'),
+          )
         }
       }
     }
@@ -324,7 +329,9 @@ function LiveAuctionsPage({ navigate, onLogout }) {
         }
       } catch (error) {
         if (isCurrent) {
-          setAuctionError(error?.message || 'Müzayedeler yüklenemedi.')
+          setAuctionError(
+            getUserFacingErrorMessage(error, 'Müzayedeler yüklenemedi.'),
+          )
         }
       } finally {
         if (isCurrent) {

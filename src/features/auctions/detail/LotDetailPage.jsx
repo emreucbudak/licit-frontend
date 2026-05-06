@@ -2,7 +2,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import './LotDetailPage.css'
 import { AppTopNavbar } from '../../../shared/components/navigation/AppNavigation'
-import { getApiErrorMessage } from '../../../shared/api/apiError'
+import {
+  getApiErrorMessage,
+  getUserFacingErrorMessage,
+} from '../../../shared/api/apiError'
 import { sendAuthorizedRequest } from '../../../shared/api/authorizedRequest'
 import { getStoredAuthTokens } from '../../../shared/auth/authStorage'
 import { buildSignalRHubUrl } from '../../../shared/config/runtimeConfig'
@@ -296,7 +299,9 @@ function LotDetailPage({ navigate }) {
         await loadAuction()
       } catch (error) {
         if (isCurrent) {
-          setLoadError(error?.message || 'Muzayede detayi yuklenemedi.')
+          setLoadError(
+            getUserFacingErrorMessage(error, 'Müzayede detayı yüklenemedi.'),
+          )
         }
       } finally {
         if (isCurrent) {
@@ -504,7 +509,9 @@ function LotDetailPage({ navigate }) {
       await ensureBiddingRoomJoined()
       setBidMessage('Teklif basariyla verildi.')
     } catch (error) {
-      setBidError(error?.message || 'Teklif verilemedi. Lutfen tekrar dene.')
+      setBidError(
+        getUserFacingErrorMessage(error, 'Teklif verilemedi. Lütfen tekrar dene.'),
+      )
     } finally {
       setIsSubmittingBid(false)
     }

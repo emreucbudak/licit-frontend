@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { AppSideNavbar, AppTopNavbar } from '../../../shared/components/navigation/AppNavigation'
 import { sendAuthorizedRequest } from '../../../shared/api/authorizedRequest'
-import { getApiErrorMessage } from '../../../shared/api/apiError'
+import {
+  getApiErrorMessage,
+  getUserFacingErrorMessage,
+} from '../../../shared/api/apiError'
 import {
   findCategorySelection,
   flattenSubCategoryOptions,
@@ -315,7 +318,10 @@ function TenderManagementPage({ navigate, onLogout }) {
       } catch (error) {
         if (isCurrent) {
           setCategoryError(
-            error?.message || 'Kategoriler yüklenemedi. Lütfen tekrar dene.',
+            getUserFacingErrorMessage(
+              error,
+              'Kategoriler yüklenemedi. Lütfen tekrar dene.',
+            ),
           )
         }
       } finally {
@@ -383,7 +389,9 @@ function TenderManagementPage({ navigate, onLogout }) {
       } catch (error) {
         if (isCurrent) {
           setTenders([])
-          setListError(error?.message || 'İhaleler yüklenemedi.')
+          setListError(
+            getUserFacingErrorMessage(error, 'İhaleler yüklenemedi.'),
+          )
         }
       } finally {
         if (isCurrent) {
@@ -467,7 +475,9 @@ function TenderManagementPage({ navigate, onLogout }) {
       })
       clearEditImageSelection()
     } catch (error) {
-      setActionError(error?.message || 'İhale detayları alınamadı.')
+      setActionError(
+        getUserFacingErrorMessage(error, 'İhale detayları alınamadı.'),
+      )
     } finally {
       setBusyAction('')
     }
@@ -613,7 +623,9 @@ function TenderManagementPage({ navigate, onLogout }) {
       closeEditor()
       setReloadKey((currentKey) => currentKey + 1)
     } catch (error) {
-      setActionError(error?.message || 'İhale güncellenemedi.')
+      setActionError(
+        getUserFacingErrorMessage(error, 'İhale güncellenemedi.'),
+      )
     } finally {
       setBusyAction('')
     }
@@ -660,7 +672,9 @@ function TenderManagementPage({ navigate, onLogout }) {
       )
       setReloadKey((currentKey) => currentKey + 1)
     } catch (error) {
-      setActionError(error?.message || 'İhale silinemedi.')
+      setActionError(
+        getUserFacingErrorMessage(error, 'İhale silinemedi.'),
+      )
     } finally {
       setBusyAction('')
     }
@@ -710,7 +724,9 @@ function TenderManagementPage({ navigate, onLogout }) {
       )
       setReloadKey((currentKey) => currentKey + 1)
     } catch (error) {
-      setActionError(error?.message || 'İhale durumu güncellenemedi.')
+      setActionError(
+        getUserFacingErrorMessage(error, 'İhale durumu güncellenemedi.'),
+      )
     } finally {
       setBusyAction('')
     }

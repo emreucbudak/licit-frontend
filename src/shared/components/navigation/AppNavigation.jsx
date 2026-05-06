@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { getApiErrorMessage } from '../../api/apiError'
+import {
+  getApiErrorMessage,
+  getUserFacingErrorMessage,
+} from '../../api/apiError'
 import { sendAuthorizedRequest } from '../../api/authorizedRequest'
 import { getStoredAuthTokens } from '../../auth/authStorage'
 import { buildSignalRHubUrl } from '../../config/runtimeConfig'
@@ -265,7 +268,7 @@ export function AppTopNavbar({
     } catch (error) {
       if (showError || isNotificationsOpenRef.current) {
         setNotificationsError(
-          error.message || 'Bildirim sayısı alınamadı.',
+          getUserFacingErrorMessage(error, 'Bildirim sayısı alınamadı.'),
         )
       }
     }
@@ -293,7 +296,9 @@ export function AppTopNavbar({
         normalizeNotificationCollection(payload).map(normalizeNotification),
       )
     } catch (error) {
-      setNotificationsError(error.message || 'Bildirimler yüklenemedi.')
+      setNotificationsError(
+        getUserFacingErrorMessage(error, 'Bildirimler yüklenemedi.'),
+      )
     } finally {
       if (!silent) {
         setIsNotificationsLoading(false)
@@ -449,7 +454,12 @@ export function AppTopNavbar({
       setUnreadCount((currentCount) => Math.max(currentCount - 1, 0))
       loadUnreadCount()
     } catch (error) {
-      setNotificationsError(error.message || 'Bildirim okundu olarak işaretlenemedi.')
+      setNotificationsError(
+        getUserFacingErrorMessage(
+          error,
+          'Bildirim okundu olarak işaretlenemedi.',
+        ),
+      )
     } finally {
       setReadActionId('')
     }
@@ -484,7 +494,12 @@ export function AppTopNavbar({
       setUnreadCount(0)
       loadUnreadCount()
     } catch (error) {
-      setNotificationsError(error.message || 'Bildirimler okundu olarak işaretlenemedi.')
+      setNotificationsError(
+        getUserFacingErrorMessage(
+          error,
+          'Bildirimler okundu olarak işaretlenemedi.',
+        ),
+      )
     } finally {
       setIsMarkingAllRead(false)
     }

@@ -6,7 +6,7 @@ export async function refreshAccessToken() {
   const { refreshToken } = getStoredAuthTokens()
 
   if (!refreshToken) {
-    throw new Error('Oturum suresi doldu. Lutfen tekrar giris yap.')
+    throw new Error('Oturum süresi doldu. Lütfen tekrar giriş yap.')
   }
 
   const response = await fetch(buildApiUrl('/api/auth/refresh'), {
@@ -25,7 +25,7 @@ export async function refreshAccessToken() {
     throw new Error(
       getApiErrorMessage(
         payload,
-        'Oturum yenilenemedi. Lutfen tekrar giris yap.',
+        'Oturum yenilenemedi. Lütfen tekrar giriş yap.',
       ),
     )
   }
@@ -67,7 +67,7 @@ export async function sendAuthorizedRequest(
   const { accessToken } = getStoredAuthTokens()
 
   if (!accessToken) {
-    throw new Error('Oturum bulunamadi. Lutfen tekrar giris yap.')
+    throw new Error('Oturum bulunamadı. Lütfen tekrar giriş yap.')
   }
 
   const isFormData = body instanceof FormData

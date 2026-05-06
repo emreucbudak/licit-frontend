@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react'
 import { AppSideNavbar, AppTopNavbar } from '../../shared/components/navigation/AppNavigation'
-import { getApiErrorMessage } from '../../shared/api/apiError'
+import {
+  getApiErrorMessage,
+  getUserFacingErrorMessage,
+} from '../../shared/api/apiError'
 import { sendAuthorizedRequest } from '../../shared/api/authorizedRequest'
 
 const profileAvatar =
@@ -59,7 +62,9 @@ function SettingsPage({ navigate, onLogout }) {
         }
       } catch (error) {
         if (isCurrent) {
-          setProfileError(error.message || 'Profil bilgileri yüklenemedi.')
+          setProfileError(
+            getUserFacingErrorMessage(error, 'Profil bilgileri yüklenemedi.'),
+          )
         }
       } finally {
         if (isCurrent) {
@@ -144,7 +149,7 @@ function SettingsPage({ navigate, onLogout }) {
       })
     } catch (error) {
       setProfileStatus({
-        message: error.message || 'Profil güncellenemedi.',
+        message: getUserFacingErrorMessage(error, 'Profil güncellenemedi.'),
         type: 'error',
       })
     } finally {
@@ -203,7 +208,7 @@ function SettingsPage({ navigate, onLogout }) {
       })
     } catch (error) {
       setPasswordStatus({
-        message: error.message || 'Şifre güncellenemedi.',
+        message: getUserFacingErrorMessage(error, 'Şifre güncellenemedi.'),
         type: 'error',
       })
     } finally {

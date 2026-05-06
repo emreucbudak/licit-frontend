@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AppSideNavbar, AppTopNavbar } from '../../shared/components/navigation/AppNavigation'
-import { getApiErrorMessage } from '../../shared/api/apiError'
+import {
+  getApiErrorMessage,
+  getUserFacingErrorMessage,
+} from '../../shared/api/apiError'
 import { sendAuthorizedRequest } from '../../shared/api/authorizedRequest'
 
 const statusStyles = {
@@ -247,7 +250,9 @@ function WalletPage({ navigate, onLogout }) {
         setTransactionTotalCount(transactionData.totalCount)
       } catch (error) {
         if (isMountedRef.current) {
-          setWalletError(error.message || 'Cüzdan bilgileri yüklenemedi.')
+          setWalletError(
+            getUserFacingErrorMessage(error, 'Cüzdan bilgileri yüklenemedi.'),
+          )
         }
       } finally {
         if (isMountedRef.current) {
@@ -349,7 +354,9 @@ function WalletPage({ navigate, onLogout }) {
       setActionMessage(activeAction.successMessage)
       await loadWallet({ page: transactionPage, pageSize: transactionPageSize, silent: true })
     } catch (error) {
-      setActionError(error.message || 'Yükleme başarısız oldu.')
+      setActionError(
+        getUserFacingErrorMessage(error, 'Yükleme başarısız oldu.'),
+      )
     } finally {
       setIsActionSubmitting(false)
     }

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import OtpCodeInput from '../components/OtpCodeInput'
 import useResendTimer from '../hooks/useResendTimer'
 import { createEmptyOtpCode } from '../utils/otpCode'
+import { getUserFacingErrorMessage } from '../../../shared/api/apiError'
 
 const CODE_LENGTH = 6
 const RESEND_TIMEOUT = 45
@@ -50,7 +51,7 @@ function OtpVerificationPage({
       await onVerified?.(code.join(''))
     } catch (error) {
       setSubmitError(
-        error?.message || 'Kod doğrulanamadı. Lütfen tekrar dene.',
+        getUserFacingErrorMessage(error, 'Kod doğrulanamadı. Lütfen tekrar dene.'),
       )
     } finally {
       setIsSubmitting(false)
@@ -72,7 +73,10 @@ function OtpVerificationPage({
       resetTimer()
     } catch (error) {
       setSubmitError(
-        error?.message || 'Kod tekrar gönderilemedi. Lütfen tekrar dene.',
+        getUserFacingErrorMessage(
+          error,
+          'Kod tekrar gönderilemedi. Lütfen tekrar dene.',
+        ),
       )
     } finally {
       setIsResending(false)

@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react'
 import { AppSideNavbar, AppTopNavbar } from '../../../shared/components/navigation/AppNavigation'
 import { sendAuthorizedRequest } from '../../../shared/api/authorizedRequest'
-import { getApiErrorMessage } from '../../../shared/api/apiError'
+import {
+  getApiErrorMessage,
+  getUserFacingErrorMessage,
+} from '../../../shared/api/apiError'
 import {
   flattenSubCategoryOptions,
   normalizeCategoryTree,
@@ -134,7 +137,10 @@ function CreateAuctionPage({ navigate, onLogout }) {
       } catch (error) {
         if (isMounted) {
           setCategoryError(
-            error?.message || 'Kategoriler yüklenemedi. Lütfen tekrar dene.',
+            getUserFacingErrorMessage(
+              error,
+              'Kategoriler yüklenemedi. Lütfen tekrar dene.',
+            ),
           )
         }
       } finally {
@@ -327,7 +333,10 @@ function CreateAuctionPage({ navigate, onLogout }) {
       clearImageSelection()
     } catch (error) {
       setSubmitError(
-        error?.message || 'Müzayede oluşturulamadı. Lütfen tekrar dene.',
+        getUserFacingErrorMessage(
+          error,
+          'Müzayede oluşturulamadı. Lütfen tekrar dene.',
+        ),
       )
     } finally {
       setSubmitMode('')

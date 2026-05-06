@@ -307,10 +307,6 @@ export function AppTopNavbar({
   }, [])
 
   useEffect(() => {
-    loadUnreadCount()
-  }, [currentPath, loadUnreadCount])
-
-  useEffect(() => {
     if (!isNotificationsOpen) {
       return
     }
@@ -346,6 +342,10 @@ export function AppTopNavbar({
   }, [isNotificationsOpen])
 
   useEffect(() => {
+    if (!isNotificationsOpen) {
+      return undefined
+    }
+
     let connection = null
     let isDisposed = false
 
@@ -396,7 +396,7 @@ export function AppTopNavbar({
       })
       connection.stop().catch(() => {})
     }
-  }, [loadNotifications, loadUnreadCount])
+  }, [isNotificationsOpen, loadNotifications, loadUnreadCount])
 
   const handleSearchSubmit = (event) => {
     event.preventDefault()

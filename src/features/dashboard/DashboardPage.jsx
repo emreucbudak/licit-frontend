@@ -280,7 +280,7 @@ function DashboardPage({ navigate, onLogout }) {
   const listings = useMemo(() => dashboardData?.listings || {}, [dashboardData?.listings])
   const stats = useMemo(() => dashboardData?.stats || {}, [dashboardData?.stats])
   const summaryError = dashboardErrors.summary || ''
-  const listingsError = summaryError || getErrorMessage(dashboardErrors, 'listings', 'tenders')
+  const listingsError = getErrorMessage(dashboardErrors, 'listings', 'tenders')
   const walletError = summaryError || getErrorMessage(dashboardErrors, 'wallet')
   const transactionsError =
     summaryError || getErrorMessage(dashboardErrors, 'walletTransactions', 'wallet_transactions')
@@ -408,10 +408,14 @@ function DashboardPage({ navigate, onLogout }) {
       {
         label: 'Toplam İlan',
         value: isDashboardLoading && !dashboardData ? '...' : formatNumber(tenderTotal),
-        note: listingsError || 'Özet endpointi toplam sayısı',
-        tone: listingsError ? 'neutral' : 'secondary',
+        note: summaryError
+          ? 'Özet verisi şu anda alınamadı.'
+          : listingsError
+            ? 'İlan özeti geçici olarak güncellenemiyor.'
+            : 'Özet endpointi toplam sayısı',
+        tone: summaryError || listingsError ? 'neutral' : 'secondary',
         icon: 'inventory_2',
-        noteIcon: listingsError ? 'error' : 'dns',
+        noteIcon: summaryError || listingsError ? 'info' : 'dns',
       },
       {
         label: 'Aktif Müzayede',
@@ -448,8 +452,9 @@ function DashboardPage({ navigate, onLogout }) {
     activeAuctions.length,
     dashboardData,
     isDashboardLoading,
-    listingsError,
     listings,
+    listingsError,
+    summaryError,
     stats,
     tenders.length,
     transactionsError,
@@ -527,18 +532,7 @@ function DashboardPage({ navigate, onLogout }) {
                   </article>
                 ) : null}
 
-                {!isDashboardLoading && listingsError ? (
-                  <article className="dashboard-auction-card">
-                    <div className="dashboard-auction-card__body">
-                      <div className="dashboard-auction-card__title">
-                        <h4>{listingsError}</h4>
-                      </div>
-                    </div>
-                  </article>
-                ) : null}
-
                 {!isDashboardLoading &&
-                !listingsError &&
                 visibleTenders.length === 0 ? (
                   <article className="dashboard-auction-card">
                     <div className="dashboard-auction-card__body">

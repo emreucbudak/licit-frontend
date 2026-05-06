@@ -6,6 +6,7 @@ export function titleForPath(pathname) {
       '/auctions/create': 'Müzayede Oluştur | Licit',
       '/auctions/manage': 'İhale Yönetimi | Licit',
       '/dashboard': 'Licit Paneli | Licit',
+      '/help': 'Yardım Merkezi | Licit',
       '/settings': 'Hesap Ayarları | Licit',
       '/wallet': 'Cüzdan | Licit',
       '/login': 'Giriş Yap - Licit',

@@ -398,7 +398,7 @@ function WalletPage({ navigate, onLogout }) {
         onLogout={onLogout}
       />
 
-      <main className="min-h-screen px-4 pb-16 pt-32 sm:px-6 sm:pt-32 md:px-10 md:pb-10 md:pt-36 lg:ml-64 lg:px-12 lg:pb-12 lg:pt-36">
+      <main className="min-h-screen px-4 pb-16 pt-28 sm:px-6 sm:pt-28 md:px-10 md:pb-10 md:pt-32 lg:ml-64 lg:px-12 lg:pb-12 lg:pt-32">
         <div className="mx-auto max-w-6xl space-y-10">
           <header>
             <h1 className="mb-2 text-4xl font-extrabold tracking-tight text-on-surface md:text-5xl">

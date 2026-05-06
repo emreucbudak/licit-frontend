@@ -87,6 +87,12 @@ function CreateAuctionPage({ navigate, onLogout }) {
   const subCategoryOptions = flattenSubCategoryOptions(
     selectedMainCategory?.children || [],
   )
+  const nextImageSlotIndex = imageSlots.findIndex((slot) => !slot.file)
+  const uploadTargetSlotIndex =
+    nextImageSlotIndex === -1 ? tenderImageSlotCount - 1 : nextImageSlotIndex
+  const uploadInputKey = imageSlots
+    .map((slot) => slot.previewUrl || 'empty')
+    .join('|')
 
   useEffect(() => {
     let isMounted = true
@@ -642,10 +648,37 @@ function CreateAuctionPage({ navigate, onLogout }) {
                   </span>
                   Ürün Resimleri
                 </h2>
-                <p className="text-sm text-on-surface-variant">
-                  3 adede kadar görsel yükleyebilirsin. PNG, JPG veya WEBP
-                  desteklenir. Görsel başına en fazla 5 MB. Önerilen oran 4:3.
-                </p>
+                <label
+                  className="group flex w-full cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-outline-variant/30 bg-surface-container-lowest/50 p-8 transition-colors hover:border-primary-container/50"
+                  htmlFor="tender-image-main"
+                >
+                  <input
+                    accept="image/jpeg,image/png,image/webp"
+                    className="sr-only"
+                    disabled={isSubmitting}
+                    id="tender-image-main"
+                    key={uploadInputKey}
+                    type="file"
+                    onChange={(event) =>
+                      handleImageChange(uploadTargetSlotIndex, event)
+                    }
+                  />
+                  <span className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary-container/10 transition-transform group-hover:scale-110">
+                    <span className="material-symbols-outlined text-3xl text-primary-container">
+                      upload_file
+                    </span>
+                  </span>
+                  <span className="mb-1 font-medium text-white">
+                    Yüksek çözünürlüklü görselleri sürükle ve bırak
+                  </span>
+                  <span className="mb-6 text-center text-sm text-on-surface-variant">
+                    PNG, JPG veya WEBP desteklenir. En fazla 5 MB. Önerilen oran
+                    4:3.
+                  </span>
+                  <span className="rounded-lg border border-primary-container/20 bg-primary-container/10 px-4 py-2 text-sm font-bold text-primary-container transition-colors group-hover:bg-primary-container/20">
+                    Dosya Seç
+                  </span>
+                </label>
 
                 {imageError ? (
                   <p className="mt-3 rounded-lg border border-error/20 bg-error/10 px-3 py-2 text-sm font-semibold text-error">

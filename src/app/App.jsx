@@ -19,6 +19,7 @@ import RegisterPage from '../features/auth/register/RegisterPage'
 import VerifyEmailPage from '../features/auth/verification/VerifyEmailPage'
 import VerifyLoginPage from '../features/auth/verification/VerifyLoginPage'
 import DashboardPage from '../features/dashboard/DashboardPage'
+import HelpCenterPage from '../features/help/HelpCenterPage'
 import LandingPage from '../features/landing/LandingPage'
 import SettingsPage from '../features/settings/SettingsPage'
 import WalletPage from '../features/wallet/WalletPage'
@@ -349,6 +350,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute isAuthenticated={isAuthenticated}>
             <WalletPage navigate={navigate} onLogout={handleLogout} />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/help"
+        element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <HelpCenterPage navigate={navigate} onLogout={handleLogout} />
           </ProtectedRoute>
         }
       />

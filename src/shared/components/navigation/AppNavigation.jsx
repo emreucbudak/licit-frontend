@@ -55,7 +55,13 @@ const sideNavLinks = [
 ]
 
 const footerNavLinks = [
-  { label: 'Yard\u0131m Merkezi', icon: 'help', href: '#' },
+  {
+    label: 'Yard\u0131m Merkezi',
+    icon: 'help',
+    href: '/help',
+    route: true,
+    match: ['/help'],
+  },
   {
     label: '\u00c7\u0131k\u0131\u015f Yap',
     icon: 'logout',
@@ -702,7 +708,9 @@ export function AppSideNavbar({ currentPath, navigate, onLogout }) {
         {footerNavLinks.map((link) => (
           <a
             key={link.label}
-            className="app-sidebar__link"
+            className={`app-sidebar__link${
+              isActive(currentPath, link) ? ' app-sidebar__link--active' : ''
+            }`}
             href={link.href}
             onClick={
               link.action === 'logout'
@@ -710,7 +718,7 @@ export function AppSideNavbar({ currentPath, navigate, onLogout }) {
                     event.preventDefault()
                     onLogout?.()
                   }
-                : undefined
+                : routeHandler(navigate, link)
             }
           >
             <span className="material-symbols-outlined">{link.icon}</span>

@@ -1,6 +1,23 @@
 import { getStoredAuthTokens, storeAuthentication } from '../auth/authStorage'
-import { getApiErrorMessage, readResponsePayload } from './apiError'
+import { getApiErrorMessage, logApiFailure, readResponsePayload } from './apiError'
 import { buildApiUrl } from '../config/runtimeConfig'
+
+async function fetchWithApiLogging(path, options = {}) {
+  const method = options.method || 'GET'
+  const url = buildApiUrl(path)
+
+  try {
+    return await fetch(url, options)
+  } catch (error) {
+    logApiFailure({
+      error,
+      method,
+      path: url,
+      source: 'network',
+    })
+    throw error
+  }
+}
 
 export async function refreshAccessToken() {
   const { refreshToken } = getStoredAuthTokens()
@@ -9,7 +26,7 @@ export async function refreshAccessToken() {
     throw new Error('Oturum süresi doldu. Lütfen tekrar giriş yap.')
   }
 
-  const response = await fetch(buildApiUrl('/api/auth/refresh'), {
+  const response = await fetchWithApiLogging('/api/auth/refresh', {
     method: 'POST',
     headers: {
       Accept: 'application/json',
@@ -42,7 +59,7 @@ export async function revokeStoredRefreshToken() {
   }
 
   try {
-    const response = await fetch(buildApiUrl('/api/auth/revoke'), {
+    const response = await fetchWithApiLogging('/api/auth/revoke', {
       method: 'POST',
       headers: {
         Accept: 'application/json',
@@ -73,7 +90,7 @@ export async function sendAuthorizedRequest(
   const isFormData = body instanceof FormData
 
   const sendRequest = (token) =>
-    fetch(buildApiUrl(path), {
+    fetchWithApiLogging(path, {
       method,
       headers: {
         Accept: 'application/json',

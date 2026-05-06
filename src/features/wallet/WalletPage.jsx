@@ -66,10 +66,6 @@ function formatMoney(value) {
   return moneyFormatter.format(toNumber(value))
 }
 
-function formatBalanceNote(value) {
-  return `${formatMoney(value)} kullanılabilir TL bakiyesi`
-}
-
 function formatTransactionId(id) {
   const cleanId = String(id || '').replaceAll('-', '').toUpperCase()
   return cleanId ? `#TX-${cleanId.slice(0, 6)}` : '#TX-NEW'
@@ -440,17 +436,6 @@ function WalletPage({ navigate, onLogout }) {
                       sync
                     </span>
                     Güncel
-                  </span>
-                </div>
-                <p className="mt-2 font-mono text-sm tracking-wide text-on-surface-variant">
-                  {isLoading ? 'Cüzdan eşitleniyor...' : formatBalanceNote(balance.balance)}
-                </p>
-                <div className="mt-6 flex flex-wrap gap-3 text-sm text-on-surface-variant">
-                  <span className="rounded bg-surface-container-high px-3 py-1">
-                    Bloke: {formatMoney(balance.frozenBalance)}
-                  </span>
-                  <span className="rounded bg-surface-container-high px-3 py-1">
-                    Toplam: {formatMoney(balance.totalBalance)}
                   </span>
                 </div>
               </div>

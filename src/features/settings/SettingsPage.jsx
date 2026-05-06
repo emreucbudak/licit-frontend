@@ -6,9 +6,6 @@ import {
 } from '../../shared/api/apiError'
 import { sendAuthorizedRequest } from '../../shared/api/authorizedRequest'
 
-const profileAvatar =
-  'https://lh3.googleusercontent.com/aida-public/AB6AXuBRljr7YaJ_oWQZEY8qFX7vRVl8ITpebpEKpwBk4k47oODTiuvrom4gbZgmapINGaFLiaWXsQJEFSFc6NFCVkR3umm5o18Uodt8-jPFwWjMUiI1pEuWJDiPGcOUjDg1-VwEeLxqdsIESvraCSQ-dM0DlE9Dk2GPHprazaES2vtj6A-8jhbMOIpmJwgAcRsjQihE7Nh8bNcEwRzc3QyxwaNptpzPjJFo3YEiEs2eawr4kz_xh0ApRS3Ef98oXW4AeVG6rbe60SuTTM4'
-
 const settingsTabs = [
   ['person', 'Profil'],
   ['shield', 'Güvenlik'],
@@ -298,42 +295,15 @@ function SettingsPage({ navigate, onLogout }) {
               id="profil"
             >
               <div className="mb-8 flex items-center gap-3">
-                <span className="material-symbols-outlined text-primary">
-                  account_circle
-                </span>
                 <h2 className="text-xl font-bold">Profil Bilgileri</h2>
               </div>
 
               <form
-                className="flex flex-col gap-10 md:flex-row"
+                className="grid grid-cols-1 gap-6"
                 id="settings-profile-form"
                 onSubmit={handleProfileSubmit}
               >
-                <div className="flex flex-col items-center gap-4">
-                  <div className="group relative">
-                    <div className="h-32 w-32 overflow-hidden rounded-2xl border-2 border-primary/20 bg-surface-container-lowest transition-colors group-hover:border-primary/50">
-                      <img
-                        alt="Kullanıcı profil görseli"
-                        className="h-full w-full object-cover"
-                        src={profileAvatar}
-                      />
-                    </div>
-                    <button
-                      className="absolute -bottom-2 -right-2 cursor-not-allowed rounded-lg bg-primary p-2 text-on-primary shadow-xl"
-                      disabled
-                      type="button"
-                      aria-label="Avatarı düzenle"
-                      title="Avatar güncelleme API'si henüz yok."
-                    >
-                      <span className="material-symbols-outlined text-sm">edit</span>
-                    </button>
-                  </div>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
-                    Avatarı Güncelle
-                  </p>
-                </div>
-
-                <div className="grid flex-1 grid-cols-1 gap-6 md:grid-cols-2">
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                   {profileError ? (
                     <p className="rounded-lg bg-error/10 px-4 py-2 text-sm font-semibold text-error md:col-span-2">
                       {profileError}

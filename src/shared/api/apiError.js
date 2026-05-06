@@ -9,11 +9,23 @@ const CLIENT_TECHNICAL_ERROR_PATTERN =
   /\b(?:TypeError|ReferenceError|SyntaxError|Unexpected token|JSON|Cannot read properties|Cannot read property)\b/i
 
 export async function readResponsePayload(response) {
+  let payload = null
+
   try {
-    return await response.json()
+    payload = await response.json()
   } catch {
-    return null
+    payload = null
   }
+
+  if (response && !response.ok) {
+    logApiFailure({
+      payload,
+      response,
+      source: 'api-response',
+    })
+  }
+
+  return payload
 }
 
 export function getApiErrorMessage(payload, fallbackMessage = DEFAULT_FALLBACK_MESSAGE) {
@@ -86,6 +98,44 @@ export function getUserFacingErrorMessage(
       : error?.userMessage || error?.message || error?.toString?.()
 
   return normalizeApiErrorMessage(message, fallbackMessage)
+}
+
+export function logApiFailure({
+  error,
+  method,
+  path,
+  payload,
+  response,
+  source = 'api',
+} = {}) {
+  if (typeof console === 'undefined') {
+    return
+  }
+
+  const status = response?.status
+  const statusText = response?.statusText
+  const url = path || response?.url || ''
+  const safePayload = payload ?? null
+
+  console.groupCollapsed(
+    `[Licit API] ${source} failed${status ? ` ${status}` : ''}${url ? ` ${url}` : ''}`,
+  )
+  console.error('request', {
+    method: method || 'GET',
+    url,
+    status,
+    statusText,
+  })
+
+  if (safePayload !== null) {
+    console.error('payload', safePayload)
+  }
+
+  if (error) {
+    console.error('error', error)
+  }
+
+  console.groupEnd()
 }
 
 export async function readApiErrorMessage(

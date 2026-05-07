@@ -46,6 +46,11 @@ const sideNavLinks = [
     match: ['/wallet'],
   },
   {
+    label: 'Bildirimler',
+    icon: 'notifications',
+    action: 'notifications',
+  },
+  {
     label: 'Ayarlar',
     icon: 'settings',
     href: '/settings',
@@ -230,12 +235,7 @@ function normalizeNotification(notification, index) {
   }
 }
 
-export function AppTopNavbar({
-  navigate,
-  searchPlaceholder = 'M\u00fczayede ara...',
-  searchValue = '',
-}) {
-  const [searchTerm, setSearchTerm] = useState(searchValue)
+function useAppNotifications() {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
   const [notifications, setNotifications] = useState([])
   const [unreadCount, setUnreadCount] = useState(0)
@@ -245,10 +245,6 @@ export function AppTopNavbar({
   const [isMarkingAllRead, setIsMarkingAllRead] = useState(false)
   const notificationsRef = useRef(null)
   const isNotificationsOpenRef = useRef(false)
-
-  useEffect(() => {
-    setSearchTerm(searchValue)
-  }, [searchValue])
 
   useEffect(() => {
     isNotificationsOpenRef.current = isNotificationsOpen
@@ -310,6 +306,10 @@ export function AppTopNavbar({
       }
     }
   }, [])
+
+  useEffect(() => {
+    loadUnreadCount()
+  }, [loadUnreadCount])
 
   useEffect(() => {
     if (!isNotificationsOpen) {
@@ -402,17 +402,6 @@ export function AppTopNavbar({
       connection.stop().catch(() => {})
     }
   }, [isNotificationsOpen, loadNotifications, loadUnreadCount])
-
-  const handleSearchSubmit = (event) => {
-    event.preventDefault()
-
-    const trimmedSearch = searchTerm.trim()
-    const searchPath = trimmedSearch
-      ? `/auctions?search=${encodeURIComponent(trimmedSearch)}`
-      : '/auctions'
-
-    navigate(searchPath)(event)
-  }
 
   const hasUnreadNotifications = useMemo(
     () => notifications.some((notification) => !notification.isRead),
@@ -510,6 +499,46 @@ export function AppTopNavbar({
     }
   }
 
+  return {
+    handleMarkAllNotificationsRead,
+    handleMarkNotificationRead,
+    handleNotificationToggle,
+    handleRetryNotifications,
+    hasUnreadNotifications,
+    isMarkingAllRead,
+    isNotificationsLoading,
+    isNotificationsOpen,
+    notifications,
+    notificationsError,
+    notificationsRef,
+    readActionId,
+    unreadBadgeLabel,
+    unreadCount,
+  }
+}
+
+export function AppTopNavbar({
+  navigate,
+  searchPlaceholder = 'M\u00fczayede ara...',
+  searchValue = '',
+}) {
+  const [searchTerm, setSearchTerm] = useState(searchValue)
+
+  useEffect(() => {
+    setSearchTerm(searchValue)
+  }, [searchValue])
+
+  const handleSearchSubmit = (event) => {
+    event.preventDefault()
+
+    const trimmedSearch = searchTerm.trim()
+    const searchPath = trimmedSearch
+      ? `/auctions?search=${encodeURIComponent(trimmedSearch)}`
+      : '/auctions'
+
+    navigate(searchPath)(event)
+  }
+
   return (
     <header className="app-topbar">
       <div className="app-topbar__brand-row">
@@ -528,35 +557,59 @@ export function AppTopNavbar({
             value={searchTerm}
           />
         </form>
+      </div>
+    </header>
+  )
+}
 
-        <div className="app-notifications" ref={notificationsRef}>
+export function AppSideNavbar({ currentPath, navigate, onLogout }) {
+  const createAuctionActive = currentPath === '/auctions/create'
+  const {
+    handleMarkAllNotificationsRead,
+    handleMarkNotificationRead,
+    handleNotificationToggle,
+    handleRetryNotifications,
+    hasUnreadNotifications,
+    isMarkingAllRead,
+    isNotificationsLoading,
+    isNotificationsOpen,
+    notifications,
+    notificationsError,
+    notificationsRef,
+    readActionId,
+    unreadBadgeLabel,
+    unreadCount,
+  } = useAppNotifications()
+
+  const renderSideNavLink = (link) => {
+    if (link.action === 'notifications') {
+      return (
+        <div
+          className="app-notifications app-notifications--sidebar"
+          key={link.label}
+          ref={notificationsRef}
+        >
           <button
-            className={`app-icon-button app-notifications__trigger${
-              isNotificationsOpen ? ' app-icon-button--active' : ''
-            }`}
-            type="button"
             aria-controls="app-notifications-panel"
             aria-expanded={isNotificationsOpen}
-            aria-label={
-              unreadCount > 0
-                ? `${unreadCount} okunmamış bildirim`
-                : 'Bildirimler'
-            }
+            className={`app-sidebar__link app-notifications__sidebar-trigger${
+              isNotificationsOpen ? ' app-sidebar__link--active' : ''
+            }`}
             onClick={handleNotificationToggle}
+            type="button"
           >
-            <span className="material-symbols-outlined">notifications</span>
+            <span className="material-symbols-outlined">{link.icon}</span>
+            <span>{link.label}</span>
             {unreadCount > 0 ? (
-              <span className="app-icon-button__badge">
-                {unreadBadgeLabel}
-              </span>
+              <span className="app-sidebar__badge">{unreadBadgeLabel}</span>
             ) : null}
           </button>
 
           {isNotificationsOpen ? (
             <section
+              aria-label="Bildirimler"
               className="app-notifications__panel"
               id="app-notifications-panel"
-              aria-label="Bildirimler"
               role="dialog"
             >
               <div className="app-notifications__header">
@@ -622,8 +675,8 @@ export function AppTopNavbar({
                         key={notification.key}
                       >
                         <span
-                          className="app-notifications__item-status"
                           aria-hidden="true"
+                          className="app-notifications__item-status"
                         ></span>
                         <div className="app-notifications__item-content">
                           <div className="app-notifications__item-title">
@@ -640,13 +693,13 @@ export function AppTopNavbar({
                         </div>
                         {!notification.isRead && notification.id ? (
                           <button
+                            aria-label={`${notification.title} bildirimini okundu olarak işaretle`}
                             className="app-notifications__read-button"
                             disabled={readActionId === notification.key}
                             onClick={() =>
                               handleMarkNotificationRead(notification)
                             }
                             type="button"
-                            aria-label={`${notification.title} bildirimini okundu olarak işaretle`}
                           >
                             <span className="material-symbols-outlined">
                               {readActionId === notification.key
@@ -663,34 +716,28 @@ export function AppTopNavbar({
             </section>
           ) : null}
         </div>
+      )
+    }
 
-        <button className="app-icon-button" type="button" aria-label="Hesap">
-          <span className="material-symbols-outlined">account_circle</span>
-        </button>
-      </div>
-    </header>
-  )
-}
-
-export function AppSideNavbar({ currentPath, navigate, onLogout }) {
-  const createAuctionActive = currentPath === '/auctions/create'
+    return (
+      <a
+        className={`app-sidebar__link${
+          isActive(currentPath, link) ? ' app-sidebar__link--active' : ''
+        }`}
+        href={link.href}
+        key={link.label}
+        onClick={routeHandler(navigate, link)}
+      >
+        <span className="material-symbols-outlined">{link.icon}</span>
+        <span>{link.label}</span>
+      </a>
+    )
+  }
 
   return (
     <aside className="app-sidebar">
       <nav className="app-sidebar__nav" aria-label="Yan navigasyon">
-        {sideNavLinks.map((link) => (
-          <a
-            key={link.label}
-            className={`app-sidebar__link${
-              isActive(currentPath, link) ? ' app-sidebar__link--active' : ''
-            }`}
-            href={link.href}
-            onClick={routeHandler(navigate, link)}
-          >
-            <span className="material-symbols-outlined">{link.icon}</span>
-            <span>{link.label}</span>
-          </a>
-        ))}
+        {sideNavLinks.map(renderSideNavLink)}
       </nav>
 
       <a

@@ -532,11 +532,6 @@ function CreateAuctionPage({ navigate, onLogout }) {
                           </option>
                         ))}
                       </select>
-                      {formValues.mainCategoryId && subCategoryOptions.length === 0 ? (
-                        <p className="mt-2 text-xs font-medium text-error">
-                          Bu ana kategori için alt kategori bulunmuyor.
-                        </p>
-                      ) : null}
                     </div>
                   </div>
 

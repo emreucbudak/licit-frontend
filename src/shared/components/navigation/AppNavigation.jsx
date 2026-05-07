@@ -34,7 +34,9 @@ const sideNavLinks = [
   {
     label: 'Bildirimler',
     icon: 'notifications',
-    action: 'notifications',
+    href: '/notifications',
+    route: true,
+    match: ['/notifications'],
   },
   {
     label: '\u0130hale Y\u00f6netimi',

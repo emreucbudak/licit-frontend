@@ -1,0 +1,277 @@
+.notification-center-page {
+  min-height: 100vh;
+  overflow-x: hidden;
+  background: var(--color-surface);
+  color: var(--color-on-surface);
+}
+
+.notification-center-main {
+  min-height: 100vh;
+  padding: 112px 16px 64px;
+}
+
+.notification-center-shell {
+  width: min(100%, 1120px);
+  margin: 0 auto;
+}
+
+.notification-center-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+.notification-center-header h1,
+.notification-center-card h2,
+.notification-center-card p,
+.notification-center-state p,
+.notification-center-error p {
+  margin: 0;
+}
+
+.notification-center-header h1 {
+  color: var(--color-on-surface);
+  font-size: clamp(2.25rem, 5vw, 3.25rem);
+  font-weight: 900;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+.notification-center-card__actions a,
+.notification-center-card__actions button {
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+.notification-center-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.notification-center-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  gap: 18px;
+  overflow: hidden;
+  padding: 22px 24px;
+  border: 1px solid rgba(70, 69, 84, 0.16);
+  border-radius: 12px;
+  background: var(--color-surface-container-low);
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.notification-center-card:hover {
+  border-color: rgba(128, 131, 255, 0.24);
+  background: rgba(45, 52, 73, 0.78);
+  transform: translateY(-1px);
+}
+
+.notification-center-card--unread {
+  border-color: rgba(78, 222, 163, 0.2);
+  background: rgba(45, 52, 73, 0.66);
+}
+
+.notification-center-card__unread {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 4px;
+  background: var(--color-secondary);
+  box-shadow: 0 0 12px rgba(78, 222, 163, 0.34);
+}
+
+.notification-center-card--system.notification-center-card--unread .notification-center-card__unread {
+  background: var(--color-primary);
+  box-shadow: 0 0 12px rgba(192, 193, 255, 0.3);
+}
+
+.notification-center-card__icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border: 1px solid rgba(128, 131, 255, 0.18);
+  border-radius: 999px;
+  background: var(--color-surface-container-lowest);
+  color: var(--color-primary);
+}
+
+.notification-center-card--auction .notification-center-card__icon {
+  color: var(--color-secondary);
+}
+
+.notification-center-card--security .notification-center-card__icon {
+  color: var(--color-tertiary);
+}
+
+.notification-center-card__content {
+  min-width: 0;
+}
+
+.notification-center-card__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.notification-center-card__title-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 7px;
+}
+
+.notification-center-card__title-row h2 {
+  color: var(--color-on-surface);
+  font-size: 1.06rem;
+  font-weight: 850;
+  line-height: 1.25;
+}
+
+.notification-center-card__title-row span {
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(78, 222, 163, 0.12);
+  color: var(--color-secondary);
+  font-size: 0.64rem;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.notification-center-card p {
+  max-width: 720px;
+  color: var(--color-on-surface-variant);
+  font-size: 0.9rem;
+  font-weight: 500;
+  line-height: 1.55;
+}
+
+.notification-center-card time {
+  flex: 0 0 auto;
+  color: rgba(199, 196, 215, 0.54);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.notification-center-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.notification-center-card__actions a,
+.notification-center-card__actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 9px 14px;
+  border-radius: 8px;
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.notification-center-card__actions a {
+  background: var(--color-secondary);
+  color: var(--color-on-secondary-container);
+}
+
+.notification-center-card__actions button,
+.notification-center-error {
+  border: 1px solid rgba(70, 69, 84, 0.3);
+  background: var(--color-surface-container-lowest);
+  color: var(--color-on-surface-variant);
+}
+
+.notification-center-card__actions a:hover,
+.notification-center-card__actions button:hover {
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.notification-center-card__actions button:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+.notification-center-state,
+.notification-center-error {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  padding: 44px 24px;
+  border: 1px solid rgba(70, 69, 84, 0.16);
+  border-radius: 12px;
+  background: var(--color-surface-container-low);
+  color: var(--color-on-surface-variant);
+  text-align: center;
+}
+
+.notification-center-error {
+  display: inline-flex;
+  align-items: center;
+  justify-items: initial;
+  gap: 8px;
+  width: fit-content;
+  max-width: 100%;
+  margin-bottom: 18px;
+  padding: 10px 12px;
+  border-color: rgba(255, 180, 171, 0.32);
+  background: rgba(255, 180, 171, 0.08);
+  color: var(--color-error);
+  text-align: left;
+}
+
+.notification-center-error p {
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.notification-center-state .material-symbols-outlined,
+.notification-center-error .material-symbols-outlined {
+  font-size: 1.15rem;
+}
+
+@media (min-width: 1024px) {
+  .notification-center-main {
+    margin-left: 256px;
+    padding: 128px 48px 72px;
+  }
+}
+
+@media (max-width: 720px) {
+  .notification-center-header,
+  .notification-center-card__head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .notification-center-card {
+    grid-template-columns: 1fr;
+  }
+
+  .notification-center-card time {
+    white-space: normal;
+  }
+}

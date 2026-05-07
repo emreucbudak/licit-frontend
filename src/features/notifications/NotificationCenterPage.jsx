@@ -1,11 +1,20 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   getApiErrorMessage,
   getUserFacingErrorMessage,
 } from '../../shared/api/apiError'
 import { sendAuthorizedRequest } from '../../shared/api/authorizedRequest'
+import { getStoredAuthTokens } from '../../shared/auth/authStorage'
 import { AppSideNavbar, AppTopNavbar } from '../../shared/components/navigation/AppNavigation'
+import { buildSignalRHubUrl } from '../../shared/config/runtimeConfig'
 import './NotificationCenterPage.css'
+
+const notificationHubPath = '/notification-hub'
+const notificationHubRefreshEvents = [
+  'NotificationCreated',
+  'NotificationsUpdated',
+  'UnreadCountChanged',
+]
 
 function readField(source, ...keys) {
   if (!source || typeof source !== 'object') {
@@ -145,7 +154,18 @@ function getNotificationIcon(category, title) {
 }
 
 function getNotificationActionHref(notification) {
-  const directHref = readField(notification, 'href', 'Href', 'url', 'Url', 'link', 'Link')
+  const data = readField(notification, 'data', 'Data')
+  const directHref = readField(
+    notification,
+    'linkUrl',
+    'LinkUrl',
+    'href',
+    'Href',
+    'url',
+    'Url',
+    'link',
+    'Link',
+  )
 
   if (typeof directHref === 'string' && directHref.startsWith('/')) {
     return directHref
@@ -153,6 +173,14 @@ function getNotificationActionHref(notification) {
 
   const auctionId = readField(
     notification,
+    'auctionId',
+    'AuctionId',
+    'tenderId',
+    'TenderId',
+    'lotId',
+    'LotId',
+  ) ?? readField(
+    data,
     'auctionId',
     'AuctionId',
     'tenderId',
@@ -225,9 +253,12 @@ function NotificationCenterPage({ navigate, onLogout }) {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
   const [readActionId, setReadActionId] = useState('')
+  const connectionRef = useRef(null)
 
-  const loadNotifications = useCallback(async () => {
-    setIsLoading(true)
+  const loadNotifications = useCallback(async ({ silent = false } = {}) => {
+    if (!silent) {
+      setIsLoading(true)
+    }
     setError('')
 
     try {
@@ -246,15 +277,91 @@ function NotificationCenterPage({ navigate, onLogout }) {
         normalizeNotificationCollection(payload).map(normalizeNotification),
       )
     } catch {
-      setNotifications([])
-      setError('Bildirimler şu anda yüklenemedi. Lütfen biraz sonra tekrar deneyin.')
+      if (!silent) {
+        setNotifications([])
+        setError('Bildirimler şu anda yüklenemedi. Lütfen biraz sonra tekrar deneyin.')
+      }
     } finally {
-      setIsLoading(false)
+      if (!silent) {
+        setIsLoading(false)
+      }
     }
   }, [])
 
   useEffect(() => {
     loadNotifications()
+  }, [loadNotifications])
+
+  useEffect(() => {
+    let isDisposed = false
+
+    function mergeRealtimeNotification(notification) {
+      const normalizedNotification = normalizeNotification(notification, 0)
+
+      setNotifications((currentNotifications) => {
+        const nextNotifications = currentNotifications.filter(
+          (currentNotification) =>
+            currentNotification.key !== normalizedNotification.key,
+        )
+
+        return [normalizedNotification, ...nextNotifications].slice(0, 50)
+      })
+    }
+
+    function handleRealtimeNotification(notification) {
+      if (notification && typeof notification === 'object') {
+        mergeRealtimeNotification(notification)
+        return
+      }
+
+      loadNotifications({ silent: true })
+    }
+
+    async function startNotificationConnection() {
+      try {
+        const { HubConnectionBuilder } = await import('@microsoft/signalr')
+
+        if (isDisposed) {
+          return
+        }
+
+        const connection = new HubConnectionBuilder()
+          .withUrl(buildSignalRHubUrl(notificationHubPath), {
+            accessTokenFactory: () => getStoredAuthTokens().accessToken || '',
+          })
+          .withAutomaticReconnect()
+          .build()
+
+        connection.on('NotificationReceived', handleRealtimeNotification)
+        notificationHubRefreshEvents.forEach((eventName) => {
+          connection.on(eventName, () => loadNotifications({ silent: true }))
+        })
+
+        connectionRef.current = connection
+        await connection.start()
+      } catch {
+        // REST fetch remains available if realtime startup fails.
+      }
+    }
+
+    startNotificationConnection()
+
+    return () => {
+      isDisposed = true
+
+      const connection = connectionRef.current
+      connectionRef.current = null
+
+      if (!connection) {
+        return
+      }
+
+      connection.off('NotificationReceived', handleRealtimeNotification)
+      notificationHubRefreshEvents.forEach((eventName) => {
+        connection.off(eventName)
+      })
+      connection.stop().catch(() => {})
+    }
   }, [loadNotifications])
 
   async function handleMarkNotificationRead(notification) {

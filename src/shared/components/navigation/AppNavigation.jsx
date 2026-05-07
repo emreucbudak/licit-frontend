@@ -349,10 +349,6 @@ function useAppNotifications() {
   }, [isNotificationsOpen])
 
   useEffect(() => {
-    if (!isNotificationsOpen) {
-      return undefined
-    }
-
     let connection = null
     let isDisposed = false
 
@@ -403,7 +399,7 @@ function useAppNotifications() {
       })
       connection.stop().catch(() => {})
     }
-  }, [isNotificationsOpen, loadNotifications, loadUnreadCount])
+  }, [loadNotifications, loadUnreadCount])
 
   const hasUnreadNotifications = useMemo(
     () => notifications.some((notification) => !notification.isRead),
@@ -732,6 +728,9 @@ export function AppSideNavbar({ currentPath, navigate, onLogout }) {
       >
         <span className="material-symbols-outlined">{link.icon}</span>
         <span>{link.label}</span>
+        {link.href === '/notifications' && unreadCount > 0 ? (
+          <span className="app-sidebar__badge">{unreadBadgeLabel}</span>
+        ) : null}
       </a>
     )
   }

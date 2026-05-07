@@ -275,8 +275,6 @@ function DashboardPage({ navigate, onLogout }) {
   }, [bidPage, bidPageSize])
 
   const wallet = dashboardData?.wallet || null
-  const walletTransactions =
-    getField(dashboardData, 'walletTransactions', 'wallet_transactions') || null
   const listings = useMemo(() => dashboardData?.listings || {}, [dashboardData?.listings])
   const stats = useMemo(() => dashboardData?.stats || {}, [dashboardData?.stats])
   const summaryError = dashboardErrors.summary || ''
@@ -398,10 +396,6 @@ function DashboardPage({ navigate, onLogout }) {
       tenders.length
     const activeAuctionTotal =
       getField(stats, 'activeAuctions', 'active_auctions') ?? activeAuctions.length
-    const transactionTotal =
-      getField(stats, 'walletTransactions', 'wallet_transactions') ??
-      getField(walletTransactions, 'totalCount', 'total_count') ??
-      walletTransactions?.transactions?.length
     const walletBalance = wallet?.balance
 
     return [
@@ -412,10 +406,9 @@ function DashboardPage({ navigate, onLogout }) {
           ? 'Özet verisi şu anda alınamadı.'
           : listingsError
             ? 'İlan özeti geçici olarak güncellenemiyor.'
-            : 'Özet endpointi toplam sayısı',
+            : '',
         tone: summaryError || listingsError ? 'neutral' : 'secondary',
         icon: 'inventory_2',
-        noteIcon: summaryError || listingsError ? 'info' : 'dns',
       },
       {
         label: 'Aktif Müzayede',
@@ -423,13 +416,9 @@ function DashboardPage({ navigate, onLogout }) {
           isDashboardLoading && !dashboardData
             ? '...'
             : formatNumber(activeAuctionTotal),
-        note:
-          activeAuctions.length > 0
-            ? 'Canlı özet verisi'
-            : 'İlanlardan yedekleniyor',
+        note: '',
         tone: 'primary',
         icon: 'visibility',
-        noteIcon: 'schedule',
       },
       {
         label: 'Cüzdan Bakiyesi',
@@ -440,12 +429,9 @@ function DashboardPage({ navigate, onLogout }) {
         note:
           walletError ||
           transactionsError ||
-          (Number.isFinite(Number(transactionTotal))
-            ? `${formatNumber(transactionTotal)} cüzdan hareketi`
-            : 'Özet endpointi cüzdan verisi'),
+          '',
         tone: walletError ? 'neutral' : 'secondary',
         icon: 'account_balance_wallet',
-        noteIcon: walletError ? 'error' : 'payments',
       },
     ]
   }, [
@@ -460,7 +446,6 @@ function DashboardPage({ navigate, onLogout }) {
     transactionsError,
     wallet,
     walletError,
-    walletTransactions,
   ])
 
   const feedItems = useMemo(
@@ -504,10 +489,11 @@ function DashboardPage({ navigate, onLogout }) {
               <article key={card.label} className="dashboard-stat-card">
                 <p>{card.label}</p>
                 <h2>{card.value}</h2>
-                <span className={`dashboard-stat-card__note dashboard-stat-card__note--${card.tone}`}>
-                  <span className="material-symbols-outlined">{card.noteIcon}</span>
-                  {card.note}
-                </span>
+                {card.note ? (
+                  <span className={`dashboard-stat-card__note dashboard-stat-card__note--${card.tone}`}>
+                    {card.note}
+                  </span>
+                ) : null}
                 <span className="material-symbols-outlined dashboard-stat-card__bg-icon">
                   {card.icon}
                 </span>

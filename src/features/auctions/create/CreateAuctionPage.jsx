@@ -407,7 +407,7 @@ function CreateAuctionPage({ navigate, onLogout }) {
                 Yeni Başvuru
               </span>
               <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-white">
-                Yeni Müzayede Oluştur
+                Yeni İhale Oluştur
               </h1>
               <p className="mt-2 max-w-lg text-on-surface-variant">
                 Ürününü listele. Alıcı güvenini artırmak için detaylı
@@ -543,7 +543,7 @@ function CreateAuctionPage({ navigate, onLogout }) {
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
                       <label className="mb-2 ml-1 block text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                        Başlangıç Fiyatı ($)
+                        Başlangıç Fiyatı
                       </label>
                       <input
                         className="w-full rounded-lg border-none bg-surface-container-lowest px-4 py-3.5 text-on-surface placeholder:text-slate-600 transition-all focus:ring-2 focus:ring-primary-container"
@@ -593,25 +593,30 @@ function CreateAuctionPage({ navigate, onLogout }) {
                   <span className="material-symbols-outlined text-primary-container">
                     schedule
                   </span>
-                  Müzayede Takvimi
+                  İhale Takvimi
                 </h2>
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                   <div>
                     <label className="mb-2 ml-1 block text-xs font-bold uppercase tracking-wider text-on-surface-variant">
                       Süre
                     </label>
-                    <select
-                      className="w-full rounded-lg border-none bg-surface-container-lowest px-4 py-3.5 text-on-surface focus:ring-2 focus:ring-primary-container"
-                      name="durationDays"
-                      value={formValues.durationDays}
-                      onChange={handleFieldChange}
-                    >
-                      {durationOptions.map((duration) => (
-                        <option key={duration.days} value={duration.days}>
-                          {duration.label}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="relative">
+                      <select
+                        className="w-full appearance-none rounded-lg border-none bg-surface-container-lowest px-4 py-3.5 pr-12 text-on-surface focus:ring-2 focus:ring-primary-container"
+                        name="durationDays"
+                        value={formValues.durationDays}
+                        onChange={handleFieldChange}
+                      >
+                        {durationOptions.map((duration) => (
+                          <option key={duration.days} value={duration.days}>
+                            {duration.label}
+                          </option>
+                        ))}
+                      </select>
+                      <span className="material-symbols-outlined pointer-events-none absolute right-3 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center text-3xl leading-none text-on-surface">
+                        expand_more
+                      </span>
+                    </div>
                   </div>
                   <div>
                     <label className="mb-2 ml-1 block text-xs font-bold uppercase tracking-wider text-on-surface-variant">
@@ -715,7 +720,7 @@ function CreateAuctionPage({ navigate, onLogout }) {
                               </span>
                             </>
                           ) : (
-                            <span className="flex translate-y-2 flex-col items-center gap-2 px-4 text-center text-sm text-on-surface-variant">
+                            <span className="flex translate-y-1 flex-col items-center gap-2 px-4 text-center text-sm text-on-surface-variant">
                               <span className="material-symbols-outlined text-3xl text-primary-container">
                                 add_photo_alternate
                               </span>

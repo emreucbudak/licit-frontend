@@ -25,6 +25,18 @@ const sideNavLinks = [
     match: ['/auctions'],
   },
   {
+    label: 'C\u00fczdan',
+    icon: 'account_balance_wallet',
+    href: '/wallet',
+    route: true,
+    match: ['/wallet'],
+  },
+  {
+    label: 'Bildirimler',
+    icon: 'notifications',
+    action: 'notifications',
+  },
+  {
     label: '\u0130hale Y\u00f6netimi',
     icon: 'inventory_2',
     href: '/auctions/manage',
@@ -37,18 +49,6 @@ const sideNavLinks = [
     href: '/dashboard',
     route: true,
     match: ['/dashboard'],
-  },
-  {
-    label: 'C\u00fczdan',
-    icon: 'account_balance_wallet',
-    href: '/wallet',
-    route: true,
-    match: ['/wallet'],
-  },
-  {
-    label: 'Bildirimler',
-    icon: 'notifications',
-    action: 'notifications',
   },
   {
     label: 'Ayarlar',
@@ -519,7 +519,7 @@ function useAppNotifications() {
 
 export function AppTopNavbar({
   navigate,
-  searchPlaceholder = 'M\u00fczayede ara...',
+  searchPlaceholder = '\u0130hale ara...',
   searchValue = '',
 }) {
   const [searchTerm, setSearchTerm] = useState(searchValue)
@@ -548,7 +548,7 @@ export function AppTopNavbar({
       </div>
 
       <div className="app-topbar__actions">
-        <form className="app-search" aria-label="M\u00fczayede ara" onSubmit={handleSearchSubmit}>
+        <form className="app-search" aria-label="\u0130hale ara" onSubmit={handleSearchSubmit}>
           <span className="material-symbols-outlined">search</span>
           <input
             onChange={(event) => setSearchTerm(event.target.value)}

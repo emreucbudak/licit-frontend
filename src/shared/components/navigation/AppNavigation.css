@@ -44,7 +44,7 @@
   position: relative;
   flex: 1 1 auto;
   display: none;
-  max-width: 640px;
+  max-width: 560px;
   min-width: 0;
 }
 

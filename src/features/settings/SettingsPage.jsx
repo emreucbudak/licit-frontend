@@ -342,7 +342,7 @@ function SettingsPage({ navigate, onLogout }) {
             </section>
 
             <section
-              className="rounded-xl border border-outline-variant/10 bg-surface-variant/40 p-6 backdrop-blur-xl sm:p-8 lg:col-span-12"
+              className="rounded-xl border border-outline-variant/10 bg-surface-variant/40 p-6 backdrop-blur-xl sm:p-8 lg:col-span-6"
               id="güvenlik"
             >
               <div className="mb-8 flex items-center gap-3">
@@ -350,7 +350,7 @@ function SettingsPage({ navigate, onLogout }) {
                 <h2 className="text-xl font-bold">Güvenlik Ayarları</h2>
               </div>
 
-              <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+              <div>
                 <form className="space-y-4" onSubmit={handlePasswordSubmit}>
                   <h3 className="text-sm font-bold uppercase tracking-wider text-on-surface-variant">
                     Şifreyi Güncelle
@@ -402,55 +402,6 @@ function SettingsPage({ navigate, onLogout }) {
                     </button>
                   </div>
                 </form>
-
-                <div className="space-y-6">
-                  <div className="space-y-3">
-                    <h3 className="text-sm font-bold uppercase tracking-wider text-on-surface-variant">
-                      Aktif Oturumlar
-                    </h3>
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between gap-3 rounded-lg bg-surface-container-lowest/50 px-3 py-2">
-                        <div className="flex items-center gap-3">
-                          <span className="material-symbols-outlined text-base text-on-surface-variant">
-                            laptop_mac
-                          </span>
-                          <div>
-                            <p className="text-xs font-medium">MacOS - Chrome</p>
-                            <p className="text-[10px] text-secondary">
-                              Şu anda aktif
-                            </p>
-                          </div>
-                        </div>
-                        <button
-                          className="text-[10px] font-bold text-error/60 hover:text-error"
-                          type="button"
-                        >
-                          SONLANDIR
-                        </button>
-                      </div>
-
-                      <div className="flex items-center justify-between gap-3 rounded-lg bg-surface-container-lowest/50 px-3 py-2">
-                        <div className="flex items-center gap-3">
-                          <span className="material-symbols-outlined text-base text-on-surface-variant">
-                            smartphone
-                          </span>
-                          <div>
-                            <p className="text-xs font-medium">iPhone 15 Pro - App</p>
-                            <p className="text-[10px] text-on-surface-variant">
-                              İstanbul, TR
-                            </p>
-                          </div>
-                        </div>
-                        <button
-                          className="text-[10px] font-bold text-error/60 hover:text-error"
-                          type="button"
-                        >
-                          SONLANDIR
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
               </div>
             </section>
           </div>

@@ -613,7 +613,7 @@ function CreateAuctionPage({ navigate, onLogout }) {
                           </option>
                         ))}
                       </select>
-                      <span className="material-symbols-outlined pointer-events-none absolute right-0 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center text-3xl leading-none text-on-surface">
+                      <span className="material-symbols-outlined pointer-events-none absolute right-3 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center text-xl leading-none text-on-surface">
                         expand_more
                       </span>
                     </div>

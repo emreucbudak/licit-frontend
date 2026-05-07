@@ -79,7 +79,6 @@ function CreateAuctionPage({ navigate, onLogout }) {
   const [imageError, setImageError] = useState('')
   const imageSlotsRef = useRef(imageSlots)
   const isSubmitting = Boolean(submitMode)
-  const isSavingDraft = submitMode === 'draft'
   const isPublishing = submitMode === 'publish'
   const selectedMainCategory = categories.find(
     (category) => category.id === formValues.mainCategoryId,
@@ -418,14 +417,6 @@ function CreateAuctionPage({ navigate, onLogout }) {
 
             <div className="hidden gap-3 md:flex">
               <button
-                className="rounded-lg border border-outline-variant/20 bg-surface-container-high px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-surface-container-highest disabled:cursor-not-allowed disabled:opacity-60"
-                disabled={isSubmitting}
-                type="button"
-                onClick={(event) => handleSubmit(event, false)}
-              >
-                {isSavingDraft ? 'Kaydediliyor' : 'Taslak Kaydet'}
-              </button>
-              <button
                 className="rounded-lg bg-gradient-to-r from-primary to-primary-container px-6 py-2.5 text-sm font-semibold text-on-primary shadow-lg shadow-primary/20 transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
                 disabled={isSubmitting}
                 type="button"
@@ -724,14 +715,13 @@ function CreateAuctionPage({ navigate, onLogout }) {
                               </span>
                             </>
                           ) : (
-                            <span className="flex flex-col items-center gap-2 px-4 text-center text-sm text-on-surface-variant">
+                            <span className="flex translate-y-2 flex-col items-center gap-2 px-4 text-center text-sm text-on-surface-variant">
                               <span className="material-symbols-outlined text-3xl text-primary-container">
                                 add_photo_alternate
                               </span>
                               <span className="font-semibold text-white">
                                 Görsel {index + 1}
                               </span>
-                              <span>Dosya seç</span>
                             </span>
                           )}
                         </label>
@@ -795,15 +785,7 @@ function CreateAuctionPage({ navigate, onLogout }) {
         </div>
       </main>
 
-      <div className="fixed inset-x-0 bottom-0 z-50 flex gap-3 border-t border-white/5 bg-[#0b1326] p-4 md:hidden">
-        <button
-          className="flex-1 rounded-lg bg-surface-container-high py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
-          disabled={isSubmitting}
-          type="button"
-          onClick={(event) => handleSubmit(event, false)}
-        >
-          {isSavingDraft ? 'Kaydediliyor' : 'Taslak Kaydet'}
-        </button>
+      <div className="fixed inset-x-0 bottom-0 z-50 flex border-t border-white/5 bg-[#0b1326] p-4 md:hidden">
         <button
           className="flex-1 rounded-lg bg-primary py-3 text-sm font-semibold text-on-primary disabled:cursor-not-allowed disabled:opacity-60"
           disabled={isSubmitting}

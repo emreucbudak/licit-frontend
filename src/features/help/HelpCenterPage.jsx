@@ -101,9 +101,57 @@ const supportChannels = [
 
 function HelpCenterPage({ navigate, onLogout }) {
   const [openFaqId, setOpenFaqId] = useState(faqItems[0]?.id || '')
+  const faqColumns = [
+    faqItems.filter((_, index) => index % 2 === 0),
+    faqItems.filter((_, index) => index % 2 === 1),
+  ]
 
   function toggleFaq(faqId) {
     setOpenFaqId((currentFaqId) => (currentFaqId === faqId ? '' : faqId))
+  }
+
+  function renderFaqItem(item) {
+    const isOpen = openFaqId === item.id
+
+    return (
+      <article
+        className={`rounded-xl border bg-surface-container-low transition-colors ${
+          isOpen
+            ? 'border-primary/40'
+            : 'border-outline-variant/10 hover:border-primary/30'
+        }`}
+        key={item.id}
+      >
+        <button
+          aria-controls={`${item.id}-answer`}
+          aria-expanded={isOpen}
+          className="flex w-full items-start justify-between gap-4 px-5 py-5 text-left text-lg font-bold text-on-surface"
+          type="button"
+          onClick={() => toggleFaq(item.id)}
+        >
+          <span>{item.question}</span>
+          <span
+            className={`material-symbols-outlined shrink-0 text-outline transition-transform ${
+              isOpen ? 'rotate-180 text-primary' : ''
+            }`}
+          >
+            expand_more
+          </span>
+        </button>
+        <div
+          className={`grid transition-[grid-template-rows] duration-200 ${
+            isOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+          }`}
+          id={`${item.id}-answer`}
+        >
+          <div className="overflow-hidden">
+            <p className="px-5 pb-5 text-sm leading-relaxed text-on-surface-variant">
+              {item.answer}
+            </p>
+          </div>
+        </div>
+      </article>
+    )
   }
 
   return (
@@ -122,68 +170,24 @@ function HelpCenterPage({ navigate, onLogout }) {
       <main className="min-h-screen px-4 pb-16 pt-28 sm:px-6 sm:pt-28 md:px-10 md:pb-10 md:pt-32 lg:ml-64 lg:px-12 lg:pb-12 lg:pt-32">
         <div className="mx-auto max-w-5xl space-y-10">
           <section>
-            <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <h1 className="flex items-center gap-3 text-3xl font-extrabold tracking-tight text-on-surface md:text-4xl">
-                  <span className="material-symbols-outlined text-primary">
-                    forum
-                  </span>
-                  Sıkça Sorulan Sorular
-                </h1>
-                <p className="mt-2 max-w-2xl text-sm text-on-surface-variant">
-                  Teklif verme, cüzdan, ihale oluşturma ve hesap güvenliğiyle
-                  ilgili en çok sorulan konular.
-                </p>
-              </div>
-              <span className="text-sm font-semibold text-secondary">
-                {faqItems.length} yanıt
-              </span>
+            <div className="mb-6">
+              <h1 className="flex items-center gap-3 text-3xl font-extrabold tracking-tight text-on-surface md:text-4xl">
+                <span className="material-symbols-outlined text-primary">
+                  forum
+                </span>
+                Sıkça Sorulan Sorular
+              </h1>
             </div>
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              {faqItems.map((item) => {
-                const isOpen = openFaqId === item.id
-
-                return (
-                  <article
-                    className={`rounded-xl border bg-surface-container-low transition-colors ${
-                      isOpen
-                        ? 'border-primary/40'
-                        : 'border-outline-variant/10 hover:border-primary/30'
-                    }`}
-                    key={item.id}
-                  >
-                    <button
-                      aria-controls={`${item.id}-answer`}
-                      aria-expanded={isOpen}
-                      className="flex w-full items-start justify-between gap-4 px-5 py-5 text-left text-lg font-bold text-on-surface"
-                      type="button"
-                      onClick={() => toggleFaq(item.id)}
-                    >
-                      <span>{item.question}</span>
-                      <span
-                        className={`material-symbols-outlined shrink-0 text-outline transition-transform ${
-                          isOpen ? 'rotate-180 text-primary' : ''
-                        }`}
-                      >
-                        expand_more
-                      </span>
-                    </button>
-                    <div
-                      className={`grid transition-[grid-template-rows] duration-200 ${
-                        isOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
-                      }`}
-                      id={`${item.id}-answer`}
-                    >
-                      <div className="overflow-hidden">
-                        <p className="px-5 pb-5 text-sm leading-relaxed text-on-surface-variant">
-                          {item.answer}
-                        </p>
-                      </div>
-                    </div>
-                  </article>
-                )
-              })}
+            <div className="grid grid-cols-1 gap-4 md:hidden">
+              {faqItems.map(renderFaqItem)}
+            </div>
+            <div className="hidden gap-4 md:grid md:grid-cols-2">
+              {faqColumns.map((columnItems, columnIndex) => (
+                <div className="flex flex-col gap-4" key={columnIndex}>
+                  {columnItems.map(renderFaqItem)}
+                </div>
+              ))}
             </div>
           </section>
 

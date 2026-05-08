@@ -6,7 +6,7 @@ import {
 } from '../../shared/api/apiError'
 import { sendAuthorizedRequest } from '../../shared/api/authorizedRequest'
 
-function WalletPaymentForm({ amount, onPaymentSucceeded }) {
+function WalletPaymentForm({ onPaymentSucceeded }) {
   const stripe = useStripe()
   const elements = useElements()
   const [paymentError, setPaymentError] = useState('')
@@ -66,27 +66,29 @@ function WalletPaymentForm({ amount, onPaymentSucceeded }) {
   }
 
   return (
-    <form className="space-y-5" onSubmit={handleSubmit}>
+    <form className="flex h-full flex-col space-y-5" onSubmit={handleSubmit}>
       <div className="rounded-lg border border-outline-variant/20 bg-surface p-4">
         <PaymentElement />
       </div>
 
       {paymentError ? (
-        <p className="text-sm text-error">{paymentError}</p>
+        <p className="break-words text-sm text-error">{paymentError}</p>
       ) : null}
       {paymentMessage ? (
-        <p className="text-sm text-secondary">{paymentMessage}</p>
+        <p className="break-words text-sm text-secondary">{paymentMessage}</p>
       ) : null}
 
       <button
-        className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-on-primary transition-colors hover:bg-primary/90 disabled:cursor-wait disabled:opacity-60"
+        className="mt-auto flex min-w-0 w-full items-center justify-center gap-2 overflow-hidden rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-on-primary transition-colors hover:bg-primary/90 disabled:cursor-wait disabled:opacity-60"
         disabled={!stripe || !elements || isSubmitting}
         type="submit"
       >
-        <span className="material-symbols-outlined text-[18px]">
+        <span className="material-symbols-outlined shrink-0 text-[18px]">
           credit_card
         </span>
-        {isSubmitting ? 'İşleniyor...' : `${amount} yükle`}
+        <span className="min-w-0 truncate">
+          {isSubmitting ? 'İşleniyor...' : 'Ödeme yap'}
+        </span>
       </button>
     </form>
   )

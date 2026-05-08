@@ -1,6 +1,6 @@
 import { Elements } from '@stripe/react-stripe-js'
 import { loadStripe } from '@stripe/stripe-js'
-import { useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AppSideNavbar, AppTopNavbar } from '../../shared/components/navigation/AppNavigation'
 import {
   getApiErrorMessage,
@@ -15,6 +15,8 @@ const moneyFormatter = new Intl.NumberFormat('tr-TR', {
   style: 'currency',
 })
 
+const defaultAmount = 500
+const maxAmountInputLength = 14
 const presetAmounts = [250, 500, 1000, 2500]
 
 function createIdempotencyKey() {
@@ -39,7 +41,14 @@ function formatMoney(value) {
   return moneyFormatter.format(Number(value) || 0)
 }
 
+function normalizeAmountInput(value) {
+  return String(value || '')
+    .replace(/[^\d,.]/g, '')
+    .slice(0, maxAmountInputLength)
+}
+
 function WalletTopUpPage({ navigate, onLogout }) {
+  const paymentIntentRequestIdRef = useRef(0)
   const stripePromise = useMemo(
     () =>
       runtimeConfig.stripePublishableKey
@@ -47,19 +56,24 @@ function WalletTopUpPage({ navigate, onLogout }) {
         : null,
     [],
   )
-  const [amountInput, setAmountInput] = useState('500')
+  const [amountInput, setAmountInput] = useState(String(defaultAmount))
   const [paymentIntent, setPaymentIntent] = useState(null)
   const [pageError, setPageError] = useState('')
   const [pageMessage, setPageMessage] = useState('')
   const [isCreatingIntent, setIsCreatingIntent] = useState(false)
 
   const amount = parseAmount(amountInput)
-  const canCreatePayment = amount > 0 && !isCreatingIntent
+  const paymentIntentAmount = Number(paymentIntent?.amount) || 0
+  const paymentAmount = paymentIntentAmount || amount
   const formattedAmount = formatMoney(amount)
+  const formattedPaymentAmount = formatMoney(paymentAmount)
+  const paymentSubtitle = paymentIntent
+    ? `${formattedPaymentAmount} için ödeme`
+    : 'Ödeme formu hazırlanıyor.'
+  const isPaymentIntentCurrent =
+    Boolean(paymentIntent?.clientSecret) && paymentIntentAmount === amount
 
-  async function handleCreatePayment(event) {
-    event.preventDefault()
-
+  const createPaymentIntent = useCallback(async (nextAmount) => {
     setPageError('')
     setPageMessage('')
     setPaymentIntent(null)
@@ -69,16 +83,17 @@ function WalletTopUpPage({ navigate, onLogout }) {
       return
     }
 
-    if (amount <= 0) {
-      setPageError('Tutar 0’dan büyük olmalı.')
+    if (nextAmount <= 0) {
       return
     }
 
+    const requestId = paymentIntentRequestIdRef.current + 1
+    paymentIntentRequestIdRef.current = requestId
     setIsCreatingIntent(true)
 
     try {
       const result = await sendAuthorizedRequest('/api/wallet/deposits/payment-intents', {
-        body: { amount },
+        body: { amount: nextAmount },
         headers: { 'Idempotency-Key': createIdempotencyKey() },
         method: 'POST',
       })
@@ -89,20 +104,50 @@ function WalletTopUpPage({ navigate, onLogout }) {
         )
       }
 
-      setPaymentIntent(result.payload)
+      if (requestId === paymentIntentRequestIdRef.current) {
+        setPaymentIntent(result.payload)
+      }
     } catch (error) {
-      setPageError(
-        getUserFacingErrorMessage(error, 'Ödeme formu hazırlanamadı.'),
-      )
+      if (requestId === paymentIntentRequestIdRef.current) {
+        setPageError(
+          getUserFacingErrorMessage(error, 'Ödeme formu hazırlanamadı.'),
+        )
+      }
     } finally {
-      setIsCreatingIntent(false)
+      if (requestId === paymentIntentRequestIdRef.current) {
+        setIsCreatingIntent(false)
+      }
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    if (amount <= 0) {
+      paymentIntentRequestIdRef.current += 1
+      setPaymentIntent(null)
+      setIsCreatingIntent(false)
+      return
+    }
+
+    if (isCreatingIntent) {
+      return
+    }
+
+    if (isPaymentIntentCurrent) {
+      return
+    }
+
+    const delay = paymentIntent ? 650 : 0
+    const timerId = setTimeout(() => {
+      createPaymentIntent(amount)
+    }, delay)
+
+    return () => clearTimeout(timerId)
+  }, [amount, createPaymentIntent, isCreatingIntent, isPaymentIntentCurrent, paymentIntent])
 
   function handlePaymentSucceeded(result) {
     setPageMessage(
       result?.applied
-        ? `${formattedAmount} cüzdana yüklendi.`
+        ? `${formatMoney(result.amount ?? paymentAmount)} cüzdana yüklendi.`
         : 'Ödeme alındı, bakiye güncelleniyor.',
     )
   }
@@ -112,11 +157,36 @@ function WalletTopUpPage({ navigate, onLogout }) {
         clientSecret: paymentIntent.clientSecret,
         locale: 'tr',
         appearance: {
-          theme: 'stripe',
+          theme: 'night',
           variables: {
             borderRadius: '8px',
-            colorPrimary: '#6750a4',
+            colorBackground: '#131b2e',
+            colorDanger: '#ffb4ab',
+            colorPrimary: '#c0c1ff',
+            colorText: '#dae2fd',
+            colorTextPlaceholder: '#908fa0',
+            colorTextSecondary: '#c7c4d7',
             fontFamily: 'Inter, system-ui, sans-serif',
+          },
+          rules: {
+            '.Input': {
+              backgroundColor: '#0b1326',
+              border: '1px solid #464554',
+            },
+            '.Input:focus': {
+              border: '1px solid #c0c1ff',
+              boxShadow: '0 0 0 1px #c0c1ff',
+            },
+            '.Label': {
+              color: '#c7c4d7',
+            },
+            '.Tab': {
+              backgroundColor: '#0b1326',
+              border: '1px solid #464554',
+            },
+            '.Tab--selected': {
+              border: '1px solid #c0c1ff',
+            },
           },
         },
       }
@@ -159,120 +229,116 @@ function WalletTopUpPage({ navigate, onLogout }) {
           </header>
 
           {pageError ? (
-            <div className="rounded-lg border border-error/20 bg-error-container/20 px-5 py-4 text-sm text-on-error-container">
+            <div className="break-words rounded-lg border border-error/20 bg-error-container/20 px-5 py-4 text-sm text-on-error-container">
               {pageError}
             </div>
           ) : null}
           {pageMessage ? (
-            <div className="rounded-lg border border-secondary/20 bg-secondary/10 px-5 py-4 text-sm text-secondary">
+            <div className="break-words rounded-lg border border-secondary/20 bg-secondary/10 px-5 py-4 text-sm text-secondary">
               {pageMessage}
             </div>
           ) : null}
 
-          <section className="grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
-            <form
-              className="rounded-xl bg-surface-container-low p-6"
-              onSubmit={handleCreatePayment}
-            >
-              <div className="mb-6">
-                <label
-                  className="mb-2 block text-sm font-bold uppercase tracking-widest text-on-surface-variant"
-                  htmlFor="wallet-top-up-amount"
-                >
-                  Tutar
-                </label>
-                <div className="flex items-center rounded-lg border border-outline-variant/30 bg-surface px-4 py-3 focus-within:border-primary">
-                  <span className="mr-3 text-sm font-semibold text-on-surface-variant">
-                    TRY
-                  </span>
-                  <input
-                    className="w-full bg-transparent text-3xl font-black text-on-surface outline-none"
-                    disabled={isCreatingIntent}
-                    id="wallet-top-up-amount"
-                    inputMode="decimal"
-                    min="1"
-                    onChange={(event) => setAmountInput(event.target.value)}
-                    step="0.01"
-                    type="number"
-                    value={amountInput}
-                  />
+          <section className="grid items-stretch gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+            <div className="flex h-full min-h-[360px] flex-col rounded-xl bg-surface-container-low p-6">
+              <div>
+                <div className="mb-6">
+                  <label
+                    className="mb-2 block text-sm font-bold uppercase tracking-widest text-on-surface-variant"
+                    htmlFor="wallet-top-up-amount"
+                  >
+                    Tutar seç
+                  </label>
+                  <div className="flex min-h-24 min-w-0 items-center rounded-lg border border-outline-variant/30 bg-surface px-4 py-3 focus-within:border-primary">
+                    <span className="mr-3 shrink-0 text-sm font-semibold text-on-surface-variant">
+                      TRY
+                    </span>
+                    <input
+                      className="min-w-0 flex-1 truncate bg-transparent text-2xl font-black text-on-surface outline-none sm:text-3xl"
+                      id="wallet-top-up-amount"
+                      inputMode="decimal"
+                      maxLength={maxAmountInputLength}
+                      onChange={(event) =>
+                        setAmountInput(normalizeAmountInput(event.target.value))
+                      }
+                      type="text"
+                      value={amountInput}
+                    />
+                  </div>
+                </div>
+
+                <div className="mb-6 grid grid-cols-2 gap-2">
+                  {presetAmounts.map((presetAmount) => (
+                    <button
+                      className={`min-w-0 overflow-hidden rounded-lg border px-3 py-2 text-sm font-semibold transition-colors ${
+                        amount === presetAmount
+                          ? 'border-primary bg-primary text-on-primary'
+                          : 'border-outline-variant/20 bg-surface-container-highest text-on-surface hover:bg-surface-bright'
+                      }`}
+                      key={presetAmount}
+                      onClick={() => setAmountInput(String(presetAmount))}
+                      type="button"
+                    >
+                      <span className="block truncate">
+                        {formatMoney(presetAmount)}
+                      </span>
+                    </button>
+                  ))}
                 </div>
               </div>
 
-              <div className="mb-6 grid grid-cols-2 gap-2">
-                {presetAmounts.map((presetAmount) => (
-                  <button
-                    className={`rounded-lg border px-3 py-2 text-sm font-semibold transition-colors ${
-                      amount === presetAmount
-                        ? 'border-primary bg-primary text-on-primary'
-                        : 'border-outline-variant/20 bg-surface-container-highest text-on-surface hover:bg-surface-bright'
-                    }`}
-                    disabled={isCreatingIntent}
-                    key={presetAmount}
-                    onClick={() => setAmountInput(String(presetAmount))}
-                    type="button"
+              <div className="mt-auto rounded-lg bg-surface-container-highest p-4">
+                <div className="flex min-w-0 items-center justify-between gap-4 text-sm text-on-surface-variant">
+                  <span className="shrink-0">Yüklenecek bakiye</span>
+                  <strong
+                    className="min-w-0 truncate text-right text-lg text-on-surface"
+                    title={formattedAmount}
                   >
-                    {formatMoney(presetAmount)}
-                  </button>
-                ))}
-              </div>
-
-              <div className="mb-6 rounded-lg bg-surface-container-highest p-4">
-                <div className="flex items-center justify-between text-sm text-on-surface-variant">
-                  <span>Yüklenecek bakiye</span>
-                  <strong className="text-lg text-on-surface">
                     {formattedAmount}
                   </strong>
                 </div>
               </div>
+            </div>
 
-              <button
-                className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-on-primary transition-colors hover:bg-primary/90 disabled:cursor-wait disabled:opacity-60"
-                disabled={!canCreatePayment}
-                type="submit"
-              >
-                <span className="material-symbols-outlined text-[18px]">
-                  lock
-                </span>
-                {isCreatingIntent ? 'Hazırlanıyor...' : 'Ödeme formunu aç'}
-              </button>
-            </form>
-
-            <div className="rounded-xl bg-surface-container-low p-6">
-              <div className="mb-5 flex items-center justify-between gap-4">
-                <div>
+            <div className="flex h-full min-h-[360px] flex-col rounded-xl bg-surface-container-low p-6">
+              <div className="mb-5 flex min-w-0 items-center justify-between gap-4">
+                <div className="min-w-0">
                   <h2 className="text-xl font-bold text-on-surface">
                     Kart Bilgileri
                   </h2>
-                  <p className="text-sm text-on-surface-variant">
-                    {paymentIntent
-                      ? `${formattedAmount} için ödeme`
-                      : 'Tutar seçildikten sonra kart alanı açılır.'}
+                  <p
+                    className="max-w-full truncate text-sm text-on-surface-variant"
+                    title={paymentSubtitle}
+                  >
+                    {paymentSubtitle}
                   </p>
                 </div>
-                <span className="grid h-10 w-10 place-items-center rounded-lg bg-surface-container-highest">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-surface-container-highest">
                   <span className="material-symbols-outlined text-[20px] text-primary">
                     encrypted
                   </span>
                 </span>
               </div>
 
-              {stripePromise && elementsOptions ? (
-                <Elements
-                  key={paymentIntent.clientSecret}
-                  options={elementsOptions}
-                  stripe={stripePromise}
-                >
-                  <WalletPaymentForm
-                    amount={formattedAmount}
-                    onPaymentSucceeded={handlePaymentSucceeded}
-                  />
-                </Elements>
-              ) : (
-                <div className="grid min-h-64 place-items-center rounded-lg border border-dashed border-outline-variant/30 bg-surface/60 p-6 text-center text-sm text-on-surface-variant">
-                  Ödeme formu bekleniyor.
-                </div>
-              )}
+              <div className="flex flex-1 flex-col">
+                {stripePromise && elementsOptions ? (
+                  <Elements
+                    key={paymentIntent.clientSecret}
+                    options={elementsOptions}
+                    stripe={stripePromise}
+                  >
+                    <WalletPaymentForm
+                      onPaymentSucceeded={handlePaymentSucceeded}
+                    />
+                  </Elements>
+                ) : (
+                  <div className="grid min-h-64 flex-1 place-items-center rounded-lg border border-dashed border-outline-variant/30 bg-surface/60 p-6 text-center text-sm text-on-surface-variant">
+                    {isCreatingIntent
+                      ? 'Ödeme formu hazırlanıyor.'
+                      : 'Ödeme formu bekleniyor.'}
+                  </div>
+                )}
+              </div>
             </div>
           </section>
         </div>

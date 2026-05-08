@@ -10,6 +10,7 @@ export function titleForPath(pathname) {
       '/notifications': 'Bildirimleriniz | Licit',
       '/settings': 'Hesap Ayarları | Licit',
       '/wallet': 'Cüzdan | Licit',
+      '/wallet/top-up': 'Cüzdan Yükle | Licit',
       '/login': 'Giriş Yap - Licit',
       '/verify-login': 'Giriş Kodunu Doğrula | Licit',
       '/forgot-password': 'Şifremi Unuttum | Licit',

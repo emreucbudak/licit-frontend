@@ -219,7 +219,7 @@ function SettingsPage({ navigate, onLogout }) {
       <AppTopNavbar
         currentPath="/settings"
         navigate={navigate}
-        searchPlaceholder="Hesap ayarlarında ara..."
+        searchPlaceholder="İhale ara..."
       />
       <AppSideNavbar
         currentPath="/settings"

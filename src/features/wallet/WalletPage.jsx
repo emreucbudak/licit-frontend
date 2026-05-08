@@ -36,15 +36,6 @@ const moneyFormatter = new Intl.NumberFormat('tr-TR', {
   style: 'currency',
 })
 
-const walletActions = {
-  load: {
-    endpoint: '/api/wallet/deposit',
-    icon: 'arrow_downward',
-    label: 'Yükle',
-    successMessage: 'Yükleme tamamlandı.',
-  },
-}
-
 const transactionDescriptionByType = {
   Deduct: 'Kesinti',
   Deposit: 'Yükleme',
@@ -69,18 +60,6 @@ function formatMoney(value) {
 function formatTransactionId(id) {
   const cleanId = String(id || '').replaceAll('-', '').toUpperCase()
   return cleanId ? `#TX-${cleanId.slice(0, 6)}` : '#TX-NEW'
-}
-
-function createIdempotencyKey() {
-  if (globalThis.crypto?.randomUUID) {
-    return globalThis.crypto.randomUUID()
-  }
-
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (token) => {
-    const randomValue = Math.floor(Math.random() * 16)
-    const value = token === 'x' ? randomValue : (randomValue & 0x3) | 0x8
-    return value.toString(16)
-  })
 }
 
 function formatDateParts(value) {
@@ -186,11 +165,6 @@ function WalletPage({ navigate, onLogout }) {
   const [isHistoryExpanded, setIsHistoryExpanded] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [walletError, setWalletError] = useState('')
-  const [selectedAction, setSelectedAction] = useState('')
-  const [actionAmount, setActionAmount] = useState('')
-  const [actionMessage, setActionMessage] = useState('')
-  const [actionError, setActionError] = useState('')
-  const [isActionSubmitting, setIsActionSubmitting] = useState(false)
 
   const loadWallet = useCallback(
     async ({
@@ -273,7 +247,6 @@ function WalletPage({ navigate, onLogout }) {
     [transactions],
   )
 
-  const activeAction = selectedAction ? walletActions[selectedAction] : null
   const transactionTotalPages = Math.max(
     1,
     Math.ceil(transactionTotalCount / transactionPageSize),
@@ -299,64 +272,6 @@ function WalletPage({ navigate, onLogout }) {
   }, [transactionPage, transactionTotalPages])
   const showTransactionPagination =
     isHistoryExpanded && (transactionTotalPages > 1 || transactionTotalCount > transactions.length)
-
-  function handleActionSelect(action) {
-    setSelectedAction(action)
-    setActionAmount('')
-    setActionError('')
-    setActionMessage('')
-  }
-
-  function handleActionCancel() {
-    setSelectedAction('')
-    setActionAmount('')
-    setActionError('')
-    setActionMessage('')
-  }
-
-  async function handleActionSubmit(event) {
-    event.preventDefault()
-
-    if (!activeAction) {
-      return
-    }
-
-    const amount = Number(actionAmount)
-
-    setActionError('')
-    setActionMessage('')
-
-    if (!Number.isFinite(amount) || amount <= 0) {
-      setActionError('Tutar 0’dan büyük olmalı.')
-      return
-    }
-
-    setIsActionSubmitting(true)
-
-    try {
-      const result = await sendAuthorizedRequest(activeAction.endpoint, {
-        body: { amount },
-        headers: { 'Idempotency-Key': createIdempotencyKey() },
-        method: 'POST',
-      })
-
-      if (!result.response.ok) {
-        throw new Error(
-          getApiErrorMessage(result.payload, 'Yükleme başarısız oldu.'),
-        )
-      }
-
-      setActionAmount('')
-      setActionMessage(activeAction.successMessage)
-      await loadWallet({ page: transactionPage, pageSize: transactionPageSize, silent: true })
-    } catch (error) {
-      setActionError(
-        getUserFacingErrorMessage(error, 'Yükleme başarısız oldu.'),
-      )
-    } finally {
-      setIsActionSubmitting(false)
-    }
-  }
 
   function handleHistoryToggle() {
     const nextExpanded = !isHistoryExpanded
@@ -443,7 +358,7 @@ function WalletPage({ navigate, onLogout }) {
               <div className="relative z-10 mt-10 flex flex-wrap gap-4 border-t border-outline-variant/10 pt-6">
                 <button
                   className="flex min-w-36 flex-1 items-center justify-center gap-2 rounded-lg border border-outline-variant/20 bg-surface-container-highest py-3 text-sm font-medium text-on-surface transition-colors hover:bg-surface-bright"
-                  onClick={() => handleActionSelect('load')}
+                  onClick={navigate('/wallet/top-up')}
                   type="button"
                 >
                   <span className="material-symbols-outlined text-[18px]">
@@ -453,64 +368,6 @@ function WalletPage({ navigate, onLogout }) {
                 </button>
               </div>
 
-              {activeAction ? (
-                <form
-                  className="relative z-10 mt-6 rounded-lg border border-outline-variant/20 bg-surface-container-highest p-4"
-                  onSubmit={handleActionSubmit}
-                >
-                  <div className="flex flex-col gap-4 md:flex-row md:items-end">
-                    <div className="flex-1">
-                      <label
-                        className="mb-2 flex items-center gap-2 text-sm font-medium text-on-surface"
-                        htmlFor="wallet-action-amount"
-                      >
-                        <span className="material-symbols-outlined text-[18px] text-on-surface-variant">
-                          {activeAction.icon}
-                        </span>
-                        Yüklenecek tutar
-                      </label>
-                      <input
-                        className="w-full rounded-lg border border-outline-variant/30 bg-surface px-3 py-2 text-sm text-on-surface outline-none transition-colors placeholder:text-on-surface-variant focus:border-primary"
-                        disabled={isActionSubmitting}
-                        id="wallet-action-amount"
-                        inputMode="decimal"
-                        min="0"
-                        onChange={(event) => setActionAmount(event.target.value)}
-                        placeholder="0.00"
-                        step="0.01"
-                        type="number"
-                        value={actionAmount}
-                      />
-                    </div>
-                    <div className="flex gap-2">
-                      <button
-                        className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-on-primary transition-colors hover:bg-primary/90 disabled:cursor-wait disabled:opacity-60"
-                        disabled={isActionSubmitting}
-                        type="submit"
-                      >
-                        {isActionSubmitting ? 'Yükleniyor...' : 'Yükle'}
-                      </button>
-                      <button
-                        className="rounded-lg border border-outline-variant/20 px-4 py-2 text-sm font-medium text-on-surface transition-colors hover:bg-surface-bright disabled:cursor-wait disabled:opacity-60"
-                        disabled={isActionSubmitting}
-                        onClick={handleActionCancel}
-                        type="button"
-                      >
-                        Vazgeç
-                      </button>
-                    </div>
-                  </div>
-
-                  {actionError ? (
-                    <p className="mt-3 text-sm text-error">{actionError}</p>
-                  ) : null}
-                  {actionMessage ? (
-                    <p className="mt-3 text-sm text-secondary">
-                      {actionMessage}
-                    </p>
-                  ) : null}
-                </form>
-              ) : null}
             </div>
           </section>
 

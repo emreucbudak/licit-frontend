@@ -100,7 +100,7 @@ const supportChannels = [
 ]
 
 function HelpCenterPage({ navigate, onLogout }) {
-  const [openFaqId, setOpenFaqId] = useState(faqItems[0]?.id || '')
+  const [openFaqId, setOpenFaqId] = useState('')
   const faqColumns = [
     faqItems.filter((_, index) => index % 2 === 0),
     faqItems.filter((_, index) => index % 2 === 1),

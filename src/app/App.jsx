@@ -24,6 +24,7 @@ import LandingPage from '../features/landing/LandingPage'
 import NotificationCenterPage from '../features/notifications/NotificationCenterPage'
 import SettingsPage from '../features/settings/SettingsPage'
 import WalletPage from '../features/wallet/WalletPage'
+import WalletTopUpPage from '../features/wallet/WalletTopUpPage'
 import { titleForPath } from './pageTitles'
 import {
   EmailVerificationRoute,
@@ -351,6 +352,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute isAuthenticated={isAuthenticated}>
             <WalletPage navigate={navigate} onLogout={handleLogout} />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/wallet/top-up"
+        element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <WalletTopUpPage navigate={navigate} onLogout={handleLogout} />
           </ProtectedRoute>
         }
       />

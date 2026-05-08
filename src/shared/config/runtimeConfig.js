@@ -4,6 +4,7 @@ function normalizeBaseUrl(value) {
 
 export const runtimeConfig = {
   apiBaseUrl: normalizeBaseUrl(import.meta.env.VITE_API_BASE_URL),
+  stripePublishableKey: import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '',
   wsBaseUrl: normalizeBaseUrl(
     import.meta.env.VITE_WS_BASE_URL || import.meta.env.VITE_API_BASE_URL,
   ),

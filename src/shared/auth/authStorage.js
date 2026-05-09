@@ -3,12 +3,71 @@ export const ACCESS_TOKEN_STORAGE_KEY = 'licit.accessToken'
 export const REFRESH_TOKEN_STORAGE_KEY = 'licit.refreshToken'
 export const TOKEN_EXPIRES_AT_STORAGE_KEY = 'licit.tokenExpiresAt'
 
+const AUTH_EXPIRY_SKEW_MS = 30_000
+
+function decodeBase64Url(value) {
+  const normalizedValue = value.replace(/-/g, '+').replace(/_/g, '/')
+  const paddedValue = normalizedValue.padEnd(
+    normalizedValue.length + ((4 - (normalizedValue.length % 4)) % 4),
+    '=',
+  )
+
+  return window.atob(paddedValue)
+}
+
+function readAccessTokenExpiry(accessToken) {
+  try {
+    const [, payload] = accessToken.split('.')
+
+    if (!payload) {
+      return null
+    }
+
+    const parsedPayload = JSON.parse(decodeBase64Url(payload))
+    const expirySeconds = Number(parsedPayload.exp)
+
+    return Number.isFinite(expirySeconds) ? expirySeconds * 1000 : null
+  } catch {
+    return null
+  }
+}
+
+function readStoredExpiry(expiresAt) {
+  if (!expiresAt) {
+    return null
+  }
+
+  const expiryTime = new Date(expiresAt).getTime()
+
+  return Number.isFinite(expiryTime) ? expiryTime : null
+}
+
+function isFutureExpiry(expiryTime) {
+  return expiryTime === null || expiryTime - AUTH_EXPIRY_SKEW_MS > Date.now()
+}
+
+function hasUsableAccessToken(accessToken, expiresAt) {
+  if (!accessToken) {
+    return false
+  }
+
+  const storedExpiry = readStoredExpiry(expiresAt)
+  const tokenExpiry = readAccessTokenExpiry(accessToken)
+
+  return isFutureExpiry(storedExpiry) && isFutureExpiry(tokenExpiry)
+}
+
 export function isStoredAuthenticated() {
   try {
-    return (
-      window.localStorage.getItem(AUTH_STORAGE_KEY) === 'true' ||
-      Boolean(window.localStorage.getItem(ACCESS_TOKEN_STORAGE_KEY))
-    )
+    const accessToken = window.localStorage.getItem(ACCESS_TOKEN_STORAGE_KEY) || ''
+    const expiresAt = window.localStorage.getItem(TOKEN_EXPIRES_AT_STORAGE_KEY) || ''
+    const isAuthenticated = hasUsableAccessToken(accessToken, expiresAt)
+
+    if (!isAuthenticated) {
+      clearAuthentication()
+    }
+
+    return isAuthenticated
   } catch {
     return false
   }
@@ -32,11 +91,14 @@ export function getStoredAuthTokens() {
 
 export function storeAuthentication(authResult) {
   try {
+    if (!authResult?.accessToken) {
+      clearAuthentication()
+      return
+    }
+
     window.localStorage.setItem(AUTH_STORAGE_KEY, 'true')
 
-    if (authResult?.accessToken) {
-      window.localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, authResult.accessToken)
-    }
+    window.localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, authResult.accessToken)
 
     if (authResult?.refreshToken) {
       window.localStorage.setItem(REFRESH_TOKEN_STORAGE_KEY, authResult.refreshToken)

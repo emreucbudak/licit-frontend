@@ -51,11 +51,15 @@ function useCountUp(target, duration = 1400) {
   return value
 }
 
-function LandingPage({ navigate }) {
+function LandingPage({ isAuthenticated, navigate }) {
   const totalTransactions = useCountUp(24800, 1600)
   const representedCountries = useCountUp(120)
   const satisfactionRate = useCountUp(98)
   const completedSalesRate = useCountUp(97)
+  const createAuctionPath = isAuthenticated ? '/auctions/create' : '/login'
+  const createAuctionNavigationOptions = isAuthenticated
+    ? {}
+    : { state: { from: { pathname: '/auctions/create' } } }
 
   return (
     <div className="landing-page">
@@ -87,8 +91,11 @@ function LandingPage({ navigate }) {
               <div className="hero-actions">
                 <a
                   className="button button--primary"
-                  href="/auctions/create"
-                  onClick={navigate('/auctions/create')}
+                  href={createAuctionPath}
+                  onClick={navigate(
+                    createAuctionPath,
+                    createAuctionNavigationOptions,
+                  )}
                 >
                   İhale Oluştur
                   <span className="material-symbols-outlined button__icon">

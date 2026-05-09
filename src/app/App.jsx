@@ -207,7 +207,15 @@ function AppRoutes() {
 
   return (
     <Routes>
-      <Route path="/" element={<LandingPage navigate={navigate} />} />
+      <Route
+        path="/"
+        element={
+          <LandingPage
+            isAuthenticated={isAuthenticated}
+            navigate={navigate}
+          />
+        }
+      />
       <Route
         path="/login"
         element={

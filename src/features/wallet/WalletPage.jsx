@@ -305,7 +305,7 @@ function WalletPage({ navigate, onLogout }) {
       <AppTopNavbar
         currentPath="/wallet"
         navigate={navigate}
-        searchPlaceholder="Cüzdanda ara..."
+        searchPlaceholder="İhale ara..."
       />
       <AppSideNavbar
         currentPath="/wallet"

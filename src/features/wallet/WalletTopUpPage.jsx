@@ -1,12 +1,7 @@
 import { Elements } from '@stripe/react-stripe-js'
 import { loadStripe } from '@stripe/stripe-js'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { AppSideNavbar, AppTopNavbar } from '../../shared/components/navigation/AppNavigation'
-import {
-  getApiErrorMessage,
-  getUserFacingErrorMessage,
-} from '../../shared/api/apiError'
-import { sendAuthorizedRequest } from '../../shared/api/authorizedRequest'
 import { runtimeConfig } from '../../shared/config/runtimeConfig'
 import WalletPaymentForm from './WalletPaymentForm'
 
@@ -21,18 +16,6 @@ const maximumTopUpAmount = 100000
 const maxWholeDigitCount = String(maximumTopUpAmount).length
 const maxDecimalDigitCount = 2
 const presetAmounts = [250, 500, 1000, 2500]
-
-function createIdempotencyKey() {
-  if (globalThis.crypto?.randomUUID) {
-    return globalThis.crypto.randomUUID()
-  }
-
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (token) => {
-    const randomValue = Math.floor(Math.random() * 16)
-    const value = token === 'x' ? randomValue : (randomValue & 0x3) | 0x8
-    return value.toString(16)
-  })
-}
 
 function parseAmount(value) {
   const normalizedValue = String(value || '').replace(',', '.')
@@ -69,7 +52,6 @@ function normalizeAmountInput(value) {
 }
 
 function WalletTopUpPage({ navigate, onLogout }) {
-  const paymentIntentRequestIdRef = useRef(0)
   const stripePromise = useMemo(
     () =>
       runtimeConfig.stripePublishableKey
@@ -78,115 +60,31 @@ function WalletTopUpPage({ navigate, onLogout }) {
     [],
   )
   const [amountInput, setAmountInput] = useState(String(defaultAmount))
-  const [paymentIntent, setPaymentIntent] = useState(null)
   const [pageError, setPageError] = useState('')
   const [pageMessage, setPageMessage] = useState('')
-  const [isCreatingIntent, setIsCreatingIntent] = useState(false)
 
   const amount = parseAmount(amountInput)
-  const paymentIntentAmount = Number(paymentIntent?.amount) || 0
-  const paymentAmount = paymentIntentAmount || amount
+  const amountMinor = Math.round(amount * 100)
+  const elementsAmountMinor =
+    amount >= minimumTopUpAmount && amount <= maximumTopUpAmount
+      ? amountMinor
+      : defaultAmount * 100
   const formattedAmount = formatMoney(amount)
-  const formattedPaymentAmount = formatMoney(paymentAmount)
   const isAmountInRange =
     amount >= minimumTopUpAmount && amount <= maximumTopUpAmount
   const amountHelperText = `${formatMoney(minimumTopUpAmount)} - ${formatMoney(maximumTopUpAmount)} arası yükleme yapabilirsin.`
-  const paymentSubtitle = paymentIntent
-    ? `${formattedPaymentAmount} için ödeme`
-    : 'Ödeme formu hazırlanıyor.'
-  const isPaymentIntentCurrent =
-    Boolean(paymentIntent?.clientSecret) && paymentIntentAmount === amount
-
-  const createPaymentIntent = useCallback(async (nextAmount) => {
-    setPageError('')
-    setPageMessage('')
-    setPaymentIntent(null)
-
-    if (!runtimeConfig.stripePublishableKey) {
-      setPageError('Stripe publishable key tanımlı değil.')
-      return
-    }
-
-    if (nextAmount < minimumTopUpAmount || nextAmount > maximumTopUpAmount) {
-      return
-    }
-
-    const requestId = paymentIntentRequestIdRef.current + 1
-    paymentIntentRequestIdRef.current = requestId
-    setIsCreatingIntent(true)
-
-    try {
-      const result = await sendAuthorizedRequest('/api/wallet/deposits/payment-intents', {
-        body: { amount: nextAmount },
-        headers: { 'Idempotency-Key': createIdempotencyKey() },
-        method: 'POST',
-      })
-
-      if (!result.response.ok) {
-        throw new Error(
-          getApiErrorMessage(result.payload, 'Ödeme formu hazırlanamadı.'),
-        )
-      }
-
-      if (requestId === paymentIntentRequestIdRef.current) {
-        setPaymentIntent(result.payload)
-      }
-    } catch (error) {
-      if (requestId === paymentIntentRequestIdRef.current) {
-        setPageError(
-          getUserFacingErrorMessage(error, 'Ödeme formu hazırlanamadı.'),
-        )
-      }
-    } finally {
-      if (requestId === paymentIntentRequestIdRef.current) {
-        setIsCreatingIntent(false)
-      }
-    }
-  }, [])
-
-  useEffect(() => {
-    if (!isAmountInRange) {
-      paymentIntentRequestIdRef.current += 1
-      setPaymentIntent(null)
-      setIsCreatingIntent(false)
-      return
-    }
-
-    if (isCreatingIntent) {
-      return
-    }
-
-    if (isPaymentIntentCurrent) {
-      return
-    }
-
-    const delay = paymentIntent ? 650 : 0
-    const timerId = setTimeout(() => {
-      createPaymentIntent(amount)
-    }, delay)
-
-    return () => clearTimeout(timerId)
-  }, [
-    amount,
-    createPaymentIntent,
-    isAmountInRange,
-    isCreatingIntent,
-    isPaymentIntentCurrent,
-    paymentIntent,
-  ])
+  const paymentSubtitle = `${formattedAmount} için ödeme`
 
   function handlePaymentSucceeded(result) {
     setPageMessage(
       result?.applied
-        ? `${formatMoney(result.amount ?? paymentAmount)} cüzdana yüklendi.`
+        ? `${formatMoney(result.amount ?? amount)} cüzdana yüklendi.`
         : 'Ödeme alındı, bakiye güncelleniyor.',
     )
   }
 
-  const elementsOptions = paymentIntent?.clientSecret
+  const elementsOptions = stripePromise
     ? {
-        clientSecret: paymentIntent.clientSecret,
-        locale: 'tr',
         appearance: {
           theme: 'night',
           variables: {
@@ -220,6 +118,10 @@ function WalletTopUpPage({ navigate, onLogout }) {
             },
           },
         },
+        amount: elementsAmountMinor,
+        currency: 'try',
+        locale: 'tr',
+        mode: 'payment',
       }
     : null
 
@@ -228,7 +130,7 @@ function WalletTopUpPage({ navigate, onLogout }) {
       <AppTopNavbar
         currentPath="/wallet"
         navigate={navigate}
-        searchPlaceholder="Cüzdanda ara..."
+        searchPlaceholder="İhale ara..."
       />
       <AppSideNavbar
         currentPath="/wallet"
@@ -280,7 +182,7 @@ function WalletTopUpPage({ navigate, onLogout }) {
                   >
                     Tutar seç
                   </label>
-                  <div className="flex min-h-24 min-w-0 items-center overflow-hidden rounded-lg border border-outline-variant/30 bg-surface px-4 py-3 focus-within:border-primary">
+                  <div className="box-border flex h-24 min-w-0 items-center overflow-hidden rounded-lg border border-outline-variant/30 bg-surface px-4 py-3 focus-within:border-primary">
                     <span className="mr-3 shrink-0 text-sm font-semibold text-on-surface-variant">
                       TRY
                     </span>
@@ -355,20 +257,24 @@ function WalletTopUpPage({ navigate, onLogout }) {
 
               <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
                 {stripePromise && elementsOptions ? (
-                  <Elements
-                    key={paymentIntent.clientSecret}
-                    options={elementsOptions}
-                    stripe={stripePromise}
-                  >
+                  <Elements options={elementsOptions} stripe={stripePromise}>
                     <WalletPaymentForm
+                      amount={amount}
+                      amountMinor={elementsAmountMinor}
+                      formattedAmount={formattedAmount}
+                      isAmountValid={isAmountInRange}
+                      maximumAmount={maximumTopUpAmount}
+                      minimumAmount={minimumTopUpAmount}
+                      onPaymentStarted={() => {
+                        setPageError('')
+                        setPageMessage('')
+                      }}
                       onPaymentSucceeded={handlePaymentSucceeded}
                     />
                   </Elements>
                 ) : (
                   <div className="grid min-h-64 flex-1 place-items-center rounded-lg border border-dashed border-outline-variant/30 bg-surface/60 p-6 text-center text-sm text-on-surface-variant">
-                    {isCreatingIntent
-                      ? 'Ödeme formu hazırlanıyor.'
-                      : 'Ödeme formu bekleniyor.'}
+                    Stripe publishable key tanımlı değil.
                   </div>
                 )}
               </div>

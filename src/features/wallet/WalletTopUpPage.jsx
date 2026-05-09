@@ -16,7 +16,10 @@ const moneyFormatter = new Intl.NumberFormat('tr-TR', {
 })
 
 const defaultAmount = 500
-const maxAmountInputLength = 14
+const minimumTopUpAmount = 1
+const maximumTopUpAmount = 100000
+const maxWholeDigitCount = String(maximumTopUpAmount).length
+const maxDecimalDigitCount = 2
 const presetAmounts = [250, 500, 1000, 2500]
 
 function createIdempotencyKey() {
@@ -42,9 +45,27 @@ function formatMoney(value) {
 }
 
 function normalizeAmountInput(value) {
-  return String(value || '')
-    .replace(/[^\d,.]/g, '')
-    .slice(0, maxAmountInputLength)
+  const cleanedValue = String(value || '')
+    .replace(',', '.')
+    .replace(/[^\d.]/g, '')
+  const [rawWholePart = '', rawDecimalPart = ''] = cleanedValue.split('.')
+  const wholePart =
+    rawWholePart.replace(/^0+(?=\d)/, '').slice(0, maxWholeDigitCount) || '0'
+  const hasDecimalPart = cleanedValue.includes('.')
+  const decimalPart = rawDecimalPart
+    .replace(/\D/g, '')
+    .slice(0, maxDecimalDigitCount)
+  const normalizedValue = hasDecimalPart
+    ? `${wholePart}.${decimalPart}`
+    : wholePart
+
+  if (parseAmount(normalizedValue) > maximumTopUpAmount) {
+    return String(maximumTopUpAmount)
+  }
+
+  return normalizedValue === '0' && !String(value || '').startsWith('0')
+    ? ''
+    : normalizedValue
 }
 
 function WalletTopUpPage({ navigate, onLogout }) {
@@ -67,6 +88,9 @@ function WalletTopUpPage({ navigate, onLogout }) {
   const paymentAmount = paymentIntentAmount || amount
   const formattedAmount = formatMoney(amount)
   const formattedPaymentAmount = formatMoney(paymentAmount)
+  const isAmountInRange =
+    amount >= minimumTopUpAmount && amount <= maximumTopUpAmount
+  const amountHelperText = `${formatMoney(minimumTopUpAmount)} - ${formatMoney(maximumTopUpAmount)} arası yükleme yapabilirsin.`
   const paymentSubtitle = paymentIntent
     ? `${formattedPaymentAmount} için ödeme`
     : 'Ödeme formu hazırlanıyor.'
@@ -83,7 +107,7 @@ function WalletTopUpPage({ navigate, onLogout }) {
       return
     }
 
-    if (nextAmount <= 0) {
+    if (nextAmount < minimumTopUpAmount || nextAmount > maximumTopUpAmount) {
       return
     }
 
@@ -121,7 +145,7 @@ function WalletTopUpPage({ navigate, onLogout }) {
   }, [])
 
   useEffect(() => {
-    if (amount <= 0) {
+    if (!isAmountInRange) {
       paymentIntentRequestIdRef.current += 1
       setPaymentIntent(null)
       setIsCreatingIntent(false)
@@ -142,7 +166,14 @@ function WalletTopUpPage({ navigate, onLogout }) {
     }, delay)
 
     return () => clearTimeout(timerId)
-  }, [amount, createPaymentIntent, isCreatingIntent, isPaymentIntentCurrent, paymentIntent])
+  }, [
+    amount,
+    createPaymentIntent,
+    isAmountInRange,
+    isCreatingIntent,
+    isPaymentIntentCurrent,
+    paymentIntent,
+  ])
 
   function handlePaymentSucceeded(result) {
     setPageMessage(
@@ -229,18 +260,18 @@ function WalletTopUpPage({ navigate, onLogout }) {
           </header>
 
           {pageError ? (
-            <div className="break-words rounded-lg border border-error/20 bg-error-container/20 px-5 py-4 text-sm text-on-error-container">
+            <div className="min-w-0 break-words rounded-lg border border-error/20 bg-error-container/20 px-5 py-4 text-sm text-on-error-container [overflow-wrap:anywhere]">
               {pageError}
             </div>
           ) : null}
           {pageMessage ? (
-            <div className="break-words rounded-lg border border-secondary/20 bg-secondary/10 px-5 py-4 text-sm text-secondary">
+            <div className="min-w-0 break-words rounded-lg border border-secondary/20 bg-secondary/10 px-5 py-4 text-sm text-secondary [overflow-wrap:anywhere]">
               {pageMessage}
             </div>
           ) : null}
 
-          <section className="grid items-stretch gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
-            <div className="flex h-full min-h-[360px] flex-col rounded-xl bg-surface-container-low p-6">
+          <section className="grid min-w-0 items-stretch gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+            <div className="flex h-full min-h-[360px] min-w-0 flex-col overflow-hidden rounded-xl bg-surface-container-low p-6">
               <div>
                 <div className="mb-6">
                   <label
@@ -249,15 +280,14 @@ function WalletTopUpPage({ navigate, onLogout }) {
                   >
                     Tutar seç
                   </label>
-                  <div className="flex min-h-24 min-w-0 items-center rounded-lg border border-outline-variant/30 bg-surface px-4 py-3 focus-within:border-primary">
+                  <div className="flex min-h-24 min-w-0 items-center overflow-hidden rounded-lg border border-outline-variant/30 bg-surface px-4 py-3 focus-within:border-primary">
                     <span className="mr-3 shrink-0 text-sm font-semibold text-on-surface-variant">
                       TRY
                     </span>
                     <input
-                      className="min-w-0 flex-1 truncate bg-transparent text-2xl font-black text-on-surface outline-none sm:text-3xl"
+                      className="w-0 min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap bg-transparent text-2xl font-black text-on-surface outline-none sm:text-3xl"
                       id="wallet-top-up-amount"
                       inputMode="decimal"
-                      maxLength={maxAmountInputLength}
                       onChange={(event) =>
                         setAmountInput(normalizeAmountInput(event.target.value))
                       }
@@ -265,6 +295,9 @@ function WalletTopUpPage({ navigate, onLogout }) {
                       value={amountInput}
                     />
                   </div>
+                  <p className="mt-2 min-w-0 break-words text-xs text-on-surface-variant [overflow-wrap:anywhere]">
+                    {amountHelperText}
+                  </p>
                 </div>
 
                 <div className="mb-6 grid grid-cols-2 gap-2">
@@ -300,7 +333,7 @@ function WalletTopUpPage({ navigate, onLogout }) {
               </div>
             </div>
 
-            <div className="flex h-full min-h-[360px] flex-col rounded-xl bg-surface-container-low p-6">
+            <div className="flex h-full min-h-[360px] min-w-0 flex-col overflow-hidden rounded-xl bg-surface-container-low p-6">
               <div className="mb-5 flex min-w-0 items-center justify-between gap-4">
                 <div className="min-w-0">
                   <h2 className="text-xl font-bold text-on-surface">
@@ -320,7 +353,7 @@ function WalletTopUpPage({ navigate, onLogout }) {
                 </span>
               </div>
 
-              <div className="flex flex-1 flex-col">
+              <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
                 {stripePromise && elementsOptions ? (
                   <Elements
                     key={paymentIntent.clientSecret}

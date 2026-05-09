@@ -66,16 +66,23 @@ function WalletPaymentForm({ onPaymentSucceeded }) {
   }
 
   return (
-    <form className="flex h-full flex-col space-y-5" onSubmit={handleSubmit}>
-      <div className="rounded-lg border border-outline-variant/20 bg-surface p-4">
+    <form
+      className="flex h-full min-w-0 flex-col space-y-5 overflow-hidden"
+      onSubmit={handleSubmit}
+    >
+      <div className="min-w-0 overflow-hidden rounded-lg border border-outline-variant/20 bg-surface p-4">
         <PaymentElement />
       </div>
 
       {paymentError ? (
-        <p className="break-words text-sm text-error">{paymentError}</p>
+        <p className="min-w-0 break-words text-sm text-error [overflow-wrap:anywhere]">
+          {paymentError}
+        </p>
       ) : null}
       {paymentMessage ? (
-        <p className="break-words text-sm text-secondary">{paymentMessage}</p>
+        <p className="min-w-0 break-words text-sm text-secondary [overflow-wrap:anywhere]">
+          {paymentMessage}
+        </p>
       ) : null}
 
       <button
@@ -86,7 +93,7 @@ function WalletPaymentForm({ onPaymentSucceeded }) {
         <span className="material-symbols-outlined shrink-0 text-[18px]">
           credit_card
         </span>
-        <span className="min-w-0 truncate">
+        <span className="min-w-0 truncate whitespace-nowrap">
           {isSubmitting ? 'İşleniyor...' : 'Ödeme yap'}
         </span>
       </button>

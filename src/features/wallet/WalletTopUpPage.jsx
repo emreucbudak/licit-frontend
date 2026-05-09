@@ -172,8 +172,8 @@ function WalletTopUpPage({ navigate, onLogout }) {
             </div>
           ) : null}
 
-          <section className="grid min-w-0 items-stretch gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
-            <div className="flex h-full min-h-[360px] min-w-0 flex-col overflow-hidden rounded-xl bg-surface-container-low p-6">
+          <section className="grid min-w-0 items-start gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+            <div className="flex min-w-0 flex-col overflow-hidden rounded-xl bg-surface-container-low p-6">
               <div>
                 <div className="mb-6">
                   <label
@@ -222,7 +222,7 @@ function WalletTopUpPage({ navigate, onLogout }) {
                 </div>
               </div>
 
-              <div className="mt-auto rounded-lg bg-surface-container-highest p-4">
+              <div className="rounded-lg bg-surface-container-highest p-4">
                 <div className="flex min-w-0 items-center justify-between gap-4 text-sm text-on-surface-variant">
                   <span className="shrink-0">Yüklenecek bakiye</span>
                   <strong

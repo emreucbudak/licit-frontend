@@ -86,6 +86,10 @@ function formatDateParts(value) {
 }
 
 function formatTransactionDescription(description, type) {
+  if (type === 'Deposit') {
+    return 'Cüzdan Bakiye yükleme'
+  }
+
   return description === type
     ? transactionDescriptionByType[type] || 'İşlem'
     : description

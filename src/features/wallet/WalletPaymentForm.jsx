@@ -18,10 +18,18 @@ function createIdempotencyKey() {
   })
 }
 
+function wait(ms) {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, ms)
+  })
+}
+
+const paymentSyncDelayMs = 1500
+const paymentSyncMaxAttempts = 40
+
 function WalletPaymentForm({
   amount,
   amountMinor,
-  formattedAmount,
   isAmountValid,
   maximumAmount,
   minimumAmount,
@@ -110,25 +118,43 @@ function WalletPaymentForm({
         throw new Error('Ödeme sonucu alınamadı.')
       }
 
-      if (paymentIntent.status !== 'succeeded') {
-        setPaymentMessage(
-          'Ödeme işleniyor. Bakiye birkaç saniye içinde güncellenir.',
+      let syncResult = null
+
+      for (let attempt = 1; attempt <= paymentSyncMaxAttempts; attempt += 1) {
+        syncResult = await sendAuthorizedRequest(
+          `/api/wallet/deposits/payment-intents/${encodeURIComponent(paymentIntent.id)}/sync`,
+          { method: 'POST' },
         )
-        return
+
+        if (!syncResult.response.ok) {
+          throw new Error(
+            getApiErrorMessage(syncResult.payload, 'Ödeme onayı alınamadı.'),
+          )
+        }
+
+        if (syncResult.payload?.applied) {
+          break
+        }
+
+        const status = String(syncResult.payload?.status || '').toLowerCase()
+
+        if (
+          status === 'canceled' ||
+          status === 'requires_payment_method' ||
+          status === 'requires_confirmation'
+        ) {
+          throw new Error('Ödeme tamamlanamadı.')
+        }
+
+        setPaymentMessage('Ödeme doğrulanıyor, lütfen bekle.')
+        await wait(paymentSyncDelayMs)
       }
 
-      const syncResult = await sendAuthorizedRequest(
-        `/api/wallet/deposits/payment-intents/${encodeURIComponent(paymentIntent.id)}/sync`,
-        { method: 'POST' },
-      )
-
-      if (!syncResult.response.ok) {
-        throw new Error(
-          getApiErrorMessage(syncResult.payload, 'Ödeme onayı alınamadı.'),
-        )
+      if (!syncResult?.payload?.applied) {
+        throw new Error('Ödeme doğrulaması zaman aşımına uğradı.')
       }
 
-      setPaymentMessage(`${formattedAmount} yükleme tamamlandı.`)
+      setPaymentMessage('')
       onPaymentSucceeded?.(syncResult.payload)
     } catch (error) {
       setPaymentError(

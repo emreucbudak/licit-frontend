@@ -261,7 +261,6 @@ function WalletTopUpPage({ navigate, onLogout }) {
                     <WalletPaymentForm
                       amount={amount}
                       amountMinor={elementsAmountMinor}
-                      formattedAmount={formattedAmount}
                       isAmountValid={isAmountInRange}
                       maximumAmount={maximumTopUpAmount}
                       minimumAmount={minimumTopUpAmount}

@@ -607,7 +607,9 @@ function TenderManagementPage({ navigate, onLogout }) {
         const {
           payload: imagePayload,
           response: imageResponse,
-        } = await uploadTenderImage(editingTenderId, editImageFile)
+        } = await uploadTenderImage(editingTenderId, editImageFile, {
+          replaceExisting: true,
+        })
 
         if (!imageResponse.ok) {
           throw new Error(

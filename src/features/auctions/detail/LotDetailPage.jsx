@@ -10,7 +10,7 @@ import { sendAuthorizedRequest } from '../../../shared/api/authorizedRequest'
 import { getStoredAuthTokens } from '../../../shared/auth/authStorage'
 import { buildSignalRHubUrl } from '../../../shared/config/runtimeConfig'
 
-const galleryImages = [
+const fallbackGalleryImages = [
   {
     alt: 'Luxury watch mechanism macro detail',
     src: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBFFGG9hhajC-rn79MlByaDR2cuCxjVf4EyQadtyc4MydPYC59vVd858s58Z6JRG8cnq1uClvHfG9e1Txy6N5nyUfmk9U8B4Kar_H9c0_CVuEpmhi7LXyvjZncNbLyWQ959TJsyc_8zbCQ5F1I-SWoqb9XdDIrnp1T9VabtzW_GFOaDcuypime8kGM_vajQRANGKfHlsM-ThD_XqFBIN-ksJpl6lUdbi5wh0cGEUw1UcY6q_Irt92Urg3LziZ6OllISchoCgI2e62E',
@@ -181,14 +181,16 @@ async function loadCurrentUserId() {
   return readCurrentUserIdFromToken()
 }
 
-function readImageUrl(auction) {
+function readImageUrls(auction) {
   const imageUrls = readField(auction, 'imgUrls', 'ImgUrls', 'imageUrls', 'ImageUrls')
 
   if (Array.isArray(imageUrls) && imageUrls.length > 0) {
-    return imageUrls[0]
+    return imageUrls.filter(Boolean)
   }
 
-  return readField(auction, 'imageUrl', 'ImageUrl', 'image_url')
+  const imageUrl = readField(auction, 'imageUrl', 'ImageUrl', 'image_url')
+
+  return imageUrl ? [imageUrl] : []
 }
 
 function isAuctionActive(status) {
@@ -212,6 +214,7 @@ function normalizeAuction(payload, fallbackId = '') {
   )
   const minIncrement =
     toNumber(readField(auction, 'min_increment', 'minIncrement', 'MinIncrement', 'increaseAmount', 'IncreaseAmount')) || 1
+  const imageUrls = readImageUrls(auction)
 
   return {
     currentPrice: toNumber(currentPrice ?? startPrice),
@@ -219,7 +222,8 @@ function normalizeAuction(payload, fallbackId = '') {
       readField(auction, 'description', 'Description') || 'Aciklama henuz eklenmedi.',
     endsAt: readField(auction, 'ends_at', 'endsAt', 'EndsAt', 'endDate', 'EndDate'),
     id: readField(auction, 'id', 'Id', 'auctionId', 'AuctionId') || fallbackId,
-    imageUrl: readImageUrl(auction) || '',
+    imageUrl: imageUrls[0] || '',
+    imageUrls,
     minIncrement,
     startPrice,
     status: readField(auction, 'status', 'Status') || 'unknown',
@@ -521,6 +525,19 @@ function LotDetailPage({ navigate }) {
     auction &&
     isAuctionActive(auction.status) &&
     new Date(auction.endsAt).getTime() > Date.now()
+  const visibleGalleryImages = useMemo(() => {
+    if (!auction?.imageUrls?.length) {
+      return fallbackGalleryImages
+    }
+
+    return auction.imageUrls.map((src, index) => ({
+      alt: `${auction.title || 'Muzayede'} gorseli ${index + 1}`,
+      src,
+      active: index === 0,
+    }))
+  }, [auction])
+  const heroImageSrc =
+    auction?.imageUrl || visibleGalleryImages[0]?.src || fallbackGalleryImages[0].src
 
   return (
     <div className="lot-page">
@@ -548,13 +565,13 @@ function LotDetailPage({ navigate }) {
           <div className="lot-hero-media">
             <img
               alt={auction?.title || 'Muzayede gorseli'}
-              src={auction?.imageUrl || 'https://lh3.googleusercontent.com/aida-public/AB6AXuBzqEMjOzvk6k5bT9kYm-Oukhhdq93JHRogJSjfE6rvpSJWZhqVINqDSKQ3hvIvdJsFQ7pItF3bykAfaJNrUAdvM6oPdUrKJKLIl-Q8QUKiizT75lqTazAne0JmQrz93_M5-RXfSLZcD6YwpEAyUpgGen7L-9b08EGam-r1wceiXjKQdCo-bhyKk_zLPOi9-uLLLtUhb4dp1elM1y37wktDAgVp31Ho4W_sF4Z0UNJFAim7reLX0-CuE0o-40YUMh0wVVW2YE050zw'}
+              src={heroImageSrc}
             />
 
           </div>
 
           <div className="lot-thumb-grid">
-            {galleryImages.map((image) => (
+            {visibleGalleryImages.map((image) => (
               <button
                 key={image.src}
                 className={`lot-thumb${image.active ? ' lot-thumb--active' : ''}`}

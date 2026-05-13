@@ -19,7 +19,7 @@ export function validateTenderImageFile(file) {
   return ''
 }
 
-export async function uploadTenderImage(tenderId, file) {
+export async function uploadTenderImage(tenderId, file, { replaceExisting = false } = {}) {
   const validationError = validateTenderImageFile(file)
   if (validationError) {
     throw new Error(validationError)
@@ -28,8 +28,11 @@ export async function uploadTenderImage(tenderId, file) {
   const formData = new FormData()
   formData.append('file', file)
 
-  return sendAuthorizedRequest(`/api/tender/${tenderId}/image`, {
-    body: formData,
-    method: 'POST',
-  })
+  return sendAuthorizedRequest(
+    `/api/tender/${tenderId}/image${replaceExisting ? '?replace=true' : ''}`,
+    {
+      body: formData,
+      method: 'POST',
+    },
+  )
 }

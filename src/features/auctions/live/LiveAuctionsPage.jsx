@@ -43,27 +43,36 @@ const moneyFormatter = new Intl.NumberFormat('tr-TR', {
 })
 
 function readField(source, ...keys) {
-  return keys.map((key) => source?.[key]).find((value) => value !== undefined)
+  return keys.map((key) => source?.[key]).find((value) => value !== undefined && value !== null)
 }
 
 function readCollection(payload, ...keys) {
-  if (Array.isArray(payload)) {
-    return payload
+  const candidatePayloads = [payload]
+  const nestedData = readField(payload, 'data', 'Data')
+
+  if (nestedData && nestedData !== payload) {
+    candidatePayloads.push(nestedData)
   }
 
-  for (const key of keys) {
-    const value = payload?.[key]
+  for (const candidatePayload of candidatePayloads) {
+    if (Array.isArray(candidatePayload)) {
+      return candidatePayload
+    }
 
-    if (Array.isArray(value)) {
-      return value
+    for (const key of keys) {
+      const value = candidatePayload?.[key]
+
+      if (Array.isArray(value)) {
+        return value
+      }
     }
   }
 
   return []
 }
 
-function buildAuctionListPath() {
-  return '/api/auction/active?pageNumber=1&pageSize=20'
+function buildLiveTenderListPath() {
+  return '/api/tender?activeOnly=true&page=1&pageSize=20'
 }
 
 function toNumber(value) {
@@ -105,10 +114,24 @@ function formatEndsAt(value) {
 }
 
 function readImageUrl(auction) {
-  const imageUrls = readField(auction, 'imgUrls', 'ImgUrls', 'imageUrls', 'ImageUrls')
+  const imageUrls = readField(
+    auction,
+    'imgUrls',
+    'ImgUrls',
+    'imageUrls',
+    'ImageUrls',
+    'images',
+    'Images',
+  )
 
   if (Array.isArray(imageUrls) && imageUrls.length > 0) {
-    return imageUrls[0]
+    const firstImage = imageUrls[0]
+
+    if (typeof firstImage === 'string') {
+      return firstImage
+    }
+
+    return readField(firstImage, 'url', 'Url', 'imageUrl', 'ImageUrl', 'src', 'Src')
   }
 
   return readField(auction, 'imageUrl', 'ImageUrl', 'image_url')
@@ -139,7 +162,7 @@ function matchesAuctionFilters(auction, searchQuery, categoryId) {
 
 function normalizeAuction(auction, index) {
   const fallback = imageFallbacks[index % imageFallbacks.length]
-  const id = readField(auction, 'id', 'Id', 'auctionId', 'AuctionId')
+  const id = readField(auction, 'id', 'Id', 'auctionId', 'AuctionId', 'tenderId', 'TenderId')
   const currentPrice = readField(
     auction,
     'current_price',
@@ -147,10 +170,15 @@ function normalizeAuction(auction, index) {
     'CurrentPrice',
     'highestBid',
     'HighestBid',
+    'currentHighestBid',
+    'CurrentHighestBid',
+    'lastBidAmount',
+    'LastBidAmount',
   )
   const endTime = readField(auction, 'ends_at', 'endsAt', 'EndsAt', 'endDate', 'EndDate')
   const title =
-    readField(auction, 'auctionName', 'AuctionName', 'title', 'Title') || 'İsimsiz müzayede'
+    readField(auction, 'auctionName', 'AuctionName', 'title', 'Title', 'name', 'Name') ||
+    'İsimsiz ihale'
   const endsLabel = formatEndsAt(endTime)
   const imageUrl = readImageUrl(auction)
   const startingPrice = readField(
@@ -296,8 +324,8 @@ function LiveAuctionsPage({ navigate, onLogout }) {
       setAuctionError('')
 
       try {
-        const auctionsPath = buildAuctionListPath()
-        const { payload, response } = await sendAuthorizedRequest(auctionsPath)
+        const liveTenderPath = buildLiveTenderListPath()
+        const { payload, response } = await sendAuthorizedRequest(liveTenderPath)
 
         if (!response.ok) {
           throw new Error(
@@ -305,7 +333,7 @@ function LiveAuctionsPage({ navigate, onLogout }) {
               payload,
               searchQuery
                 ? 'Arama sonuçları yüklenemedi. Lütfen tekrar dene.'
-                : 'Müzayedeler yüklenemedi. Lütfen tekrar dene.',
+                : 'İhaleler yüklenemedi. Lütfen tekrar dene.',
             ),
           )
         }
@@ -313,6 +341,8 @@ function LiveAuctionsPage({ navigate, onLogout }) {
         if (isCurrent) {
           const nextAuctions = readCollection(
             payload,
+            'tenders',
+            'Tenders',
             'auctions',
             'Auctions',
             'activeAuctions',
@@ -330,7 +360,7 @@ function LiveAuctionsPage({ navigate, onLogout }) {
       } catch (error) {
         if (isCurrent) {
           setAuctionError(
-            getUserFacingErrorMessage(error, 'Müzayedeler yüklenemedi.'),
+            getUserFacingErrorMessage(error, 'İhaleler yüklenemedi.'),
           )
         }
       } finally {
@@ -368,7 +398,7 @@ function LiveAuctionsPage({ navigate, onLogout }) {
   const cardAuctions = renderedAuctions.slice(1)
   const emptyMessage = searchQuery
     ? `"${searchQuery}" için sonuç bulunamadı.`
-    : 'Henüz yayında müzayede yok.'
+    : 'Henüz yayında ihale yok.'
 
   const handleCategoryFilter = (categoryId) => {
     const params = new URLSearchParams()
@@ -410,7 +440,7 @@ function LiveAuctionsPage({ navigate, onLogout }) {
         <main className="auctions-main">
           <div className="auctions-main__header">
             <div>
-              <h1>Canlı müzayedeler</h1>
+              <h1>Canlı ihaleler</h1>
               <p>
                 {searchQuery
                   ? `"${searchQuery}" arama sonuçları.`
@@ -443,7 +473,7 @@ function LiveAuctionsPage({ navigate, onLogout }) {
             </div>
           ) : null}
 
-          <section className="auction-grid" aria-label="Müzayede listesi">
+          <section className="auction-grid" aria-label="İhale listesi">
             {isLoading ? (
               <>
                 <SkeletonCard />

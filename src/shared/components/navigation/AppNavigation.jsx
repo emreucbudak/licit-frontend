@@ -18,7 +18,7 @@ const notificationHubEvents = [
 
 const sideNavLinks = [
   {
-    label: 'Canl\u0131 M\u00fczayedeler',
+    label: 'Canl\u0131 \u0130haleler',
     icon: 'gavel',
     href: '/auctions',
     route: true,

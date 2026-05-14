@@ -415,7 +415,8 @@
   width: 256px;
   padding: 104px 16px 24px;
   border-right: 1px solid rgba(15, 23, 42, 0.65);
-  background: #131b2e;
+  background: rgba(11, 19, 38, 0.94);
+  backdrop-filter: blur(18px);
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.24);
 }
 

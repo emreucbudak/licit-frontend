@@ -34,6 +34,8 @@ const nextStatusesByStatus = {
   draft: ['Active', 'Cancelled'],
 }
 
+const apiTenderStatuses = ['Active', 'Closed', 'Cancelled', 'Completed']
+
 const defaultPageSize = 10
 
 function createEmptyEditValues() {
@@ -82,6 +84,14 @@ function normalizeStatusKey(status) {
   return normalizeStatus(status).toLowerCase()
 }
 
+function normalizeApiTenderStatus(status) {
+  const normalizedStatus = normalizeStatusKey(status)
+
+  return apiTenderStatuses.find(
+    (apiStatus) => normalizeStatusKey(apiStatus) === normalizedStatus,
+  ) || ''
+}
+
 function getStatusLabel(status) {
   const normalizedStatus = normalizeStatusKey(status)
 
@@ -105,6 +115,40 @@ function getStatusBadgeClass(status) {
 
 function getNextStatuses(status) {
   return nextStatusesByStatus[normalizeStatusKey(status)] || []
+}
+
+function hasApiFailureFlag(payload) {
+  const successFlag =
+    readField(
+      payload,
+      'success',
+      'Success',
+      'succeeded',
+      'Succeeded',
+      'isSuccess',
+      'IsSuccess',
+    ) ??
+    readField(
+      payload?.data,
+      'success',
+      'Success',
+      'succeeded',
+      'Succeeded',
+      'isSuccess',
+      'IsSuccess',
+    )
+
+  return successFlag === false || normalizeStatusKey(successFlag) === 'false'
+}
+
+function readUpdatedTenderStatus(payload, fallbackStatus) {
+  const status =
+    readField(payload, 'status', 'Status') ||
+    readField(payload?.data, 'status', 'Status') ||
+    readField(payload?.tender, 'status', 'Status') ||
+    readField(payload?.Tender, 'status', 'Status')
+
+  return normalizeApiTenderStatus(status) || fallbackStatus
 }
 
 function formatMoney(value) {
@@ -238,6 +282,23 @@ function buildPagination(payload, fallbackPage, fallbackPageSize, visibleCount) 
     hasPreviousPage:
       readField(payload, 'hasPreviousPage', 'HasPreviousPage', 'has_previous_page') ??
       page > 1,
+  }
+}
+
+function buildPaginationAfterDelete(currentPagination) {
+  const pageSize = Math.max(toNumber(currentPagination.pageSize, defaultPageSize), 1)
+  const totalCount = Math.max(0, toNumber(currentPagination.totalCount, 0) - 1)
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize) || 1)
+  const page = Math.min(toNumber(currentPagination.page, 1), totalPages)
+
+  return {
+    ...currentPagination,
+    totalCount,
+    totalPages,
+    page,
+    pageSize,
+    hasNextPage: page < totalPages,
+    hasPreviousPage: page > 1,
   }
 }
 
@@ -658,7 +719,7 @@ function TenderManagementPage({ navigate, onLogout }) {
         },
       )
 
-      if (!response.ok) {
+      if (response.status !== 204) {
         throw new Error(
           getApiErrorMessage(payload, 'İhale silinemedi. Lütfen tekrar dene.'),
         )
@@ -672,7 +733,13 @@ function TenderManagementPage({ navigate, onLogout }) {
       setTenders((currentTenders) =>
         currentTenders.filter((currentTender) => currentTender.id !== tender.id),
       )
-      setReloadKey((currentKey) => currentKey + 1)
+      setPagination(buildPaginationAfterDelete)
+
+      if (tenders.length <= 1 && page > 1) {
+        setPage((currentPage) => Math.max(1, currentPage - 1))
+      } else {
+        setReloadKey((currentKey) => currentKey + 1)
+      }
     } catch (error) {
       setActionError(
         getUserFacingErrorMessage(error, 'İhale silinemedi.'),
@@ -683,7 +750,13 @@ function TenderManagementPage({ navigate, onLogout }) {
   }
 
   const handleStatusChange = async (tender, nextStatus) => {
-    if (busyAction || !tender.id || !nextStatus) {
+    const statusForApi = normalizeApiTenderStatus(nextStatus)
+
+    if (busyAction || !tender.id || !statusForApi) {
+      if (nextStatus && !statusForApi) {
+        setActionError('Geçersiz ihale durumu seçildi.')
+      }
+
       return
     }
 
@@ -697,12 +770,12 @@ function TenderManagementPage({ navigate, onLogout }) {
         {
           method: 'PATCH',
           body: {
-            status: nextStatus,
+            status: statusForApi,
           },
         },
       )
 
-      if (!response.ok) {
+      if (!response.ok || hasApiFailureFlag(payload)) {
         throw new Error(
           getApiErrorMessage(
             payload,
@@ -711,7 +784,7 @@ function TenderManagementPage({ navigate, onLogout }) {
         )
       }
 
-      const updatedStatus = readField(payload, 'status', 'Status') || nextStatus
+      const updatedStatus = readUpdatedTenderStatus(payload, statusForApi)
 
       setNotice('İhale durumu güncellendi.')
       setTenders((currentTenders) =>

@@ -553,15 +553,15 @@
 
 .lot-ticker__avatars span:first-child {
   margin-left: 0;
-  background: #94a3b8;
+  background: #ef4444;
 }
 
 .lot-ticker__avatars span:nth-child(2) {
-  background: #818cf8;
+  background: #2563eb;
 }
 
 .lot-ticker__avatars span:last-child {
-  background: #34d399;
+  background: #16a34a;
 }
 
 .lot-ticker__actions {

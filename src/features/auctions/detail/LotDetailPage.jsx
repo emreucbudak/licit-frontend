@@ -185,7 +185,13 @@ function readImageUrls(auction) {
   const imageUrls = readField(auction, 'imgUrls', 'ImgUrls', 'imageUrls', 'ImageUrls')
 
   if (Array.isArray(imageUrls) && imageUrls.length > 0) {
-    return imageUrls.filter(Boolean)
+    return imageUrls
+      .map((image) =>
+        typeof image === 'string'
+          ? image
+          : readField(image, 'url', 'Url', 'imageUrl', 'ImageUrl', 'src', 'Src'),
+      )
+      .filter(Boolean)
   }
 
   const imageUrl = readField(auction, 'imageUrl', 'ImageUrl', 'image_url')
@@ -200,8 +206,24 @@ function isAuctionActive(status) {
 }
 
 function normalizeAuction(payload, fallbackId = '') {
-  const auction = payload?.auction || payload?.Auction || payload
-  const startPrice = toNumber(readField(auction, 'start_price', 'startPrice', 'StartPrice'))
+  const auction =
+    payload?.auction ||
+    payload?.Auction ||
+    payload?.tender ||
+    payload?.Tender ||
+    payload?.data ||
+    payload?.Data ||
+    payload
+  const startPrice = toNumber(
+    readField(
+      auction,
+      'startingPrice',
+      'StartingPrice',
+      'start_price',
+      'startPrice',
+      'StartPrice',
+    ),
+  )
   const currentPrice = readField(
     auction,
     'current_price',
@@ -221,7 +243,9 @@ function normalizeAuction(payload, fallbackId = '') {
     description:
       readField(auction, 'description', 'Description') || 'Aciklama henuz eklenmedi.',
     endsAt: readField(auction, 'ends_at', 'endsAt', 'EndsAt', 'endDate', 'EndDate'),
-    id: readField(auction, 'id', 'Id', 'auctionId', 'AuctionId') || fallbackId,
+    id:
+      readField(auction, 'id', 'Id', 'auctionId', 'AuctionId', 'tenderId', 'TenderId') ||
+      fallbackId,
     imageUrl: imageUrls[0] || '',
     imageUrls,
     minIncrement,
@@ -267,6 +291,7 @@ function LotDetailPage({ navigate }) {
   const [loadError, setLoadError] = useState('')
   const [bidMessage, setBidMessage] = useState('')
   const [bidError, setBidError] = useState('')
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const biddingConnectionRef = useRef(null)
   const joinedAuctionIdRef = useRef('')
   const minIncrementRef = useRef(1)
@@ -278,11 +303,22 @@ function LotDetailPage({ navigate }) {
 
     setLoadError('')
 
+    const tenderResult = await sendAuthorizedRequest(`/api/tender/${auctionId}`)
+
+    if (tenderResult.response.ok) {
+      setAuction(normalizeAuction(tenderResult.payload, auctionId))
+      setBids([])
+      return
+    }
+
     const auctionResult = await sendAuthorizedRequest(`/api/auction/${auctionId}`)
 
     if (!auctionResult.response.ok) {
       throw new Error(
-        getApiErrorMessage(auctionResult.payload, 'Muzayede detayi alinamadi.'),
+        getApiErrorMessage(
+          auctionResult.payload,
+          getApiErrorMessage(tenderResult.payload, 'Muzayede detayi alinamadi.'),
+        ),
       )
     }
 
@@ -324,6 +360,10 @@ function LotDetailPage({ navigate }) {
   useEffect(() => {
     minIncrementRef.current = auction?.minIncrement || 1
   }, [auction?.minIncrement])
+
+  useEffect(() => {
+    setSelectedImageIndex(0)
+  }, [auction?.id, auction?.imageUrls?.length])
 
   const handleRealtimeBid = useCallback(
     (message) => {
@@ -527,17 +567,22 @@ function LotDetailPage({ navigate }) {
     new Date(auction.endsAt).getTime() > Date.now()
   const visibleGalleryImages = useMemo(() => {
     if (!auction?.imageUrls?.length) {
-      return fallbackGalleryImages
+      return fallbackGalleryImages.map((image, index) => ({
+        ...image,
+        active: index === selectedImageIndex,
+      }))
     }
 
     return auction.imageUrls.map((src, index) => ({
       alt: `${auction.title || 'Muzayede'} gorseli ${index + 1}`,
       src,
-      active: index === 0,
+      active: index === selectedImageIndex,
     }))
-  }, [auction])
+  }, [auction, selectedImageIndex])
+  const selectedGalleryImage =
+    visibleGalleryImages[selectedImageIndex] || visibleGalleryImages[0]
   const heroImageSrc =
-    auction?.imageUrl || visibleGalleryImages[0]?.src || fallbackGalleryImages[0].src
+    selectedGalleryImage?.src || auction?.imageUrl || fallbackGalleryImages[0].src
 
   return (
     <div className="lot-page">
@@ -571,10 +616,11 @@ function LotDetailPage({ navigate }) {
           </div>
 
           <div className="lot-thumb-grid">
-            {visibleGalleryImages.map((image) => (
+            {visibleGalleryImages.map((image, index) => (
               <button
-                key={image.src}
+                key={image.src || image.alt}
                 className={`lot-thumb${image.active ? ' lot-thumb--active' : ''}`}
+                onClick={() => setSelectedImageIndex(index)}
                 type="button"
               >
                 <img alt={image.alt} src={image.src} />

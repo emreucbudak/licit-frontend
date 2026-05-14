@@ -502,7 +502,6 @@ function LiveAuctionsPage({ navigate, onLogout }) {
                   <div className="auction-feature__header">
                     <div>
                       <h2>{featuredAuction.title}</h2>
-                      <p>{featuredAuction.description}</p>
                     </div>
 
                     <div className="auction-feature__price">

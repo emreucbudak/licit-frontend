@@ -73,7 +73,6 @@ function CreateAuctionPage({ navigate, onLogout }) {
   const [isLoadingCategories, setIsLoadingCategories] = useState(true)
   const [submitError, setSubmitError] = useState('')
   const [submitSuccess, setSubmitSuccess] = useState('')
-  const [createdTenderId, setCreatedTenderId] = useState('')
   const [submitMode, setSubmitMode] = useState('')
   const [imageSlots, setImageSlots] = useState(createEmptyImageSlots)
   const [imageError, setImageError] = useState('')
@@ -302,7 +301,6 @@ function CreateAuctionPage({ navigate, onLogout }) {
 
     setSubmitError('')
     setSubmitSuccess('')
-    setCreatedTenderId('')
     setSubmitMode(shouldPublish ? 'publish' : 'draft')
 
     try {
@@ -323,8 +321,6 @@ function CreateAuctionPage({ navigate, onLogout }) {
       if (!payload?.id) {
         throw new Error('Müzayede oluşturuldu ama sonuç kimliği alınamadı.')
       }
-
-      setCreatedTenderId(payload.id)
 
       const selectedImageFiles = imageSlots
         .map((slot) => slot.file)
@@ -367,11 +363,7 @@ function CreateAuctionPage({ navigate, onLogout }) {
         }
       }
 
-      setSubmitSuccess(
-        shouldPublish
-          ? 'Müzayede oluşturuldu ve yayına alındı.'
-          : 'Müzayede taslak olarak kaydedildi.',
-      )
+      setSubmitSuccess('İhale oluşturuldu')
       setFormValues({
         ...initialFormValues,
         mainCategoryId: categories[0]?.id || '',
@@ -448,11 +440,6 @@ function CreateAuctionPage({ navigate, onLogout }) {
                   role="status"
                 >
                   <p>{submitSuccess}</p>
-                  {createdTenderId ? (
-                    <p className="mt-1 font-mono text-xs text-on-surface-variant">
-                      ID: {createdTenderId}
-                    </p>
-                  ) : null}
                 </div>
               ) : null}
 

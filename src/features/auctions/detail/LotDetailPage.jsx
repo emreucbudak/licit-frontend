@@ -658,12 +658,12 @@ function LotDetailPage({ navigate }) {
 
             <div className="lot-bid-card__header">
               <div>
-                <span className="lot-bid-card__eyebrow">Guncel En Yuksek Teklif</span>
+                <span className="lot-bid-card__eyebrow">Güncel En Yüksek Teklif</span>
                 <strong>{auction ? formatMoney(auction.currentPrice) : '-'}</strong>
               </div>
 
               <div className="lot-bid-card__countdown">
-                <span>Kalan Sure</span>
+                <span>Kalan Süre</span>
                 <strong>{auction ? formatCountdown(auction.endsAt) : '-'}</strong>
               </div>
             </div>
@@ -698,7 +698,6 @@ function LotDetailPage({ navigate }) {
 
           <div className="lot-activity-card">
             <div className="lot-activity-card__header">
-              <h2>Gercek Zamanli Aktivite</h2>
               <span className="lot-activity-card__online">
                 <span></span>
                 {renderedBids.length} Teklif
@@ -708,7 +707,7 @@ function LotDetailPage({ navigate }) {
             <div className="lot-activity-feed">
               {isLoading ? <p className="lot-feed-state">Teklifler yukleniyor...</p> : null}
               {!isLoading && renderedBids.length === 0 ? (
-                <p className="lot-feed-state">Henuz teklif yok.</p>
+                <p className="lot-feed-state">Henüz teklif yok.</p>
               ) : null}
 
               {!isLoading
